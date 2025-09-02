@@ -21,3 +21,4 @@ services:
 
 volumes:
   work-link_postgres_data:
+
