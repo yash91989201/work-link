@@ -1,6 +1,7 @@
 import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { organization } from "better-auth/plugins";
 import { db } from "@/db";
 import { account, session, user, verification } from "@/db/schema/auth";
 import { env } from "@/env";
@@ -26,5 +27,5 @@ export const auth = betterAuth({
       httpOnly: true,
     },
   },
-  plugins: [expo()],
+  plugins: [expo(), organization()],
 });
