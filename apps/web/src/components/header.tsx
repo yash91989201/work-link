@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ModeToggle } from "./mode-toggle";
 import UserMenu from "./user-menu";
-import { buttonVariants } from "./ui/button";
 
 export default function Header() {
   return (
@@ -21,9 +20,6 @@ export default function Header() {
           <h1 className="font-semibold text-2xl">Work Link</h1>
         </Link>
         <div className="flex items-center gap-2">
-          <Link to="/signin" className={buttonVariants({ variant: "outline" })}>
-            Sign In
-          </Link>
           <ModeToggle />
           <UserMenu />
         </div>

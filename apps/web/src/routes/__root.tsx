@@ -15,13 +15,14 @@ import Header from "@/components/header";
 import Loader from "@/components/loader";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import type { queryUtils } from "@/utils/orpc";
+import type { orpcClient, queryUtils } from "@/utils/orpc";
 import { link } from "@/utils/orpc";
 import "@/index.css";
 
 export interface RouterAppContext {
-  orpc: typeof queryUtils;
+  queryUtils: typeof queryUtils;
   queryClient: QueryClient;
+  orpcClient: typeof orpcClient;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({

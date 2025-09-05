@@ -7,8 +7,8 @@ export const Route = createFileRoute("/sign-up")({
 
 function RouteComponent() {
   return (
-    <div className="container mx-auto flex h-full w-full items-center justify-center">
+    <section className="container mx-auto flex h-full w-full items-center justify-center">
       <SignUpForm />
-    </div>
+    </section>
   );
 }

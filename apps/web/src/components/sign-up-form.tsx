@@ -39,9 +39,9 @@ export default function SignUpForm() {
     onSubmit: async ({ value }) => {
       await authClient.signUp.email(
         {
+          name: value.name,
           email: value.email,
           password: value.password,
-          name: value.name,
         },
         {
           onSuccess: () => {
@@ -53,7 +53,7 @@ export default function SignUpForm() {
           onError: (error) => {
             toast.error(error.error.message || error.error.statusText);
           },
-        },
+        }
       );
     },
     validators: {
@@ -95,10 +95,10 @@ export default function SignUpForm() {
                     placeholder="John Doe"
                     value={field.state.value}
                   />
-                  {field.state.meta.touched &&
+                  {field.state.meta.isTouched &&
                     field.state.meta.errors.map((error) => (
-                      <p className="text-sm text-red-500" key={error}>
-                        {error}
+                      <p className="text-red-500 text-sm" key={error?.message}>
+                        {error?.message}
                       </p>
                     ))}
                 </>
@@ -119,10 +119,10 @@ export default function SignUpForm() {
                     type="email"
                     value={field.state.value}
                   />
-                  {field.state.meta.touched &&
+                  {field.state.meta.isTouched &&
                     field.state.meta.errors.map((error) => (
-                      <p className="text-sm text-red-500" key={error}>
-                        {error}
+                      <p className="text-red-500 text-sm" key={error?.message}>
+                        {error?.message}
                       </p>
                     ))}
                 </>
@@ -142,10 +142,10 @@ export default function SignUpForm() {
                     type="password"
                     value={field.state.value}
                   />
-                  {field.state.meta.touched &&
+                  {field.state.meta.isTouched &&
                     field.state.meta.errors.map((error) => (
-                      <p className="text-sm text-red-500" key={error}>
-                        {error}
+                      <p className="text-red-500 text-sm" key={error?.message}>
+                        {error?.message}
                       </p>
                     ))}
                 </>
