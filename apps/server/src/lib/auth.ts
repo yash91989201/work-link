@@ -17,6 +17,7 @@ export const auth = betterAuth({
     },
   }),
   trustedOrigins: [env.CORS_ORIGIN],
+  debug: process.env.NODE_ENV !== "production",
   emailAndPassword: {
     enabled: true,
   },
