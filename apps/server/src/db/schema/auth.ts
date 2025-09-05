@@ -4,52 +4,70 @@ export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  email_verified: boolean("email_verified").notNull(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
-  created_at: timestamp("created_at").notNull(),
-  updated_at: timestamp("updated_at").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
-  expires_at: timestamp("expires_at").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
   token: text("token").notNull().unique(),
-  created_at: timestamp("created_at").notNull(),
-  updated_at: timestamp("updated_at").notNull(),
-  ip_address: text("ip_address"),
-  user_agent: text("user_agent"),
-  user_id: text("user_id")
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$onUpdate(() => new Date())
+    .notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id")
     .notNull()
-    .references(() => user.id),
-  active_organization_id: text("active_organization_id"),
-  active_team_id: text("active_team_id"),
+    .references(() => user.id, { onDelete: "cascade" }),
+  activeOrganizationId: text("active_organization_id"),
+  activeTeamId: text("active_team_id"),
 });
 
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
-  account_id: text("account_id").notNull(),
-  provider_id: text("provider_id").notNull(),
-  user_id: text("user_id")
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: text("user_id")
     .notNull()
-    .references(() => user.id),
-  access_token: text("access_token"),
-  refresh_token: text("refresh_token"),
-  id_token: text("id_token"),
-  access_token_expires_at: timestamp("access_token_expires_at"),
-  refresh_token_expires_at: timestamp("refresh_token_expires_at"),
+    .references(() => user.id, { onDelete: "cascade" }),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
   scope: text("scope"),
   password: text("password"),
-  created_at: timestamp("created_at").notNull(),
-  updated_at: timestamp("updated_at").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
-  expires_at: timestamp("expires_at").notNull(),
-  created_at: timestamp("created_at"),
-  updated_at: timestamp("updated_at"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 export const organization = pgTable("organization", {
@@ -57,57 +75,66 @@ export const organization = pgTable("organization", {
   name: text("name").notNull(),
   slug: text("slug").unique(),
   logo: text("logo"),
-  created_at: timestamp("created_at").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
   metadata: text("metadata"),
 });
 
 export const member = pgTable("member", {
   id: text("id").primaryKey(),
-  organization_id: text("organization_id")
+  organizationId: text("organization_id")
     .notNull()
-    .references(() => organization.id),
-  user_id: text("user_id")
+    .references(() => organization.id, { onDelete: "cascade" }),
+  userId: text("user_id")
     .notNull()
-    .references(() => user.id),
-  role: text("role").notNull(),
-  created_at: timestamp("created_at").notNull(),
+    .references(() => user.id, { onDelete: "cascade" }),
+  role: text("role").default("member").notNull(),
+  createdAt: timestamp("created_at").notNull(),
 });
 
 export const invitation = pgTable("invitation", {
   id: text("id").primaryKey(),
-  organization_id: text("organization_id")
+  organizationId: text("organization_id")
     .notNull()
-    .references(() => organization.id),
+    .references(() => organization.id, { onDelete: "cascade" }),
   email: text("email").notNull(),
   role: text("role"),
-  status: text("status").notNull(),
-  expires_at: timestamp("expires_at").notNull(),
-  inviter_id: text("inviter_id")
+  status: text("status").default("pending").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  inviterId: text("inviter_id")
     .notNull()
-    .references(() => user.id),
-  updated_at: timestamp("updated_at").notNull(),
+    .references(() => user.id, { onDelete: "cascade" }),
+  teamId: text("team_id").references(() => team.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export const team = pgTable("team", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  organization_id: text("organization_id")
+  organizationId: text("organization_id")
     .notNull()
-    .references(() => organization.id),
-  created_at: timestamp("created_at").notNull(),
+    .references(() => organization.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 export const teamMember = pgTable("team_member", {
   id: text("id").primaryKey(),
-  team_id: text("team_id")
+  teamId: text("team_id")
     .notNull()
-    .references(() => team.id),
-  user_id: text("user_id")
+    .references(() => team.id, { onDelete: "cascade" }),
+  userId: text("user_id")
     .notNull()
-    .references(() => user.id),
-  organization_id: text("organization_id")
-    .notNull()
-    .references(() => organization.id),
-  role: text("role").notNull(),
-  created_at: timestamp("created_at").notNull(),
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
