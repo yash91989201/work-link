@@ -1,21 +1,18 @@
-
+import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { expo } from "@better-auth/expo";
-import { db } from "../db";
-import * as schema from "../db/schema/auth";
+import { organization } from "better-auth/plugins";
+import { db } from "@/db";
+import * as authSchema from "@/db/schema/auth";
+import { env } from "@/env";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
-    
-    
-    schema: schema,
+    schema: authSchema,
   }),
-  trustedOrigins: [
-    process.env.CORS_ORIGIN || "",
-    "my-better-t-app://",
-  ],
+  trustedOrigins: [env.CORS_ORIGIN, "work-link://"],
+  debug: process.env.NODE_ENV !== "production",
   emailAndPassword: {
     enabled: true,
   },
@@ -26,8 +23,5 @@ export const auth = betterAuth({
       httpOnly: true,
     },
   },
-  plugins: [expo()],
+  plugins: [expo(), organization()],
 });
-
-
-

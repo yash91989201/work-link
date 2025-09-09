@@ -1,0 +1,24 @@
+{
+  "servers": {
+    "context7": {
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "command": "npx",
+      "custom_instructions": {
+        "disabled": false,
+        "text": "some text copilot-instructions"
+      },
+      "type": "stdio"
+    },
+    "shadcn": {
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ],
+      "command": "npx",
+      "type": "stdio"
+    }
+  }
+}

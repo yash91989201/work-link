@@ -1,26 +1,28 @@
-import Header from "@/components/header";
-import Loader from "@/components/loader";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { link, orpc } from "@/utils/orpc";
+import { createORPCClient } from "@orpc/client";
+import { createTanstackQueryUtils } from "@orpc/tanstack-query";
+import type { AppRouterClient } from "@server/router";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState } from "react";
-import { createTanstackQueryUtils } from "@orpc/tanstack-query";
-import type { AppRouterClient } from "../../../server/src/routers";
-import { createORPCClient } from "@orpc/client";
 import {
+  createRootRouteWithContext,
   HeadContent,
   Outlet,
-  createRootRouteWithContext,
   useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import "../index.css";
+import { useState } from "react";
+import Header from "@/components/shared/header";
+import Loader from "@/components/shared/loader";
+import { ThemeProvider } from "@/components/shared/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import type { orpcClient, queryUtils } from "@/utils/orpc";
+import { link } from "@/utils/orpc";
+import "@/index.css";
 
 export interface RouterAppContext {
-  orpc: typeof orpc;
+  queryUtils: typeof queryUtils;
   queryClient: QueryClient;
+  orpcClient: typeof orpcClient;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
@@ -28,11 +30,12 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
     meta: [
       {
-        title: "work-link",
+        title: "Work Link",
       },
       {
         name: "description",
-        content: "work-link is a web application",
+        content:
+          "Work Link is a lightweight, white-label team collaboration platform with secure channels, user management, and real-time communication tools.",
       },
     ],
     links: [
@@ -50,25 +53,25 @@ function RootComponent() {
   });
 
   const [client] = useState<AppRouterClient>(() => createORPCClient(link));
-  const [orpcUtils] = useState(() => createTanstackQueryUtils(client));
+  const [_orpcUtils] = useState(() => createTanstackQueryUtils(client));
 
   return (
     <>
       <HeadContent />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          disableTransitionOnChange
-          storageKey="vite-ui-theme"
-        >
-          <div className="grid grid-rows-[auto_1fr] h-svh">
-            <Header />
-            {isFetching ? <Loader /> : <Outlet />}
-          </div>
-          <Toaster richColors />
-        </ThemeProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        disableTransitionOnChange
+        storageKey="vite-ui-theme"
+      >
+        <div className="grid h-svh grid-rows-[auto_1fr]">
+          <Header />
+          {isFetching ? <Loader /> : <Outlet />}
+        </div>
+        <Toaster richColors />
+      </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
-      <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
+      <ReactQueryDevtools buttonPosition="bottom-right" position="bottom" />
     </>
   );
 }

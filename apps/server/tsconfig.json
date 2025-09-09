@@ -11,10 +11,7 @@
       "@/*": ["./src/*"]
     },
     "outDir": "./dist",
-    "types": [
-        "bun"
-
-    ],
+    "types": ["bun"],
     "composite": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
