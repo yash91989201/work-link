@@ -13,7 +13,7 @@
 
 ## 1. Schema Definition
 
-- Always use **Zod** for schema definitions.  
+- Always use **Zod** for schema definitions.
 - Example:
 
 ```ts
@@ -27,59 +27,46 @@ export const UserSchema = z.object({
 
 ## 2. Type Inference
 
-- Do not manually write TypeScript types that duplicate schema definitions.  
-- Instead, generate types directly from Zod schemas using `z.infer`.  
+- Types are **automatically generated** from Zod schemas and placed in `src/lib/types.ts`.
+- **Do not modify** `lib/types.ts` manually - it is auto-generated.
+- Import types directly from `src/lib/types.ts`.
 - Example:
 
 ```ts
-import type { z } from "zod";
-import { UserSchema } from "@/lib/schemas/user";
-
-export type User = z.infer<typeof UserSchema>;
+import type { User } from "@/lib/types";
 ```
 
 ## 3. File Organization
 
-- Place all **schemas** in:
+- Place all **schemas** in `src/lib/schemas/`.
 
-```
-src/lib/schemas/
-```
+Each schema should be in its own file (e.g., `user.ts`, `form.ts`). No nested directories.
 
-Each schema should be in its own file (e.g., `user.ts`, `form.ts`).  
+- **Types** are automatically generated and placed in `src/lib/types.ts`.
 
-- Place all **types** inferred from schemas in:
-
-```
-src/lib/types/
-```
-
-Each file should mirror the schema filename
-(e.g., `user.ts` type file for `user.ts` schema file).
+This single file contains all inferred types from the schemas.
 
 ## 4. Consistency Rules
 
-- Schema file names: use **lowercase with dashes or underscores** (e.g., `user-form.ts`).  
-- Type file names: match the schema name exactly.  
+- Schema file names: use **lowercase with dashes or underscores** (e.g., `user-form.ts`).
+- Type file names: match the schema name exactly.
 - Always import types from `src/lib/types/`, never from schemas directly.
 
 ---
 
 ✅ This ensures:
 
-- Single source of truth (schemas define structure + validation).  
-- Types remain consistent with schemas.  
+- Single source of truth (schemas define structure + validation).
+- Types remain consistent with schemas.
 - Codebase stays organized and predictable.
 
 ## 5. Monorepo Structure and Server Schemas
 
-- This project is a **monorepo** with repos like docs, native, server and web, this is the web repo.
+- This project is a **monorepo** with apps like docs, native, server and web, this is the web app.
 - The **server** also has its own schema and type directories for database tables and oRPC procedures:
 
-```
-server/src/lib/schemas/   → database and oRPC schemas
-server/src/lib/types/     → database and oRPC types
-```
+`server/src/lib/schemas/` → database and oRPC schemas
+`server/src/lib/types/` → database and oRPC types
 
 - The alias path for accessing server-side schemas and types is configured as:
 
@@ -89,30 +76,24 @@ server/src/lib/types/     → database and oRPC types
 
 ### Usage Guidelines
 
-- **Frontend usage**:  
-  Use `@/lib/schemas` and `@/lib/types` for client-side schemas and types.  
+- **Frontend**: `@/lib/schemas` & `@/lib/types` for client schemas/types.
 
-- **Backend usage**:  
-  Use `@server/lib/schemas` and `@server/lib/types` when you need access to server-side schemas or types, such as database models or oRPC procedure inputs/outputs.  
+- **Backend**: `@server/lib/schemas` & `@server/lib/types` for server schemas/types.
 
-- **Extending or sharing**:  
-  If you need to extend backend types for frontend use, import them through the `@server/lib/*` alias to ensure consistency.
+- **Extending**: Import backend types for frontend use via `@server/lib/*`.
 
 ## Example Project Structure
 
-```
+```bash
 src/
   lib/
     schemas/
       user.ts
       user-form.ts
-    types/
-      user.ts
-      user-form.ts
+    types.ts
 
 server/
   src/
     lib/
       schemas/
       types/
-```

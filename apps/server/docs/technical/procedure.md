@@ -14,7 +14,7 @@ src/
  │   ├─ context.ts
  │   ├─ orpc.ts
  │   └─ schema/
- │       ├─ index.ts   # drizzle-zod derived DB table schemas
+ │       ├─ db-tables.ts   # drizzle-zod derived DB table schemas
  │       ├─ post.ts    # feature-specific schemas
  │       ├─ comment.ts # feature-specific schemas
  │       └─ ...etc
@@ -77,6 +77,7 @@ import { publicProcedure, protectedProcedure } from "@/lib/orpc";
 ## 📑 Schema Usage
 
 ### General Rules
+
 - **All schemas must be defined inside `src/lib/schema/`.**  
 - **Every procedure must define both an `input` schema and an `output` schema.**  
 - **Inline `z.*` definitions are not allowed.** Always import named schemas.  
@@ -84,7 +85,8 @@ import { publicProcedure, protectedProcedure } from "@/lib/orpc";
   - Example: `CreatePostInput`, `CreatePostOutput`, `ListCommentsInput`, `ListCommentsOutput`.
 
 ### Reusing DB Table Schemas
-- **`src/lib/schema/index.ts` contains DB table schemas derived using drizzle-zod.**  
+
+- **`src/lib/schema/db-tables.ts` contains DB table schemas derived using drizzle-zod.**  
 - These can be imported and reused when building input/output schemas.  
 - Example: reuse `Post` schema and extend/trim it for procedure outputs.
 
@@ -211,7 +213,7 @@ export const appRouter = {
 ## ✅ Rules Recap
 
 1. **Schemas** → always in `src/lib/schema/`.  
-2. **DB Table Schemas** → available in `src/lib/schema/index.ts` (from drizzle-zod). Can be reused.  
+2. **DB Table Schemas** → available in `src/lib/schema/db-tables.ts` (from drizzle-zod). Can be reused.  
 3. **Schema names** → must be `PascalCase + Input|Output`.  
 4. **No inline `z.*` calls** in `.input()` or `.output()`.  
 5. **Every procedure requires both `input` and `output` schemas.**  
