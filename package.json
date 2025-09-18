@@ -9,7 +9,7 @@
   "scripts": {
     "check": "oxlint",
     "ruler:apply": "bunx @intellectronica/ruler@latest apply --local-only",
-    "dev": "turbo run dev db:studio --filter=web --filter=server",
+    "dev": "turbo run dev db:studio watch:types --filter=web --filter=server",
     "all-dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",

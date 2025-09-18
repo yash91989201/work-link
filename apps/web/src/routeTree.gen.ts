@@ -9,12 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as publicIndexRouteImport } from './routes/(public)/index'
 import { Route as OrganizationNewRouteImport } from './routes/organization/new'
 import { Route as OrganizationSlugIndexRouteImport } from './routes/organization/$slug/index'
+import { Route as publicauthSignupRouteImport } from './routes/(public)/(auth)/signup'
+import { Route as publicauthLoginRouteImport } from './routes/(public)/(auth)/login'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
+const publicIndexRoute = publicIndexRouteImport.update({
+  id: '/(public)/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -28,44 +30,73 @@ const OrganizationSlugIndexRoute = OrganizationSlugIndexRouteImport.update({
   path: '/organization/$slug/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const publicauthSignupRoute = publicauthSignupRouteImport.update({
+  id: '/(public)/(auth)/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const publicauthLoginRoute = publicauthLoginRouteImport.update({
+  id: '/(public)/(auth)/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/organization/new': typeof OrganizationNewRoute
+  '/': typeof publicIndexRoute
+  '/login': typeof publicauthLoginRoute
+  '/signup': typeof publicauthSignupRoute
   '/organization/$slug': typeof OrganizationSlugIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/organization/new': typeof OrganizationNewRoute
+  '/': typeof publicIndexRoute
+  '/login': typeof publicauthLoginRoute
+  '/signup': typeof publicauthSignupRoute
   '/organization/$slug': typeof OrganizationSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/organization/new': typeof OrganizationNewRoute
+  '/(public)/': typeof publicIndexRoute
+  '/(public)/(auth)/login': typeof publicauthLoginRoute
+  '/(public)/(auth)/signup': typeof publicauthSignupRoute
   '/organization/$slug/': typeof OrganizationSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/organization/new' | '/organization/$slug'
+  fullPaths:
+    | '/organization/new'
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/organization/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/organization/new' | '/organization/$slug'
-  id: '__root__' | '/' | '/organization/new' | '/organization/$slug/'
+  to: '/organization/new' | '/' | '/login' | '/signup' | '/organization/$slug'
+  id:
+    | '__root__'
+    | '/organization/new'
+    | '/(public)/'
+    | '/(public)/(auth)/login'
+    | '/(public)/(auth)/signup'
+    | '/organization/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   OrganizationNewRoute: typeof OrganizationNewRoute
+  publicIndexRoute: typeof publicIndexRoute
+  publicauthLoginRoute: typeof publicauthLoginRoute
+  publicauthSignupRoute: typeof publicauthSignupRoute
   OrganizationSlugIndexRoute: typeof OrganizationSlugIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/(public)/': {
+      id: '/(public)/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof publicIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/organization/new': {
@@ -82,12 +113,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizationSlugIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(public)/(auth)/signup': {
+      id: '/(public)/(auth)/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof publicauthSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(public)/(auth)/login': {
+      id: '/(public)/(auth)/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof publicauthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   OrganizationNewRoute: OrganizationNewRoute,
+  publicIndexRoute: publicIndexRoute,
+  publicauthLoginRoute: publicauthLoginRoute,
+  publicauthSignupRoute: publicauthSignupRoute,
   OrganizationSlugIndexRoute: OrganizationSlugIndexRoute,
 }
 export const routeTree = rootRouteImport
