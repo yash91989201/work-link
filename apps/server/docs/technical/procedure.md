@@ -1,6 +1,6 @@
 # Procedures Coding Instructions
 
-This document provides conventions and rules for generating **procedures** in the backend, which uses **Hono + oRPC**.  
+This document provides conventions and rules for generating **procedures** in the backend, which uses **Hono + oRPC**.
 Follow these guidelines strictly to ensure consistency across all routers.
 
 ---
@@ -45,9 +45,9 @@ export type Context = {
 };
 ```
 
-- `headers`: Raw request headers  
-- `session`: Authenticated user session (nullable)  
-- `db`: Database client instance  
+- `headers`: Raw request headers
+- `session`: Authenticated user session (nullable)
+- `db`: Database client instance
 
 Use the context inside procedures to access **session** (for auth) and **db** (for queries).
 
@@ -69,8 +69,8 @@ procedure: protectedProcedure
 import { publicProcedure, protectedProcedure } from "@/lib/orpc";
 ```
 
-- **`publicProcedure`** → accessible without authentication.  
-- **`protectedProcedure`** → requires authentication (`session?.user` must exist).  
+- **`publicProcedure`** → accessible without authentication.
+- **`protectedProcedure`** → requires authentication (`session?.user` must exist).
 
 ---
 
@@ -78,16 +78,38 @@ import { publicProcedure, protectedProcedure } from "@/lib/orpc";
 
 ### General Rules
 
-- **All schemas must be defined inside `src/lib/schema/`.**  
-- **Every procedure must define both an `input` schema and an `output` schema.**  
-- **Inline `z.*` definitions are not allowed.** Always import named schemas.  
-- Schema names must follow **`PascalCase + Input|Output`** convention.  
+- **All schemas must be defined inside `src/lib/schema/`.**
+- **Every procedure must define both an `input` schema and an `output` schema.**
+- **Inline `z.*` definitions are not allowed.** Always import named schemas.
+- Schema names must follow **`PascalCase + Input|Output`** convention.
   - Example: `CreatePostInput`, `CreatePostOutput`, `ListCommentsInput`, `ListCommentsOutput`.
+
+### Type Generation
+
+- **Types are automatically generated** from Zod schemas using the project's auto type generator
+- The generator detects all schemas in `src/lib/schemas/` directory
+- All inferred types are consolidated in `src/lib/types.ts`
+- **Do not modify** `src/lib/types.ts` manually - it is auto-generated and will be overwritten
+- Import types directly from `@/lib/types`
+
+### Auto Type Generator
+
+This project uses an **automatic type generator** that:
+- Scans all files in `src/lib/schemas/` for Zod schema exports
+- Generates TypeScript types using `z.infer<typeof SchemaName>`
+- Consolidates all types into a single `src/lib/types.ts` file
+- Runs automatically during build or when schemas change
+
+This ensures:
+- Single source of truth for types
+- No manual type definitions needed
+- Types always stay in sync with schemas
+- Better developer experience with auto-completion
 
 ### Reusing DB Table Schemas
 
-- **`src/lib/schema/db-tables.ts` contains DB table schemas derived using drizzle-zod.**  
-- These can be imported and reused when building input/output schemas.  
+- **`src/lib/schema/db-tables.ts` contains DB table schemas derived using drizzle-zod.**
+- These can be imported and reused when building input/output schemas.
 - Example: reuse `Post` schema and extend/trim it for procedure outputs.
 
 ```ts
@@ -212,12 +234,12 @@ export const appRouter = {
 
 ## ✅ Rules Recap
 
-1. **Schemas** → always in `src/lib/schema/`.  
-2. **DB Table Schemas** → available in `src/lib/schema/db-tables.ts` (from drizzle-zod). Can be reused.  
-3. **Schema names** → must be `PascalCase + Input|Output`.  
-4. **No inline `z.*` calls** in `.input()` or `.output()`.  
-5. **Every procedure requires both `input` and `output` schemas.**  
-6. **Use `protectedProcedure`** when session is required.  
-7. **Router structure** →  
-   - Single-file routers for simple cases.  
-   - Multi-file routers merged in `index.ts`.  
+1. **Schemas** → always in `src/lib/schema/`.
+2. **DB Table Schemas** → available in `src/lib/schema/db-tables.ts` (from drizzle-zod). Can be reused.
+3. **Schema names** → must be `PascalCase + Input|Output`.
+4. **No inline `z.*` calls** in `.input()` or `.output()`.
+5. **Every procedure requires both `input` and `output` schemas.**
+6. **Use `protectedProcedure`** when session is required.
+7. **Router structure** →
+   - Single-file routers for simple cases.
+   - Multi-file routers merged in `index.ts`.

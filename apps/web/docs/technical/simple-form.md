@@ -6,17 +6,17 @@ This document explains how to implement **simple forms** (single component forms
 
 ## 📂 Project Structure
 
-- **Schemas** → `src/lib/schemas/`  
-- **Types** → `src/lib/types/` (inferred with `z.infer`)  
-- **Form Components** → co-located in feature folders  
+- **Schemas** → `src/lib/schemas/`
+- **Types** → `src/lib/types/` (inferred with `z.infer`)
+- **Form Components** → co-located in feature folders
 
 ---
 
 ## 🧩 Schema & Types
 
-- Define schemas in `src/lib/schemas/`.  
-- Always suffix with `FormSchema` (e.g., `LogInFormSchema`, `CreateFeedbackFormSchema`).  
-- Export inferred types in `src/lib/types`:
+- Define schemas in `src/lib/schemas/`.
+- Always suffix with `FormSchema` (e.g., `LogInFormSchema`, `CreateFeedbackFormSchema`).
+- Export inferred types in `src/lib/types` (auto-generated from schemas):
 
 ```ts
 export type LogInFormType = z.infer<typeof LogInFormSchema>;
@@ -50,20 +50,20 @@ Wrap with `<Form {...form}>`:
 
 ## 🔄 Mutations & Submissions
 
-- Always use `useMutation` with `queryUtils.*.mutationOptions()`.  
-- Handle side effects (`toast`, `invalidateQueries`, `navigate`) in `mutationOptions`.  
+- Always use `useMutation` with `queryUtils.*.mutationOptions()`.
+- Handle side effects (`toast`, `invalidateQueries`, `navigate`) in `mutationOptions`.
 
 ---
 
 ## 🔒 UX Rules
 
 1. **Buttons**
-   - `<button>` defaults to `type="submit"`.  
-   - Use `type="button"` for non-submit actions.  
-   - Use `type="reset"` for reset actions.  
-   - Omit `type` when the button should submit the form.  
-2. **Validation** → always show `<FormMessage />`.  
-3. **Loading state** → disable submit button when submitting (`form.formState.isSubmitting || isPending`).  
+   - `<button>` defaults to `type="submit"`.
+   - Use `type="button"` for non-submit actions.
+   - Use `type="reset"` for reset actions.
+   - Omit `type` when the button should submit the form.
+2. **Validation** → always show `<FormMessage />`.
+3. **Loading state** → disable submit button when submitting (`form.formState.isSubmitting || isPending`).
 4. **Reset** → call `form.reset()` after successful submission if needed. Or create seperate function to handle reset and pass that to the <form></form> component's onReset.
 
 ---

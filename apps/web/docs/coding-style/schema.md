@@ -4,6 +4,7 @@
 - [Schemas Coding Style Guidelines](#schemas-coding-style-guidelines)
   - [1. Schema Definition](#1-schema-definition)
   - [2. Type Inference](#2-type-inference)
+  - [2.5 Auto Type Generator](#25-auto-type-generator)
   - [3. File Organization](#3-file-organization)
   - [4. Consistency Rules](#4-consistency-rules)
   - [5. Monorepo Structure and Server Schemas](#5-monorepo-structure-and-server-schemas)
@@ -27,14 +28,29 @@ export const UserSchema = z.object({
 
 ## 2. Type Inference
 
-- Types are **automatically generated** from Zod schemas and placed in `src/lib/types.ts`.
-- **Do not modify** `lib/types.ts` manually - it is auto-generated.
-- Import types directly from `src/lib/types.ts`.
+- Types are **automatically generated** from Zod schemas using an auto type generator that detects all schemas in `src/lib/schemas/`
+- The generator places all inferred types in `src/lib/types.ts`
+- **Do not modify** `lib/types.ts` manually - it is auto-generated and will be overwritten
+- Import types directly from `src/lib/types.ts`
 - Example:
 
 ```ts
 import type { User } from "@/lib/types";
 ```
+
+## 2.5 Auto Type Generator
+
+This project uses an **automatic type generator** that:
+- Scans all files in `src/lib/schemas/` for Zod schema exports
+- Generates TypeScript types using `z.infer<typeof SchemaName>`
+- Consolidates all types into a single `src/lib/types.ts` file
+- Runs automatically during build or when schemas change
+
+This ensures:
+- Single source of truth for types
+- No manual type definitions needed
+- Types always stay in sync with schemas
+- Better developer experience with auto-completion
 
 ## 3. File Organization
 

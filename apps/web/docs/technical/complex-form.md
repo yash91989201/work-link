@@ -6,17 +6,17 @@ This document explains how to implement **nested or multi-section forms** using 
 
 ## 📂 Project Structure
 
-- **Schemas** → `src/lib/schemas/`  
-- **Types** → `src/lib/types/` (inferred with `z.infer`)  
-- **Subcomponents** → each section in its own file (e.g., `ExamDetailsCard`, `ExamQuestionsSection`).  
+- **Schemas** → `src/lib/schemas/`
+- **Types** → `src/lib/types/` (inferred with `z.infer`)
+- **Subcomponents** → each section in its own file (e.g., `ExamDetailsCard`, `ExamQuestionsSection`).
 
 ---
 
 ## 🧩 Schema & Types
 
-- Use deeply nested schemas with arrays for complex forms.  
-- Always suffix with `FormSchema` (e.g., `CreateExamFormSchema`).  
-- Inferred types example:
+- Define schemas in `src/lib/schemas/`.
+- Always suffix with `FormSchema` (e.g., `CreateExamFormSchema`).
+- Export inferred types in `src/lib/types` (auto-generated from schemas):
 
 ```ts
 export type CreateExamFormSchemaType = z.infer<typeof CreateExamFormSchema>;
@@ -45,27 +45,27 @@ const form = useFormContext<CreateExamFormSchemaType>();
 
 ## 🧱 Dynamic Fields (useFieldArray)
 
-- Use `useFieldArray` for lists (e.g., questions, options).  
-- Always handle ordering when adding/removing.  
+- Use `useFieldArray` for lists (e.g., questions, options).
+- Always handle ordering when adding/removing.
 
 ---
 
 ## 🔄 Mutations & Submissions
 
-- Use `useMutation(queryUtils.*.mutationOptions())`.  
-- Transform form data in `onSubmit` if necessary (e.g., generating IDs, aggregating totals).  
+- Use `useMutation(queryUtils.*.mutationOptions())`.
+- Transform form data in `onSubmit` if necessary (e.g., generating IDs, aggregating totals).
 
 ---
 
 ## 🔒 UX Rules
 
 1. **Buttons**
-   - Default is submit → omit `type` when intended for form submission.  
-   - Use `type="button"` for add/remove actions.  
-   - Use `type="reset"` for resets.  
-2. **Subcomponents** → must consume context via `useFormContext`.  
-3. **Cards** → use `<Card>` to structure large sections.  
-4. **Validation & Messages** → always use `<FormMessage />` under each field.  
+   - Default is submit → omit `type` when intended for form submission.
+   - Use `type="button"` for add/remove actions.
+   - Use `type="reset"` for resets.
+2. **Subcomponents** → must consume context via `useFormContext`.
+3. **Cards** → use `<Card>` to structure large sections.
+4. **Validation & Messages** → always use `<FormMessage />` under each field.
 
 ---
 
