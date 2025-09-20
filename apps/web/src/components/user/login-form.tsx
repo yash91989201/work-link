@@ -1,24 +1,30 @@
-"use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { type SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 import { LogInFormSchema } from "@/lib/schemas/auth";
-import type { LogInFormType } from "@/lib/types/auth";
-import { queryUtils } from "@/utils/orpc";
+import type { LogInFormType } from "@/lib/types";
 
 export function LogInForm() {
-  // TODO: Replace with actual login mutation
-  const { mutateAsync: login, isPending } = useMutation(
-    queryUtils.auth.login.mutationOptions({
-      onSuccess: () => toast.success("Logged in successfully"),
-      onError: (err) => toast.error(err.message),
-    })
-  );
+  const navigate = useNavigate();
+
+  const { mutateAsync: login, isPending } = useMutation({
+    mutationKey: ["login"],
+    mutationFn: async (values: LogInFormType) => {
+      return await authClient.signIn.email(values);
+    },
+  });
 
   const form = useForm<LogInFormType>({
     resolver: zodResolver(LogInFormSchema),
@@ -26,13 +32,37 @@ export function LogInForm() {
   });
 
   const onSubmit: SubmitHandler<LogInFormType> = async (values) => {
-    await login(values);
-    // form.reset(); // Maybe not reset after login
+    try {
+      await login(values);
+
+      const { data: org, error } =
+        await authClient.organization.getFullOrganization();
+
+      if (error !== null) {
+        throw new Error(error.message);
+      }
+
+      if (org === null) {
+        navigate({
+          to: "/org/new",
+        });
+        return;
+      }
+
+      navigate({
+        to: "/org/$slug",
+        params: {
+          slug: org.slug,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
           name="email"
@@ -53,14 +83,20 @@ export function LogInForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Enter your password" {...field} />
+                <Input
+                  placeholder="Enter your password"
+                  type="password"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button disabled={isPending || form.formState.isSubmitting}>
-          {isPending || form.formState.isSubmitting ? "Logging in..." : "Log In"}
+          {isPending || form.formState.isSubmitting
+            ? "Logging in..."
+            : "Log In"}
         </Button>
       </form>
     </Form>

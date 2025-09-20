@@ -18,6 +18,7 @@ import { Toaster } from "@/components/ui/sonner";
 import type { orpcClient, queryUtils } from "@/utils/orpc";
 import { link } from "@/utils/orpc";
 import "@/styles/index.css";
+import { authClient } from "@/lib/auth-client";
 
 export interface RouterAppContext {
   queryUtils: typeof queryUtils;
@@ -26,7 +27,6 @@ export interface RouterAppContext {
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
-  component: RootComponent,
   head: () => ({
     meta: [
       {
@@ -45,6 +45,14 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       },
     ],
   }),
+  beforeLoad: async () => {
+    const session = await authClient.getSession();
+
+    return {
+      session: session.data,
+    };
+  },
+  component: RootComponent,
 });
 
 function RootComponent() {

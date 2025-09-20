@@ -9,89 +9,98 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as authenticatedRouteRouteImport } from './routes/(authenticated)/route'
 import { Route as publicIndexRouteImport } from './routes/(public)/index'
-import { Route as OrganizationNewRouteImport } from './routes/organization/new'
-import { Route as OrganizationSlugIndexRouteImport } from './routes/organization/$slug/index'
-import { Route as publicauthSignupRouteImport } from './routes/(public)/(auth)/signup'
-import { Route as publicauthLoginRouteImport } from './routes/(public)/(auth)/login'
+import { Route as authSignupRouteImport } from './routes/(auth)/signup'
+import { Route as authLoginRouteImport } from './routes/(auth)/login'
+import { Route as authenticatedOrgNewRouteImport } from './routes/(authenticated)/org/new'
+import { Route as authenticatedOrgSlugIndexRouteImport } from './routes/(authenticated)/org/$slug/index'
 
+const authenticatedRouteRoute = authenticatedRouteRouteImport.update({
+  id: '/(authenticated)',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const publicIndexRoute = publicIndexRouteImport.update({
   id: '/(public)/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrganizationNewRoute = OrganizationNewRouteImport.update({
-  id: '/organization/new',
-  path: '/organization/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrganizationSlugIndexRoute = OrganizationSlugIndexRouteImport.update({
-  id: '/organization/$slug/',
-  path: '/organization/$slug/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const publicauthSignupRoute = publicauthSignupRouteImport.update({
-  id: '/(public)/(auth)/signup',
+const authSignupRoute = authSignupRouteImport.update({
+  id: '/(auth)/signup',
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const publicauthLoginRoute = publicauthLoginRouteImport.update({
-  id: '/(public)/(auth)/login',
+const authLoginRoute = authLoginRouteImport.update({
+  id: '/(auth)/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const authenticatedOrgNewRoute = authenticatedOrgNewRouteImport.update({
+  id: '/org/new',
+  path: '/org/new',
+  getParentRoute: () => authenticatedRouteRoute,
+} as any)
+const authenticatedOrgSlugIndexRoute =
+  authenticatedOrgSlugIndexRouteImport.update({
+    id: '/org/$slug/',
+    path: '/org/$slug/',
+    getParentRoute: () => authenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/organization/new': typeof OrganizationNewRoute
   '/': typeof publicIndexRoute
-  '/login': typeof publicauthLoginRoute
-  '/signup': typeof publicauthSignupRoute
-  '/organization/$slug': typeof OrganizationSlugIndexRoute
+  '/login': typeof authLoginRoute
+  '/signup': typeof authSignupRoute
+  '/org/new': typeof authenticatedOrgNewRoute
+  '/org/$slug': typeof authenticatedOrgSlugIndexRoute
 }
 export interface FileRoutesByTo {
-  '/organization/new': typeof OrganizationNewRoute
   '/': typeof publicIndexRoute
-  '/login': typeof publicauthLoginRoute
-  '/signup': typeof publicauthSignupRoute
-  '/organization/$slug': typeof OrganizationSlugIndexRoute
+  '/login': typeof authLoginRoute
+  '/signup': typeof authSignupRoute
+  '/org/new': typeof authenticatedOrgNewRoute
+  '/org/$slug': typeof authenticatedOrgSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/organization/new': typeof OrganizationNewRoute
+  '/(authenticated)': typeof authenticatedRouteRouteWithChildren
+  '/(auth)/login': typeof authLoginRoute
+  '/(auth)/signup': typeof authSignupRoute
   '/(public)/': typeof publicIndexRoute
-  '/(public)/(auth)/login': typeof publicauthLoginRoute
-  '/(public)/(auth)/signup': typeof publicauthSignupRoute
-  '/organization/$slug/': typeof OrganizationSlugIndexRoute
+  '/(authenticated)/org/new': typeof authenticatedOrgNewRoute
+  '/(authenticated)/org/$slug/': typeof authenticatedOrgSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/organization/new'
-    | '/'
-    | '/login'
-    | '/signup'
-    | '/organization/$slug'
+  fullPaths: '/' | '/login' | '/signup' | '/org/new' | '/org/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/organization/new' | '/' | '/login' | '/signup' | '/organization/$slug'
+  to: '/' | '/login' | '/signup' | '/org/new' | '/org/$slug'
   id:
     | '__root__'
-    | '/organization/new'
+    | '/(authenticated)'
+    | '/(auth)/login'
+    | '/(auth)/signup'
     | '/(public)/'
-    | '/(public)/(auth)/login'
-    | '/(public)/(auth)/signup'
-    | '/organization/$slug/'
+    | '/(authenticated)/org/new'
+    | '/(authenticated)/org/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  OrganizationNewRoute: typeof OrganizationNewRoute
+  authenticatedRouteRoute: typeof authenticatedRouteRouteWithChildren
+  authLoginRoute: typeof authLoginRoute
+  authSignupRoute: typeof authSignupRoute
   publicIndexRoute: typeof publicIndexRoute
-  publicauthLoginRoute: typeof publicauthLoginRoute
-  publicauthSignupRoute: typeof publicauthSignupRoute
-  OrganizationSlugIndexRoute: typeof OrganizationSlugIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/(authenticated)': {
+      id: '/(authenticated)'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof authenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(public)/': {
       id: '/(public)/'
       path: '/'
@@ -99,43 +108,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/organization/new': {
-      id: '/organization/new'
-      path: '/organization/new'
-      fullPath: '/organization/new'
-      preLoaderRoute: typeof OrganizationNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/organization/$slug/': {
-      id: '/organization/$slug/'
-      path: '/organization/$slug'
-      fullPath: '/organization/$slug'
-      preLoaderRoute: typeof OrganizationSlugIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(public)/(auth)/signup': {
-      id: '/(public)/(auth)/signup'
+    '/(auth)/signup': {
+      id: '/(auth)/signup'
       path: '/signup'
       fullPath: '/signup'
-      preLoaderRoute: typeof publicauthSignupRouteImport
+      preLoaderRoute: typeof authSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(public)/(auth)/login': {
-      id: '/(public)/(auth)/login'
+    '/(auth)/login': {
+      id: '/(auth)/login'
       path: '/login'
       fullPath: '/login'
-      preLoaderRoute: typeof publicauthLoginRouteImport
+      preLoaderRoute: typeof authLoginRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(authenticated)/org/new': {
+      id: '/(authenticated)/org/new'
+      path: '/org/new'
+      fullPath: '/org/new'
+      preLoaderRoute: typeof authenticatedOrgNewRouteImport
+      parentRoute: typeof authenticatedRouteRoute
+    }
+    '/(authenticated)/org/$slug/': {
+      id: '/(authenticated)/org/$slug/'
+      path: '/org/$slug'
+      fullPath: '/org/$slug'
+      preLoaderRoute: typeof authenticatedOrgSlugIndexRouteImport
+      parentRoute: typeof authenticatedRouteRoute
     }
   }
 }
 
+interface authenticatedRouteRouteChildren {
+  authenticatedOrgNewRoute: typeof authenticatedOrgNewRoute
+  authenticatedOrgSlugIndexRoute: typeof authenticatedOrgSlugIndexRoute
+}
+
+const authenticatedRouteRouteChildren: authenticatedRouteRouteChildren = {
+  authenticatedOrgNewRoute: authenticatedOrgNewRoute,
+  authenticatedOrgSlugIndexRoute: authenticatedOrgSlugIndexRoute,
+}
+
+const authenticatedRouteRouteWithChildren =
+  authenticatedRouteRoute._addFileChildren(authenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  OrganizationNewRoute: OrganizationNewRoute,
+  authenticatedRouteRoute: authenticatedRouteRouteWithChildren,
+  authLoginRoute: authLoginRoute,
+  authSignupRoute: authSignupRoute,
   publicIndexRoute: publicIndexRoute,
-  publicauthLoginRoute: publicauthLoginRoute,
-  publicauthSignupRoute: publicauthSignupRoute,
-  OrganizationSlugIndexRoute: OrganizationSlugIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -5,15 +5,18 @@ import type { z } from "zod";
 import type { AccountInsertSchema } from "@/lib/schemas/db-tables";
 import type { AccountSchema } from "@/lib/schemas/db-tables";
 import type { AccountUpdateSchema } from "@/lib/schemas/db-tables";
+import type { FeatureSchema } from "@/lib/schemas/module";
 import type { InvitationInsertSchema } from "@/lib/schemas/db-tables";
 import type { InvitationSchema } from "@/lib/schemas/db-tables";
 import type { InvitationUpdateSchema } from "@/lib/schemas/db-tables";
 import type { MemberInsertSchema } from "@/lib/schemas/db-tables";
 import type { MemberSchema } from "@/lib/schemas/db-tables";
 import type { MemberUpdateSchema } from "@/lib/schemas/db-tables";
+import type { ModuleSchema } from "@/lib/schemas/module";
 import type { OrganizationInsertSchema } from "@/lib/schemas/db-tables";
 import type { OrganizationSchema } from "@/lib/schemas/db-tables";
 import type { OrganizationUpdateSchema } from "@/lib/schemas/db-tables";
+import type { RoleSchema } from "@/lib/schemas/module";
 import type { SessionInsertSchema } from "@/lib/schemas/db-tables";
 import type { SessionSchema } from "@/lib/schemas/db-tables";
 import type { SessionUpdateSchema } from "@/lib/schemas/db-tables";
@@ -36,6 +39,8 @@ export type AccountType = z.infer<typeof AccountSchema>;
 
 export type AccountUpdateType = z.infer<typeof AccountUpdateSchema>;
 
+export type FeatureType = z.infer<typeof FeatureSchema>;
+
 export type InvitationInsertType = z.infer<typeof InvitationInsertSchema>;
 
 export type InvitationType = z.infer<typeof InvitationSchema>;
@@ -48,11 +53,15 @@ export type MemberType = z.infer<typeof MemberSchema>;
 
 export type MemberUpdateType = z.infer<typeof MemberUpdateSchema>;
 
+export type ModuleType = z.infer<typeof ModuleSchema>;
+
 export type OrganizationInsertType = z.infer<typeof OrganizationInsertSchema>;
 
 export type OrganizationType = z.infer<typeof OrganizationSchema>;
 
 export type OrganizationUpdateType = z.infer<typeof OrganizationUpdateSchema>;
+
+export type RoleType = z.infer<typeof RoleSchema>;
 
 export type SessionInsertType = z.infer<typeof SessionInsertSchema>;
 

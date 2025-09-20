@@ -52,7 +52,7 @@ export default function UserMenu() {
             }}
             variant="destructive"
           >
-            LogOut
+            Log Out
           </Button>
         </DropdownMenuItem>
       </DropdownMenuContent>

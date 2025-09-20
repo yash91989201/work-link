@@ -1,38 +1,61 @@
-"use client";
-
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { type SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 import { SignUpFormSchema } from "@/lib/schemas/auth";
-import type { SignUpFormType } from "@/lib/types/auth";
-import { queryUtils } from "@/utils/orpc";
+import type { SignUpFormType } from "@/lib/types";
 
 export function SignUpForm() {
-  // TODO: Replace with actual signup mutation
-  const { mutateAsync: signup, isPending } = useMutation(
-    queryUtils.auth.signup.mutationOptions({
-      onSuccess: () => toast.success("Signed up successfully"),
-      onError: (err) => toast.error(err.message),
-    })
-  );
+  const navigate = useNavigate();
+
+  const { mutateAsync: signup, isPending } = useMutation({
+    mutationKey: ["signup"],
+    mutationFn: async (values: SignUpFormType) => {
+      return await authClient.signUp.email(values);
+    },
+  });
 
   const form = useForm<SignUpFormType>({
-    resolver: zodResolver(SignUpFormSchema),
-    defaultValues: { email: "", password: "", confirmPassword: "" },
+    resolver: standardSchemaResolver(SignUpFormSchema),
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
 
   const onSubmit: SubmitHandler<SignUpFormType> = async (values) => {
     await signup(values);
-    form.reset(); // Reset form after successful signup
+
+    navigate({
+      to: "/org/new",
+    });
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter your full name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="email"
@@ -53,7 +76,11 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Enter your password" {...field} />
+                <Input
+                  placeholder="Enter your password"
+                  type="password"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -66,14 +93,20 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Confirm your password" {...field} />
+                <Input
+                  placeholder="Confirm your password"
+                  type="password"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button disabled={isPending || form.formState.isSubmitting}>
-          {isPending || form.formState.isSubmitting ? "Signing up..." : "Sign Up"}
+          {isPending || form.formState.isSubmitting
+            ? "Signing up..."
+            : "Sign Up"}
         </Button>
       </form>
     </Form>
