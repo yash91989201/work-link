@@ -3,6 +3,7 @@ node_modules
 .alchemy
 .env
 
+/.gemini/settings.json.orig
 /.gemini/settings.json.bak
 /.github/copilot-instructions.md.bak
 /.vscode/mcp.json.bak
