@@ -33,30 +33,37 @@ export function LogInForm() {
 
   const onSubmit: SubmitHandler<LogInFormType> = async (values) => {
     try {
-      await login(values);
+      const loginResult = await login(values);
 
-      const { data: org, error } =
-        await authClient.organization.getFullOrganization();
-
-      if (error !== null) {
-        throw new Error(error.message);
+      if (loginResult.error) {
+        throw new Error(loginResult.error.message);
       }
 
-      if (org === null) {
+      const { data: orgs, error: listError } =
+        await authClient.organization.list();
+
+      if (listError !== null) {
+        throw new Error(listError.message);
+      }
+
+      const org = orgs[0];
+      if (org) {
         navigate({
-          to: "/org/new",
+          to: "/org/$slug",
+          params: {
+            slug: org.slug,
+          },
         });
         return;
       }
 
       navigate({
-        to: "/org/$slug",
-        params: {
-          slug: org.slug,
-        },
+        to: "/org/new",
       });
     } catch (error) {
-      console.log(error);
+      form.setError("email", {
+        message: error instanceof Error ? error.message : "Login failed",
+      });
     }
   };
 
