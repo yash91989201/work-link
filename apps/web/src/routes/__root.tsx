@@ -18,6 +18,7 @@ import { Toaster } from "@/components/ui/sonner";
 import type { orpcClient, queryUtils } from "@/utils/orpc";
 import { link } from "@/utils/orpc";
 import "@/styles/index.css";
+import "react-lazy-load-image-component/src/effects/blur.css";
 import { authClient } from "@/lib/auth-client";
 
 export interface RouterAppContext {
