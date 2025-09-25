@@ -24,12 +24,15 @@
     "supabase:start": "bun run --filter server supabase:start",
     "supabase:stop": "bun run --filter server supabase:stop"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@types/react-lazy-load-image-component": "^1.6.4"
+  },
   "devDependencies": {
-    "turbo": "^2.5.4",
     "@biomejs/biome": "2.2.2",
-    "ultracite": "5.3.3",
-    "oxlint": "^1.12.0"
+    "oxlint": "^1.18.0",
+    "turbo": "^2.5.8",
+    "typescript": "^5.9.2",
+    "ultracite": "5.3.3"
   },
   "packageManager": "bun@1.2.22"
 }

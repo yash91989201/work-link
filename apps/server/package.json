@@ -18,20 +18,20 @@
     "watch:types": "bun run ./src/scripts/generate-types.ts --watch"
   },
   "dependencies": {
-    "@better-auth/expo": "^1.3.11",
-    "@orpc/client": "^1.8.9",
-    "@orpc/openapi": "^1.8.9",
-    "@orpc/server": "^1.8.9",
-    "@orpc/zod": "^1.8.9",
-    "@supabase/supabase-js": "^2.57.4",
+    "@better-auth/expo": "^1.3.17",
+    "@orpc/client": "^1.9.0",
+    "@orpc/openapi": "^1.9.0",
+    "@orpc/server": "^1.9.0",
+    "@orpc/zod": "^1.9.0",
+    "@supabase/supabase-js": "^2.58.0",
     "@t3-oss/env-core": "^0.13.8",
-    "better-auth": "^1.3.11",
+    "better-auth": "^1.3.17",
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.44.5",
     "drizzle-zod": "^0.8.3",
-    "hono": "^4.9.7",
+    "hono": "^4.9.8",
     "postgres": "^3.4.7",
-    "zod": "^4.1.9"
+    "zod": "^4.1.11"
   },
   "trustedDependencies": [
     "supabase"
@@ -41,7 +41,7 @@
     "@types/pg": "^8.15.5",
     "chokidar": "^4.0.3",
     "drizzle-kit": "^0.31.4",
-    "tsdown": "^0.15.2",
+    "tsdown": "^0.15.4",
     "typescript": "^5.9.2"
   }
 }
