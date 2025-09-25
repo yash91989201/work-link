@@ -1,7 +1,8 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useNavigate } from "@tanstack/react-router";
-import { Lock, Unlock } from "lucide-react";
+import { Loader2, Lock, Unlock } from "lucide-react";
 import { type SubmitHandler, useForm } from "react-hook-form";
+import { Image } from "@/components/shared/image";
 import { Button } from "@/components/ui/button";
 import {
   Dropzone,
@@ -32,9 +33,7 @@ export const CreateOrgForm = () => {
     defaultValues: {
       name: "",
       slug: "",
-      logo: "",
       formState: {
-        logo: undefined,
         slugLocked: true,
       },
     },
@@ -44,13 +43,11 @@ export const CreateOrgForm = () => {
 
   const onSubmit: SubmitHandler<CreateOrgFormType> = async (values) => {
     try {
-      let logoUrl = values.logo;
+      let logo = values.logo;
 
       if (values.formState.logo) {
         const file = values.formState.logo;
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `org-logo/${fileName}`;
+        const filePath = file.name;
 
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from("org-logo")
@@ -63,12 +60,16 @@ export const CreateOrgForm = () => {
           throw new Error(`File upload failed: ${uploadError.message}`);
         }
 
-        logoUrl = uploadData.fullPath;
+        const { data: urlData } = supabase.storage
+          .from("org-logo")
+          .getPublicUrl(uploadData.path);
+
+        logo = urlData.publicUrl;
       }
 
       const { data: org, error } = await authClient.organization.create({
         ...values,
-        logo: logoUrl,
+        logo,
       });
 
       if (error !== null) {
@@ -93,6 +94,15 @@ export const CreateOrgForm = () => {
   return (
     <Form {...form}>
       <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col items-center space-y-4">
+          <Image
+            alt="Work Link"
+            className="rounded-lg"
+            height={120}
+            src="/logo.webp"
+            width={120}
+          />
+        </div>
         <FormField
           control={form.control}
           name="formState.logo"
@@ -172,17 +182,6 @@ export const CreateOrgForm = () => {
                     onClick={() => {
                       const nextLocked = !slugLocked;
 
-                      // If switching to locked, regenerate from name immediately
-                      if (nextLocked) {
-                        const newSlug = generateSlug(
-                          form.getValues("name") || ""
-                        );
-                        form.setValue("slug", newSlug, {
-                          shouldDirty: true,
-                          shouldTouch: true,
-                        });
-                      }
-
                       form.setValue("formState.slugLocked", nextLocked, {
                         shouldDirty: true,
                         shouldTouch: true,
@@ -204,8 +203,15 @@ export const CreateOrgForm = () => {
             </FormItem>
           )}
         />
-        <Button disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Creating..." : "Create Organization"}
+        <Button className="gap-1.5" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            "Create Organization"
+          )}
         </Button>
       </form>
     </Form>

@@ -17,7 +17,6 @@ export const CreateOrgFormSchema = z.object({
         (file) => !file || file.size < 5 * 1024 * 1024,
         "File size must be under 5MB"
       ),
-    // Track whether the slug is locked (auto-generated). Defaults to true in the form.
     slugLocked: z.boolean().optional(),
   }),
 });
