@@ -1,0 +1,35 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "lsp": {
+    "go": {
+      "command": "gopls",
+      "env": {
+        "GOTOOLCHAIN": "go1.24.5"
+      }
+    },
+    "typescript": {
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "env": {
+        "TSSERVER_PATH": "./node_modules/typescript/lib/tsserver.js"
+      }
+    }
+  },
+  "mcp": {
+    "shadcn": {
+      "args": ["shadcn@latest", "mcp"],
+      "command": "npx",
+      "type": "stdio"
+    },
+    "context7": {
+      "command": "npx",
+      "type": "stdio",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp",
+        "--api-key",
+        "UPSTASH_CONTEXT7_API_KEY"
+      ]
+    }
+  }
+}
