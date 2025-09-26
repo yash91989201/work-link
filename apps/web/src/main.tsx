@@ -1,14 +1,14 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
-import Loader from "@/components/shared/loader";
+import { FullScreenLoader } from "@/components/shared/full-screen-loader";
 import { routeTree } from "@/routeTree.gen";
 import { orpcClient, queryClient, queryUtils } from "@/utils/orpc";
 
 const router = createRouter({
   routeTree,
   defaultPreload: "intent",
-  defaultPendingComponent: () => <Loader />,
+  defaultPendingComponent: () => <FullScreenLoader />,
   context: { queryUtils, queryClient, orpcClient },
   Wrap: ({ children }: { children: React.ReactNode }) => {
     return (

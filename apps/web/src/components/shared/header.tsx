@@ -4,7 +4,7 @@ import { ModeToggle } from "./mode-toggle";
 import { MyOrgButton, MyOrgButtonSkeleton } from "./my-org-button";
 import UserMenu from "./user-menu";
 
-export default function Header() {
+export function Header() {
   const links = [{ to: "/", label: "Home" }] as const;
 
   return (
