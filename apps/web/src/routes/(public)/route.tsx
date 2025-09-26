@@ -7,6 +7,7 @@ import { FullScreenLoader } from "@/components/shared/full-screen-loader";
 import { Header } from "@/components/shared/header";
 
 export const Route = createFileRoute("/(public)")({
+  pendingComponent: () => <FullScreenLoader />,
   component: RouteComponent,
 });
 

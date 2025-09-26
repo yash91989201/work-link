@@ -8,20 +8,23 @@ export function FullScreenLoader({ className }: FullScreenLoaderProps) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm",
+        "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md",
         className
       )}
     >
-      <div className="flex flex-col items-center space-y-4">
+      <div className="flex flex-col items-center gap-4">
         <picture className="relative">
           <img
             alt="Loading"
             className="animate-pulse"
-            height={160}
+            height={240}
             src="/logo.webp"
-            width={160}
+            width={240}
           />
         </picture>
+        <h1 className="font-bold text-2xl text-foreground lg:text-3xl">
+          Work Link
+        </h1>
 
         <div className="flex space-x-1">
           <div
