@@ -39,11 +39,11 @@ export function LogInForm() {
         throw new Error(loginResult.error.message);
       }
 
-      const { data: orgs, error: listError } =
+      const { data: orgs, error: orgListError } =
         await authClient.organization.list();
 
-      if (listError !== null) {
-        throw new Error(listError.message);
+      if (orgListError !== null) {
+        throw new Error(orgListError.message);
       }
 
       const org = orgs[0];
