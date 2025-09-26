@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { Suspense } from "react";
 import { ModeToggle } from "./mode-toggle";
+import { MyOrgButton, MyOrgButtonSkeleton } from "./my-org-button";
 import UserMenu from "./user-menu";
 
 export default function Header() {
@@ -18,6 +20,9 @@ export default function Header() {
           })}
         </nav>
         <div className="flex items-center gap-2">
+          <Suspense fallback={<MyOrgButtonSkeleton />}>
+            <MyOrgButton />
+          </Suspense>
           <ModeToggle />
           <UserMenu />
         </div>
