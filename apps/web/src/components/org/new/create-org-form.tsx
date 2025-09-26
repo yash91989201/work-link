@@ -1,4 +1,4 @@
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2, Lock, Unlock } from "lucide-react";
 import { type SubmitHandler, useForm } from "react-hook-form";
@@ -29,7 +29,7 @@ export const CreateOrgForm = () => {
   const navigate = useNavigate();
 
   const form = useForm<CreateOrgFormType>({
-    resolver: standardSchemaResolver(CreateOrgFormSchema),
+    resolver: zodResolver(CreateOrgFormSchema),
     defaultValues: {
       name: "",
       slug: "",
@@ -40,6 +40,7 @@ export const CreateOrgForm = () => {
   });
 
   const slugLocked = form.watch("formState.slugLocked");
+  const isSlugValidating = form.formState.validatingFields?.slug;
 
   const onSubmit: SubmitHandler<CreateOrgFormType> = async (values) => {
     try {
@@ -148,6 +149,7 @@ export const CreateOrgForm = () => {
                       form.setValue("slug", newSlug, {
                         shouldDirty: true,
                         shouldTouch: true,
+                        shouldValidate: true,
                       });
                     }
                   }}
@@ -170,12 +172,18 @@ export const CreateOrgForm = () => {
                       placeholder="acme-inc"
                       {...field}
                       disabled={!!slugLocked}
+                      onBlur={field.onBlur}
                       onChange={(e) => {
                         if (!slugLocked) {
                           field.onChange(e);
                         }
                       }}
                     />
+                    {isSlugValidating && (
+                      <div className="-translate-y-1/2 absolute top-1/2 right-3">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
                   <Button
                     aria-label={slugLocked ? "Unlock slug" : "Lock slug"}
@@ -196,8 +204,8 @@ export const CreateOrgForm = () => {
                 </div>
               </FormControl>
               <FormDescription>
-                This will be used in the URL of your organization page. Only
-                a-z, 0-9 and - are allowed.
+                This will be a unique name for your Organization. Only a-z, 0-9
+                and hypens are allowed.
               </FormDescription>
               <FormMessage />
             </FormItem>
