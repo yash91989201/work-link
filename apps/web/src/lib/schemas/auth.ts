@@ -22,3 +22,15 @@ export const SignUpFormSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+export const AcceptInvitationFormSchema = z.object({
+  email: z.email("Invalid email address").nonempty("Email is required"),
+  name: z.string().min(1, "Name is required"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .nonempty("Password is required"),
+  invitationId: z
+    .string()
+    .min(1, "Invitation ID is required"),
+});

@@ -1,33 +1,55 @@
+import type { InvitationStatus } from "better-auth/plugins/organization";
 import { authClient } from "@/lib/auth-client";
 
 export const getActiveOrgSlug = async () => {
-  try {
-    const { data: session } = await authClient.getSession();
+  const { data: session } = await authClient.getSession();
 
-    if (!session) {
-      return;
-    }
-
-    const { data: orgs, error } = await authClient.organization.list();
-
-    if (error || !orgs || orgs.length === 0) {
-      return;
-    }
-
-    // If session has activeOrganizationId, try to find that org first
-    if (session.session.activeOrganizationId) {
-      const activeOrg = orgs.find(
-        (org) => org.id === session.session.activeOrganizationId
-      );
-      if (activeOrg) {
-        return activeOrg.slug;
-      }
-    }
-
-    // Fall back to first organization
-    return orgs[0].slug;
-  } catch (error) {
-    console.error("Error getting active org slug:", error);
-    return;
+  if (!session) {
+    return null;
   }
+
+  const { data: orgs, error } = await authClient.organization.list();
+
+  if (error || !orgs || orgs.length === 0) {
+    return null;
+  }
+
+  if (session.session.activeOrganizationId) {
+    const activeOrg = orgs.find(
+      (org) => org.id === session.session.activeOrganizationId
+    );
+
+    if (activeOrg) {
+      return activeOrg.slug;
+    }
+  }
+
+  const orgSlug = orgs[0].slug;
+  return orgSlug;
+};
+
+export const getStatusBadgeVariant = (status: InvitationStatus) => {
+  if (status === "pending") {
+    return "secondary";
+  }
+  if (status === "accepted") {
+    return "default";
+  }
+  if (status === "rejected") {
+    return "destructive";
+  }
+  return "secondary";
+};
+
+export const getRoleBadgeVariant = (role: "member" | "admin" | "owner") => {
+  if (role === "owner") {
+    return "default";
+  }
+  if (role === "admin") {
+    return "secondary";
+  }
+  if (role === "member") {
+    return "outline";
+  }
+  return "outline";
 };

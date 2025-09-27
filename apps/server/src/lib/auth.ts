@@ -5,14 +5,15 @@ import { organization } from "better-auth/plugins";
 import { db } from "@/db";
 import * as authSchema from "@/db/schema/auth";
 import { env } from "@/env";
+import { sendOrgInvitationEmail } from "@/lib/email";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: authSchema,
   }),
-  trustedOrigins: [env.CORS_ORIGIN, "work-link://"],
-  debug: process.env.NODE_ENV !== "production",
+  trustedOrigins: [...env.CORS_ORIGIN, "work-link://"],
+  debug: env.ENV !== "production",
   emailAndPassword: {
     enabled: true,
   },
@@ -23,5 +24,21 @@ export const auth = betterAuth({
       httpOnly: true,
     },
   },
-  plugins: [expo(), organization()],
+  plugins: [
+    expo(),
+    organization({
+      async sendInvitationEmail(data) {
+        const invitationLink = `${env.WEB_URL}/accept-invitation/${data.id}?email=${data.email}`;
+        console.log(invitationLink);
+
+        await sendOrgInvitationEmail({
+          email: data.email,
+          invitationLink,
+          invitedBy: data.inviter.user.name,
+          role: data.role,
+          orgName: data.organization.name,
+        });
+      },
+    }),
+  ],
 });
