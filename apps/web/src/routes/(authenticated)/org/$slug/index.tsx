@@ -5,5 +5,5 @@ export const Route = createFileRoute("/(authenticated)/org/$slug/")({
 });
 
 function RouteComponent() {
-  return <div>Hello "/organization/$slug/"!</div>;
+  return <div>Organization Root Page</div>;
 }

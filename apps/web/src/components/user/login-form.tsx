@@ -47,6 +47,12 @@ export function LogInForm() {
       }
 
       const org = orgs[0];
+
+      await authClient.organization.setActive({
+        organizationId: org.id,
+        organizationSlug: org.slug,
+      });
+
       if (org) {
         navigate({
           to: "/org/$slug",

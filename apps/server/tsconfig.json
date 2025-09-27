@@ -8,12 +8,18 @@
     "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@emails/*": ["../../packages/transactional/emails/*"]
     },
     "outDir": "./dist",
     "types": ["bun"],
     "composite": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
-  }
+  },
+  "references": [
+    {
+      "path": "../../packages/transactional"
+    }
+  ]
 }

@@ -29,8 +29,9 @@
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.44.5",
     "drizzle-zod": "^0.8.3",
-    "hono": "^4.9.8",
+    "hono": "^4.9.9",
     "postgres": "^3.4.7",
+    "resend": "^6.1.0",
     "zod": "^4.1.11"
   },
   "trustedDependencies": [
@@ -41,7 +42,8 @@
     "@types/pg": "^8.15.5",
     "chokidar": "^4.0.3",
     "drizzle-kit": "^0.31.5",
-    "tsdown": "^0.15.4",
-    "typescript": "^5.9.2"
+    "tsdown": "^0.15.5",
+    "typescript": "^5.9.2",
+    "transactional": "workspace:*"
   }
 }

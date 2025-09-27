@@ -24,12 +24,7 @@
     "context7": {
       "command": "npx",
       "type": "stdio",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp",
-        "--api-key",
-        "UPSTASH_CONTEXT7_API_KEY"
-      ]
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "CONTEXT7_API_KEY"]
     }
   }
 }

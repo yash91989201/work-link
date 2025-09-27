@@ -9,7 +9,7 @@
   "scripts": {
     "check": "oxlint",
     "ruler:apply": "bunx @intellectronica/ruler@latest apply --local-only",
-    "dev": "turbo run dev db:studio watch:types --filter=web --filter=server",
+    "dev": "turbo run dev db:studio watch:types dev:email --filter=web --filter=server --filter=transactional",
     "all-dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
@@ -20,12 +20,10 @@
     "db:studio": "turbo -F server db:studio",
     "db:generate": "turbo -F server db:generate",
     "db:migrate": "turbo -F server db:migrate",
+    "dev:email": "turbo -F transactional dev",
     "update": "bun run --filter web update && bun run --filter server update",
     "supabase:start": "bun run --filter server supabase:start",
     "supabase:stop": "bun run --filter server supabase:stop"
-  },
-  "dependencies": {
-    "@types/react-lazy-load-image-component": "^1.6.4"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
