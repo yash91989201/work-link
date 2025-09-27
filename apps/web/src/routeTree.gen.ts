@@ -20,18 +20,20 @@ import { Route as authenticatedOrgSlugRouteRouteImport } from './routes/(authent
 import { Route as authenticatedOrgSlugIndexRouteImport } from './routes/(authenticated)/org/$slug/index'
 import { Route as authenticatedOrgSlugownerRouteRouteImport } from './routes/(authenticated)/org/$slug/(owner)/route'
 import { Route as authenticatedOrgSlugmemberRouteRouteImport } from './routes/(authenticated)/org/$slug/(member)/route'
-import { Route as authenticatedOrgSlugadminRouteRouteImport } from './routes/(authenticated)/org/$slug/(admin)/route'
+import { Route as authenticatedOrgSlugadminDashboardRouteRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/route'
 import { Route as authenticatedOrgSlugmemberTeamIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/index'
 import { Route as authenticatedOrgSlugadminDashboardIndexRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/index'
 import { Route as authenticatedOrgSlugownerManageInvitationsRouteImport } from './routes/(authenticated)/org/$slug/(owner)/manage/invitations'
 import { Route as authenticatedOrgSlugownerManageSettingsIndexRouteImport } from './routes/(authenticated)/org/$slug/(owner)/manage/settings/index'
-import { Route as authenticatedOrgSlugmemberTeamSlugIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$slug/index'
+import { Route as authenticatedOrgSlugmemberTeamIdIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$id/index'
 import { Route as authenticatedOrgSlugmemberbaseModulesCommunicationIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/(base-modules)/communication/index'
 import { Route as authenticatedOrgSlugmemberbaseModulesAttendanceIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/(base-modules)/attendance/index'
-import { Route as authenticatedOrgSlugmemberTeamSlugModuleIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$slug/module/index'
-import { Route as authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/index'
-import { Route as authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/index'
-import { Route as authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/$slug/index'
+import { Route as authenticatedOrgSlugadminDashboardTeamsIndexRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/teams/index'
+import { Route as authenticatedOrgSlugadminDashboardMembersIndexRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/members/index'
+import { Route as authenticatedOrgSlugmemberTeamIdModuleIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$id/module/index'
+import { Route as authenticatedOrgSlugmemberTeamIdModuleSlugIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$id/module/$slug/index'
+import { Route as authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/index'
+import { Route as authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/$slug/index'
 
 const publicRouteRoute = publicRouteRouteImport.update({
   id: '/(public)',
@@ -88,9 +90,10 @@ const authenticatedOrgSlugmemberRouteRoute =
     id: '/(member)',
     getParentRoute: () => authenticatedOrgSlugRouteRoute,
   } as any)
-const authenticatedOrgSlugadminRouteRoute =
-  authenticatedOrgSlugadminRouteRouteImport.update({
-    id: '/(admin)',
+const authenticatedOrgSlugadminDashboardRouteRoute =
+  authenticatedOrgSlugadminDashboardRouteRouteImport.update({
+    id: '/(admin)/dashboard',
+    path: '/dashboard',
     getParentRoute: () => authenticatedOrgSlugRouteRoute,
   } as any)
 const authenticatedOrgSlugmemberTeamIndexRoute =
@@ -101,9 +104,9 @@ const authenticatedOrgSlugmemberTeamIndexRoute =
   } as any)
 const authenticatedOrgSlugadminDashboardIndexRoute =
   authenticatedOrgSlugadminDashboardIndexRouteImport.update({
-    id: '/dashboard/',
-    path: '/dashboard/',
-    getParentRoute: () => authenticatedOrgSlugadminRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => authenticatedOrgSlugadminDashboardRouteRoute,
   } as any)
 const authenticatedOrgSlugownerManageInvitationsRoute =
   authenticatedOrgSlugownerManageInvitationsRouteImport.update({
@@ -117,10 +120,10 @@ const authenticatedOrgSlugownerManageSettingsIndexRoute =
     path: '/manage/settings/',
     getParentRoute: () => authenticatedOrgSlugownerRouteRoute,
   } as any)
-const authenticatedOrgSlugmemberTeamSlugIndexRoute =
-  authenticatedOrgSlugmemberTeamSlugIndexRouteImport.update({
-    id: '/team/$slug/',
-    path: '/team/$slug/',
+const authenticatedOrgSlugmemberTeamIdIndexRoute =
+  authenticatedOrgSlugmemberTeamIdIndexRouteImport.update({
+    id: '/team/$id/',
+    path: '/team/$id/',
     getParentRoute: () => authenticatedOrgSlugmemberRouteRoute,
   } as any)
 const authenticatedOrgSlugmemberbaseModulesCommunicationIndexRoute =
@@ -135,32 +138,42 @@ const authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute =
     path: '/attendance/',
     getParentRoute: () => authenticatedOrgSlugmemberRouteRoute,
   } as any)
-const authenticatedOrgSlugmemberTeamSlugModuleIndexRoute =
-  authenticatedOrgSlugmemberTeamSlugModuleIndexRouteImport.update({
-    id: '/team/$slug/module/',
-    path: '/team/$slug/module/',
+const authenticatedOrgSlugadminDashboardTeamsIndexRoute =
+  authenticatedOrgSlugadminDashboardTeamsIndexRouteImport.update({
+    id: '/teams/',
+    path: '/teams/',
+    getParentRoute: () => authenticatedOrgSlugadminDashboardRouteRoute,
+  } as any)
+const authenticatedOrgSlugadminDashboardMembersIndexRoute =
+  authenticatedOrgSlugadminDashboardMembersIndexRouteImport.update({
+    id: '/members/',
+    path: '/members/',
+    getParentRoute: () => authenticatedOrgSlugadminDashboardRouteRoute,
+  } as any)
+const authenticatedOrgSlugmemberTeamIdModuleIndexRoute =
+  authenticatedOrgSlugmemberTeamIdModuleIndexRouteImport.update({
+    id: '/team/$id/module/',
+    path: '/team/$id/module/',
     getParentRoute: () => authenticatedOrgSlugmemberRouteRoute,
   } as any)
-const authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRoute =
-  authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRouteImport.update({
-    id: '/team/$slug/module/$slug/',
-    path: '/team/$slug/module/$slug/',
+const authenticatedOrgSlugmemberTeamIdModuleSlugIndexRoute =
+  authenticatedOrgSlugmemberTeamIdModuleSlugIndexRouteImport.update({
+    id: '/team/$id/module/$slug/',
+    path: '/team/$id/module/$slug/',
     getParentRoute: () => authenticatedOrgSlugmemberRouteRoute,
   } as any)
-const authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRoute =
-  authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRouteImport.update({
-    id: '/team/$slug/module/$slug/feature/',
-    path: '/team/$slug/module/$slug/feature/',
+const authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRoute =
+  authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRouteImport.update({
+    id: '/team/$id/module/$slug/feature/',
+    path: '/team/$id/module/$slug/feature/',
     getParentRoute: () => authenticatedOrgSlugmemberRouteRoute,
   } as any)
-const authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRoute =
-  authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRouteImport.update(
-    {
-      id: '/team/$slug/module/$slug/feature/$slug/',
-      path: '/team/$slug/module/$slug/feature/$slug/',
-      getParentRoute: () => authenticatedOrgSlugmemberRouteRoute,
-    } as any,
-  )
+const authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute =
+  authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRouteImport.update({
+    id: '/team/$id/module/$slug/feature/$slug/',
+    path: '/team/$id/module/$slug/feature/$slug/',
+    getParentRoute: () => authenticatedOrgSlugmemberRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof publicIndexRoute
@@ -170,17 +183,20 @@ export interface FileRoutesByFullPath {
   '/accept-invitation/$id': typeof authAcceptInvitationIdRoute
   '/org/new': typeof authenticatedOrgNewRoute
   '/org/$slug/': typeof authenticatedOrgSlugIndexRoute
+  '/org/$slug/dashboard': typeof authenticatedOrgSlugadminDashboardRouteRouteWithChildren
   '/org/$slug/manage/invitations': typeof authenticatedOrgSlugownerManageInvitationsRoute
-  '/org/$slug/dashboard': typeof authenticatedOrgSlugadminDashboardIndexRoute
+  '/org/$slug/dashboard/': typeof authenticatedOrgSlugadminDashboardIndexRoute
   '/org/$slug/team': typeof authenticatedOrgSlugmemberTeamIndexRoute
+  '/org/$slug/dashboard/members': typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
+  '/org/$slug/dashboard/teams': typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
   '/org/$slug/attendance': typeof authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute
   '/org/$slug/communication': typeof authenticatedOrgSlugmemberbaseModulesCommunicationIndexRoute
-  '/org/$slug/team/$slug': typeof authenticatedOrgSlugmemberTeamSlugIndexRoute
+  '/org/$slug/team/$id': typeof authenticatedOrgSlugmemberTeamIdIndexRoute
   '/org/$slug/manage/settings': typeof authenticatedOrgSlugownerManageSettingsIndexRoute
-  '/org/$slug/team/$slug/module': typeof authenticatedOrgSlugmemberTeamSlugModuleIndexRoute
-  '/org/$slug/team/$slug/module/$slug': typeof authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRoute
-  '/org/$slug/team/$slug/module/$slug/feature': typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRoute
-  '/org/$slug/team/$slug/module/$slug/feature/$slug': typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRoute
+  '/org/$slug/team/$id/module': typeof authenticatedOrgSlugmemberTeamIdModuleIndexRoute
+  '/org/$slug/team/$id/module/$slug': typeof authenticatedOrgSlugmemberTeamIdModuleSlugIndexRoute
+  '/org/$slug/team/$id/module/$slug/feature': typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRoute
+  '/org/$slug/team/$id/module/$slug/feature/$slug': typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof publicIndexRoute
@@ -192,14 +208,16 @@ export interface FileRoutesByTo {
   '/org/$slug/manage/invitations': typeof authenticatedOrgSlugownerManageInvitationsRoute
   '/org/$slug/dashboard': typeof authenticatedOrgSlugadminDashboardIndexRoute
   '/org/$slug/team': typeof authenticatedOrgSlugmemberTeamIndexRoute
+  '/org/$slug/dashboard/members': typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
+  '/org/$slug/dashboard/teams': typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
   '/org/$slug/attendance': typeof authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute
   '/org/$slug/communication': typeof authenticatedOrgSlugmemberbaseModulesCommunicationIndexRoute
-  '/org/$slug/team/$slug': typeof authenticatedOrgSlugmemberTeamSlugIndexRoute
+  '/org/$slug/team/$id': typeof authenticatedOrgSlugmemberTeamIdIndexRoute
   '/org/$slug/manage/settings': typeof authenticatedOrgSlugownerManageSettingsIndexRoute
-  '/org/$slug/team/$slug/module': typeof authenticatedOrgSlugmemberTeamSlugModuleIndexRoute
-  '/org/$slug/team/$slug/module/$slug': typeof authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRoute
-  '/org/$slug/team/$slug/module/$slug/feature': typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRoute
-  '/org/$slug/team/$slug/module/$slug/feature/$slug': typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRoute
+  '/org/$slug/team/$id/module': typeof authenticatedOrgSlugmemberTeamIdModuleIndexRoute
+  '/org/$slug/team/$id/module/$slug': typeof authenticatedOrgSlugmemberTeamIdModuleSlugIndexRoute
+  '/org/$slug/team/$id/module/$slug/feature': typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRoute
+  '/org/$slug/team/$id/module/$slug/feature/$slug': typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -211,21 +229,23 @@ export interface FileRoutesById {
   '/(authenticated)/org/$slug': typeof authenticatedOrgSlugRouteRouteWithChildren
   '/(auth)/accept-invitation/$id': typeof authAcceptInvitationIdRoute
   '/(authenticated)/org/new': typeof authenticatedOrgNewRoute
-  '/(authenticated)/org/$slug/(admin)': typeof authenticatedOrgSlugadminRouteRouteWithChildren
   '/(authenticated)/org/$slug/(member)': typeof authenticatedOrgSlugmemberRouteRouteWithChildren
   '/(authenticated)/org/$slug/(owner)': typeof authenticatedOrgSlugownerRouteRouteWithChildren
   '/(authenticated)/org/$slug/': typeof authenticatedOrgSlugIndexRoute
+  '/(authenticated)/org/$slug/(admin)/dashboard': typeof authenticatedOrgSlugadminDashboardRouteRouteWithChildren
   '/(authenticated)/org/$slug/(owner)/manage/invitations': typeof authenticatedOrgSlugownerManageInvitationsRoute
   '/(authenticated)/org/$slug/(admin)/dashboard/': typeof authenticatedOrgSlugadminDashboardIndexRoute
   '/(authenticated)/org/$slug/(member)/team/': typeof authenticatedOrgSlugmemberTeamIndexRoute
+  '/(authenticated)/org/$slug/(admin)/dashboard/members/': typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
+  '/(authenticated)/org/$slug/(admin)/dashboard/teams/': typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
   '/(authenticated)/org/$slug/(member)/(base-modules)/attendance/': typeof authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute
   '/(authenticated)/org/$slug/(member)/(base-modules)/communication/': typeof authenticatedOrgSlugmemberbaseModulesCommunicationIndexRoute
-  '/(authenticated)/org/$slug/(member)/team/$slug/': typeof authenticatedOrgSlugmemberTeamSlugIndexRoute
+  '/(authenticated)/org/$slug/(member)/team/$id/': typeof authenticatedOrgSlugmemberTeamIdIndexRoute
   '/(authenticated)/org/$slug/(owner)/manage/settings/': typeof authenticatedOrgSlugownerManageSettingsIndexRoute
-  '/(authenticated)/org/$slug/(member)/team/$slug/module/': typeof authenticatedOrgSlugmemberTeamSlugModuleIndexRoute
-  '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/': typeof authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRoute
-  '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/': typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRoute
-  '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/$slug/': typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRoute
+  '/(authenticated)/org/$slug/(member)/team/$id/module/': typeof authenticatedOrgSlugmemberTeamIdModuleIndexRoute
+  '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/': typeof authenticatedOrgSlugmemberTeamIdModuleSlugIndexRoute
+  '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/': typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRoute
+  '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/$slug/': typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -237,17 +257,20 @@ export interface FileRouteTypes {
     | '/accept-invitation/$id'
     | '/org/new'
     | '/org/$slug/'
-    | '/org/$slug/manage/invitations'
     | '/org/$slug/dashboard'
+    | '/org/$slug/manage/invitations'
+    | '/org/$slug/dashboard/'
     | '/org/$slug/team'
+    | '/org/$slug/dashboard/members'
+    | '/org/$slug/dashboard/teams'
     | '/org/$slug/attendance'
     | '/org/$slug/communication'
-    | '/org/$slug/team/$slug'
+    | '/org/$slug/team/$id'
     | '/org/$slug/manage/settings'
-    | '/org/$slug/team/$slug/module'
-    | '/org/$slug/team/$slug/module/$slug'
-    | '/org/$slug/team/$slug/module/$slug/feature'
-    | '/org/$slug/team/$slug/module/$slug/feature/$slug'
+    | '/org/$slug/team/$id/module'
+    | '/org/$slug/team/$id/module/$slug'
+    | '/org/$slug/team/$id/module/$slug/feature'
+    | '/org/$slug/team/$id/module/$slug/feature/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -259,14 +282,16 @@ export interface FileRouteTypes {
     | '/org/$slug/manage/invitations'
     | '/org/$slug/dashboard'
     | '/org/$slug/team'
+    | '/org/$slug/dashboard/members'
+    | '/org/$slug/dashboard/teams'
     | '/org/$slug/attendance'
     | '/org/$slug/communication'
-    | '/org/$slug/team/$slug'
+    | '/org/$slug/team/$id'
     | '/org/$slug/manage/settings'
-    | '/org/$slug/team/$slug/module'
-    | '/org/$slug/team/$slug/module/$slug'
-    | '/org/$slug/team/$slug/module/$slug/feature'
-    | '/org/$slug/team/$slug/module/$slug/feature/$slug'
+    | '/org/$slug/team/$id/module'
+    | '/org/$slug/team/$id/module/$slug'
+    | '/org/$slug/team/$id/module/$slug/feature'
+    | '/org/$slug/team/$id/module/$slug/feature/$slug'
   id:
     | '__root__'
     | '/(authenticated)'
@@ -277,21 +302,23 @@ export interface FileRouteTypes {
     | '/(authenticated)/org/$slug'
     | '/(auth)/accept-invitation/$id'
     | '/(authenticated)/org/new'
-    | '/(authenticated)/org/$slug/(admin)'
     | '/(authenticated)/org/$slug/(member)'
     | '/(authenticated)/org/$slug/(owner)'
     | '/(authenticated)/org/$slug/'
+    | '/(authenticated)/org/$slug/(admin)/dashboard'
     | '/(authenticated)/org/$slug/(owner)/manage/invitations'
     | '/(authenticated)/org/$slug/(admin)/dashboard/'
     | '/(authenticated)/org/$slug/(member)/team/'
+    | '/(authenticated)/org/$slug/(admin)/dashboard/members/'
+    | '/(authenticated)/org/$slug/(admin)/dashboard/teams/'
     | '/(authenticated)/org/$slug/(member)/(base-modules)/attendance/'
     | '/(authenticated)/org/$slug/(member)/(base-modules)/communication/'
-    | '/(authenticated)/org/$slug/(member)/team/$slug/'
+    | '/(authenticated)/org/$slug/(member)/team/$id/'
     | '/(authenticated)/org/$slug/(owner)/manage/settings/'
-    | '/(authenticated)/org/$slug/(member)/team/$slug/module/'
-    | '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/'
-    | '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/'
-    | '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/$slug/'
+    | '/(authenticated)/org/$slug/(member)/team/$id/module/'
+    | '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/'
+    | '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/'
+    | '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -381,11 +408,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedOrgSlugmemberRouteRouteImport
       parentRoute: typeof authenticatedOrgSlugRouteRoute
     }
-    '/(authenticated)/org/$slug/(admin)': {
-      id: '/(authenticated)/org/$slug/(admin)'
-      path: '/'
-      fullPath: '/org/$slug/'
-      preLoaderRoute: typeof authenticatedOrgSlugadminRouteRouteImport
+    '/(authenticated)/org/$slug/(admin)/dashboard': {
+      id: '/(authenticated)/org/$slug/(admin)/dashboard'
+      path: '/dashboard'
+      fullPath: '/org/$slug/dashboard'
+      preLoaderRoute: typeof authenticatedOrgSlugadminDashboardRouteRouteImport
       parentRoute: typeof authenticatedOrgSlugRouteRoute
     }
     '/(authenticated)/org/$slug/(member)/team/': {
@@ -397,10 +424,10 @@ declare module '@tanstack/react-router' {
     }
     '/(authenticated)/org/$slug/(admin)/dashboard/': {
       id: '/(authenticated)/org/$slug/(admin)/dashboard/'
-      path: '/dashboard'
-      fullPath: '/org/$slug/dashboard'
+      path: '/'
+      fullPath: '/org/$slug/dashboard/'
       preLoaderRoute: typeof authenticatedOrgSlugadminDashboardIndexRouteImport
-      parentRoute: typeof authenticatedOrgSlugadminRouteRoute
+      parentRoute: typeof authenticatedOrgSlugadminDashboardRouteRoute
     }
     '/(authenticated)/org/$slug/(owner)/manage/invitations': {
       id: '/(authenticated)/org/$slug/(owner)/manage/invitations'
@@ -416,11 +443,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedOrgSlugownerManageSettingsIndexRouteImport
       parentRoute: typeof authenticatedOrgSlugownerRouteRoute
     }
-    '/(authenticated)/org/$slug/(member)/team/$slug/': {
-      id: '/(authenticated)/org/$slug/(member)/team/$slug/'
-      path: '/team/$slug'
-      fullPath: '/org/$slug/team/$slug'
-      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamSlugIndexRouteImport
+    '/(authenticated)/org/$slug/(member)/team/$id/': {
+      id: '/(authenticated)/org/$slug/(member)/team/$id/'
+      path: '/team/$id'
+      fullPath: '/org/$slug/team/$id'
+      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamIdIndexRouteImport
       parentRoute: typeof authenticatedOrgSlugmemberRouteRoute
     }
     '/(authenticated)/org/$slug/(member)/(base-modules)/communication/': {
@@ -437,61 +464,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedOrgSlugmemberbaseModulesAttendanceIndexRouteImport
       parentRoute: typeof authenticatedOrgSlugmemberRouteRoute
     }
-    '/(authenticated)/org/$slug/(member)/team/$slug/module/': {
-      id: '/(authenticated)/org/$slug/(member)/team/$slug/module/'
-      path: '/team/$slug/module'
-      fullPath: '/org/$slug/team/$slug/module'
-      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamSlugModuleIndexRouteImport
+    '/(authenticated)/org/$slug/(admin)/dashboard/teams/': {
+      id: '/(authenticated)/org/$slug/(admin)/dashboard/teams/'
+      path: '/teams'
+      fullPath: '/org/$slug/dashboard/teams'
+      preLoaderRoute: typeof authenticatedOrgSlugadminDashboardTeamsIndexRouteImport
+      parentRoute: typeof authenticatedOrgSlugadminDashboardRouteRoute
+    }
+    '/(authenticated)/org/$slug/(admin)/dashboard/members/': {
+      id: '/(authenticated)/org/$slug/(admin)/dashboard/members/'
+      path: '/members'
+      fullPath: '/org/$slug/dashboard/members'
+      preLoaderRoute: typeof authenticatedOrgSlugadminDashboardMembersIndexRouteImport
+      parentRoute: typeof authenticatedOrgSlugadminDashboardRouteRoute
+    }
+    '/(authenticated)/org/$slug/(member)/team/$id/module/': {
+      id: '/(authenticated)/org/$slug/(member)/team/$id/module/'
+      path: '/team/$id/module'
+      fullPath: '/org/$slug/team/$id/module'
+      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamIdModuleIndexRouteImport
       parentRoute: typeof authenticatedOrgSlugmemberRouteRoute
     }
-    '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/': {
-      id: '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/'
-      path: '/team/$slug/module/$slug'
-      fullPath: '/org/$slug/team/$slug/module/$slug'
-      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRouteImport
+    '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/': {
+      id: '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/'
+      path: '/team/$id/module/$slug'
+      fullPath: '/org/$slug/team/$id/module/$slug'
+      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamIdModuleSlugIndexRouteImport
       parentRoute: typeof authenticatedOrgSlugmemberRouteRoute
     }
-    '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/': {
-      id: '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/'
-      path: '/team/$slug/module/$slug/feature'
-      fullPath: '/org/$slug/team/$slug/module/$slug/feature'
-      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRouteImport
+    '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/': {
+      id: '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/'
+      path: '/team/$id/module/$slug/feature'
+      fullPath: '/org/$slug/team/$id/module/$slug/feature'
+      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRouteImport
       parentRoute: typeof authenticatedOrgSlugmemberRouteRoute
     }
-    '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/$slug/': {
-      id: '/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/$slug/'
-      path: '/team/$slug/module/$slug/feature/$slug'
-      fullPath: '/org/$slug/team/$slug/module/$slug/feature/$slug'
-      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRouteImport
+    '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/$slug/': {
+      id: '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/$slug/'
+      path: '/team/$id/module/$slug/feature/$slug'
+      fullPath: '/org/$slug/team/$id/module/$slug/feature/$slug'
+      preLoaderRoute: typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRouteImport
       parentRoute: typeof authenticatedOrgSlugmemberRouteRoute
     }
   }
 }
-
-interface authenticatedOrgSlugadminRouteRouteChildren {
-  authenticatedOrgSlugadminDashboardIndexRoute: typeof authenticatedOrgSlugadminDashboardIndexRoute
-}
-
-const authenticatedOrgSlugadminRouteRouteChildren: authenticatedOrgSlugadminRouteRouteChildren =
-  {
-    authenticatedOrgSlugadminDashboardIndexRoute:
-      authenticatedOrgSlugadminDashboardIndexRoute,
-  }
-
-const authenticatedOrgSlugadminRouteRouteWithChildren =
-  authenticatedOrgSlugadminRouteRoute._addFileChildren(
-    authenticatedOrgSlugadminRouteRouteChildren,
-  )
 
 interface authenticatedOrgSlugmemberRouteRouteChildren {
   authenticatedOrgSlugmemberTeamIndexRoute: typeof authenticatedOrgSlugmemberTeamIndexRoute
   authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute: typeof authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute
   authenticatedOrgSlugmemberbaseModulesCommunicationIndexRoute: typeof authenticatedOrgSlugmemberbaseModulesCommunicationIndexRoute
-  authenticatedOrgSlugmemberTeamSlugIndexRoute: typeof authenticatedOrgSlugmemberTeamSlugIndexRoute
-  authenticatedOrgSlugmemberTeamSlugModuleIndexRoute: typeof authenticatedOrgSlugmemberTeamSlugModuleIndexRoute
-  authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRoute: typeof authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRoute
-  authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRoute: typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRoute
-  authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRoute: typeof authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRoute
+  authenticatedOrgSlugmemberTeamIdIndexRoute: typeof authenticatedOrgSlugmemberTeamIdIndexRoute
+  authenticatedOrgSlugmemberTeamIdModuleIndexRoute: typeof authenticatedOrgSlugmemberTeamIdModuleIndexRoute
+  authenticatedOrgSlugmemberTeamIdModuleSlugIndexRoute: typeof authenticatedOrgSlugmemberTeamIdModuleSlugIndexRoute
+  authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRoute: typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRoute
+  authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute: typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute
 }
 
 const authenticatedOrgSlugmemberRouteRouteChildren: authenticatedOrgSlugmemberRouteRouteChildren =
@@ -502,16 +528,16 @@ const authenticatedOrgSlugmemberRouteRouteChildren: authenticatedOrgSlugmemberRo
       authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute,
     authenticatedOrgSlugmemberbaseModulesCommunicationIndexRoute:
       authenticatedOrgSlugmemberbaseModulesCommunicationIndexRoute,
-    authenticatedOrgSlugmemberTeamSlugIndexRoute:
-      authenticatedOrgSlugmemberTeamSlugIndexRoute,
-    authenticatedOrgSlugmemberTeamSlugModuleIndexRoute:
-      authenticatedOrgSlugmemberTeamSlugModuleIndexRoute,
-    authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRoute:
-      authenticatedOrgSlugmemberTeamSlugModuleSlugIndexRoute,
-    authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRoute:
-      authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureIndexRoute,
-    authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRoute:
-      authenticatedOrgSlugmemberTeamSlugModuleSlugFeatureSlugIndexRoute,
+    authenticatedOrgSlugmemberTeamIdIndexRoute:
+      authenticatedOrgSlugmemberTeamIdIndexRoute,
+    authenticatedOrgSlugmemberTeamIdModuleIndexRoute:
+      authenticatedOrgSlugmemberTeamIdModuleIndexRoute,
+    authenticatedOrgSlugmemberTeamIdModuleSlugIndexRoute:
+      authenticatedOrgSlugmemberTeamIdModuleSlugIndexRoute,
+    authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRoute:
+      authenticatedOrgSlugmemberTeamIdModuleSlugFeatureIndexRoute,
+    authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute:
+      authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute,
   }
 
 const authenticatedOrgSlugmemberRouteRouteWithChildren =
@@ -537,22 +563,43 @@ const authenticatedOrgSlugownerRouteRouteWithChildren =
     authenticatedOrgSlugownerRouteRouteChildren,
   )
 
+interface authenticatedOrgSlugadminDashboardRouteRouteChildren {
+  authenticatedOrgSlugadminDashboardIndexRoute: typeof authenticatedOrgSlugadminDashboardIndexRoute
+  authenticatedOrgSlugadminDashboardMembersIndexRoute: typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
+  authenticatedOrgSlugadminDashboardTeamsIndexRoute: typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
+}
+
+const authenticatedOrgSlugadminDashboardRouteRouteChildren: authenticatedOrgSlugadminDashboardRouteRouteChildren =
+  {
+    authenticatedOrgSlugadminDashboardIndexRoute:
+      authenticatedOrgSlugadminDashboardIndexRoute,
+    authenticatedOrgSlugadminDashboardMembersIndexRoute:
+      authenticatedOrgSlugadminDashboardMembersIndexRoute,
+    authenticatedOrgSlugadminDashboardTeamsIndexRoute:
+      authenticatedOrgSlugadminDashboardTeamsIndexRoute,
+  }
+
+const authenticatedOrgSlugadminDashboardRouteRouteWithChildren =
+  authenticatedOrgSlugadminDashboardRouteRoute._addFileChildren(
+    authenticatedOrgSlugadminDashboardRouteRouteChildren,
+  )
+
 interface authenticatedOrgSlugRouteRouteChildren {
-  authenticatedOrgSlugadminRouteRoute: typeof authenticatedOrgSlugadminRouteRouteWithChildren
   authenticatedOrgSlugmemberRouteRoute: typeof authenticatedOrgSlugmemberRouteRouteWithChildren
   authenticatedOrgSlugownerRouteRoute: typeof authenticatedOrgSlugownerRouteRouteWithChildren
   authenticatedOrgSlugIndexRoute: typeof authenticatedOrgSlugIndexRoute
+  authenticatedOrgSlugadminDashboardRouteRoute: typeof authenticatedOrgSlugadminDashboardRouteRouteWithChildren
 }
 
 const authenticatedOrgSlugRouteRouteChildren: authenticatedOrgSlugRouteRouteChildren =
   {
-    authenticatedOrgSlugadminRouteRoute:
-      authenticatedOrgSlugadminRouteRouteWithChildren,
     authenticatedOrgSlugmemberRouteRoute:
       authenticatedOrgSlugmemberRouteRouteWithChildren,
     authenticatedOrgSlugownerRouteRoute:
       authenticatedOrgSlugownerRouteRouteWithChildren,
     authenticatedOrgSlugIndexRoute: authenticatedOrgSlugIndexRoute,
+    authenticatedOrgSlugadminDashboardRouteRoute:
+      authenticatedOrgSlugadminDashboardRouteRouteWithChildren,
   }
 
 const authenticatedOrgSlugRouteRouteWithChildren =
