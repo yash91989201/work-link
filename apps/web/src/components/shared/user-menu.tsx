@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,16 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useMemberRole } from "@/hooks/use-member-role";
+import { useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
 
 export default function UserMenu() {
   const navigate = useNavigate();
-  const { data: session, isPending } = authClient.useSession();
-
-  if (isPending) {
-    return <Skeleton className="h-9 w-24" />;
-  }
+  const session = useSession();
+  const role = useMemberRole();
 
   if (!session) {
     return (
@@ -32,8 +31,11 @@ export default function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="outline">{session.user.name}</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+      <DropdownMenuContent className="space-y-1.5 bg-card">
+        <DropdownMenuLabel className="space-x-1.5">
+          <span>My Account</span>
+          {role !== null ? <Badge>{role}</Badge> : null}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
         <DropdownMenuItem asChild>
