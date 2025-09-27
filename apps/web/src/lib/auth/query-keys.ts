@@ -22,12 +22,10 @@ export const getAuthQueryKey = {
       ["auth", "organization", "members", organizationId] as const,
 
     // Get organization roles
-    roles: (organizationId: string) =>
-      ["auth", "organization", "roles", organizationId] as const,
+    roles: () => ["auth", "organization", "roles"] as const,
 
     // Get user's role in organization
-    userRole: (organizationId: string, userId: string) =>
-      ["auth", "organization", "userRole", organizationId, userId] as const,
+    userRole: () => ["auth", "organization", "userRole"] as const,
 
     // Get active organization
     active: () => ["auth", "organization", "active"] as const,
@@ -109,6 +107,6 @@ export const isAuthQueryKey = (queryKey: unknown[]): boolean => {
 export const getOrganizationQueryKeys = (organizationId: string) => ({
   invitations: getAuthQueryKey.organization.invitations(organizationId),
   members: getAuthQueryKey.organization.members(organizationId),
-  roles: getAuthQueryKey.organization.roles(organizationId),
+  roles: getAuthQueryKey.organization.roles(),
   details: getAuthQueryKey.organization.byId(organizationId),
 });
