@@ -5,6 +5,9 @@ import type { z } from "zod";
 import type { AccountInsertSchema } from "@/lib/schemas/db-tables";
 import type { AccountSchema } from "@/lib/schemas/db-tables";
 import type { AccountUpdateSchema } from "@/lib/schemas/db-tables";
+import type { AttendanceInsertSchema } from "@/lib/schemas/db-tables";
+import type { AttendanceSchema } from "@/lib/schemas/db-tables";
+import type { AttendanceUpdateSchema } from "@/lib/schemas/db-tables";
 import type { FeatureSchema } from "@/lib/schemas/module";
 import type { InvitationInsertSchema } from "@/lib/schemas/db-tables";
 import type { InvitationSchema } from "@/lib/schemas/db-tables";
@@ -38,6 +41,12 @@ export type AccountInsertType = z.infer<typeof AccountInsertSchema>;
 export type AccountType = z.infer<typeof AccountSchema>;
 
 export type AccountUpdateType = z.infer<typeof AccountUpdateSchema>;
+
+export type AttendanceInsertType = z.infer<typeof AttendanceInsertSchema>;
+
+export type AttendanceType = z.infer<typeof AttendanceSchema>;
+
+export type AttendanceUpdateType = z.infer<typeof AttendanceUpdateSchema>;
 
 export type FeatureType = z.infer<typeof FeatureSchema>;
 
