@@ -1,29 +1,30 @@
-import { Link, useParams } from "@tanstack/react-router";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { MemberSidebar } from "./sidebar";
+import { SiteHeader } from "./site-header";
 
 export const MemberRootLayout = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const { slug } = useParams({
-    from: "/(authenticated)/org/$slug",
-  });
-
   return (
-    <div className="flex h-screen w-screen gap-1.5 overflow-hidden">
-      <aside className="flex w-60 flex-col gap-3 p-1.5">
-        <Link params={{ slug }} to="/org/$slug/communication">
-          Communication
-        </Link>
-        <Link params={{ slug }} to="/org/$slug/attendance">
-          Attendance
-        </Link>
-      </aside>
-      <div className="flex flex-1 flex-col overflow-hidden p-1.5">
-        <main className="h-full w-full rounded-sm border p-1.5">
-          {children}
-        </main>
-      </div>
-    </div>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <MemberSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            {children}
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 };
