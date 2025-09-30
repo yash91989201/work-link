@@ -1,4 +1,4 @@
-import type { MessageWithSenderOutput } from "@server/lib/schemas/message";
+import type { MessageType } from "@server/lib/types";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import {
   useMutation,
@@ -35,7 +35,10 @@ export const useMessages = (
   const channelRef = useRef<RealtimeChannel>(null);
 
   // Query for messages
-  const { data: result, refetch: refetchGetChannelMessages } = useSuspenseQuery(
+  const {
+    data: { messages = [] },
+    refetch: refetchGetChannelMessages,
+  } = useSuspenseQuery(
     queryUtils.communication.messages.getChannelMessages.queryOptions({
       input: {
         channelId,
@@ -46,9 +49,6 @@ export const useMessages = (
       },
     })
   );
-
-  const messages = result?.messages || [];
-  const hasMore = result?.hasMore;
 
   // Setup realtime subscription
   useEffect(() => {
@@ -67,17 +67,22 @@ export const useMessages = (
           table: "message",
           filter: `channel_id=eq.${channelId}`,
         },
-        (payload) => {
-          const newMessage = payload.new as any;
+        async (payload) => {
+          const newMessage = payload.new as MessageType;
 
-          // Transform to match expected format
-          const message: MessageWithSenderOutput = {
+          const { data: sender } = await supabase
+            .from("user")
+            .select("name, email, image")
+            .eq("id", newMessage.senderId)
+            .single();
+
+          if (!sender) {
+            return;
+          }
+
+          const messageWithSender = {
             ...newMessage,
-            createdAt: new Date(newMessage.created_at),
-            updatedAt: new Date(newMessage.updated_at),
-            deletedAt: newMessage.deleted_at
-              ? new Date(newMessage.deleted_at)
-              : null,
+            sender,
           };
 
           queryClient.setQueryData(
@@ -95,8 +100,7 @@ export const useMessages = (
 
               return {
                 ...old,
-                messages: [...(old.messages || []), message],
-                hasMore: old.hasMore,
+                messages: [...(old.messages || []), messageWithSender],
               };
             }
           );
@@ -197,7 +201,6 @@ export const useMessages = (
 
   return {
     messages,
-    hasMore,
     isLoading: false,
     isError: false,
     error: null,
@@ -221,18 +224,6 @@ export const useMessage = (messageId: string) => {
   );
 };
 
-export const useThreadMessages = (parentMessageId?: string, limit = 20) => {
-  return useQuery(
-    queryUtils.communication.messages.getThreadMessages.queryOptions({
-      input: {
-        parentMessageId: parentMessageId ?? "",
-        limit,
-      },
-      enabled: !!parentMessageId,
-    })
-  );
-};
-
 export const useTypingIndicator = (channelId: string) => {
   const { user } = useAuthedSession();
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
@@ -243,7 +234,10 @@ export const useTypingIndicator = (channelId: string) => {
     const channel = supabase
       .channel(channelName)
       .on("broadcast", { event: "typing" }, (payload) => {
-        const { userId, isTyping } = payload.payload as any;
+        const { userId, isTyping } = payload.payload as {
+          userId: string;
+          isTyping: boolean;
+        };
 
         if (isTyping) {
           setTypingUsers((prev) => {

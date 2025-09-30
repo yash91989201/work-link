@@ -3,6 +3,8 @@ import {
   ChannelInsertSchema,
   ChannelSchema,
   ChannelTypeSchema,
+  MessageSchema,
+  UserSchema,
 } from "./db-tables";
 
 // Create channel input
@@ -73,6 +75,18 @@ export const GetChannelMembersInput = z.object({
   channelId: z.string(),
   limit: z.number().min(1).max(100).default(50),
   offset: z.number().min(0).default(0),
+});
+
+export const GetChannelMembersOutput = z.object({
+  messages: z.array(
+    MessageSchema.extend({
+      sender: UserSchema.pick({
+        name: true,
+        email: true,
+        image: true,
+      }),
+    })
+  ),
 });
 
 // Join channel input

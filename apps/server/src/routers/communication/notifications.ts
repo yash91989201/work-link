@@ -1,6 +1,8 @@
 import { ORPCError } from "@orpc/server";
 
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { member, user as userTable } from "@/db/schema/auth";
+import { channelTable, notificationTable } from "@/db/schema/communication";
 import type { Context } from "@/lib/context";
 import { protectedProcedure } from "@/lib/orpc";
 import {
@@ -19,8 +21,6 @@ import {
   SuccessOutput,
   UnreadCountOutput,
 } from "@/lib/schemas/notification";
-import { channelTable, notificationTable } from "@/db/schema/communication";
-import { member, user as userTable } from "@/db/schema/auth";
 
 type Database = Context["db"];
 

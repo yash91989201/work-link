@@ -1,4 +1,5 @@
 import { cuid2 } from "drizzle-cuid2/postgres";
+import { relations } from "drizzle-orm";
 import {
   boolean,
   integer,
@@ -215,3 +216,122 @@ export const messageReadTable = pgTable("message_read", {
     .$defaultFn(() => new Date())
     .notNull(),
 });
+
+export const messageTableRelations = relations(
+  messageTable,
+  ({ one, many }) => ({
+    // Relations to other tables (foreign keys in messageTable)
+    channel: one(channelTable, {
+      fields: [messageTable.channelId],
+      references: [channelTable.id],
+    }),
+    sender: one(user, {
+      fields: [messageTable.senderId],
+      references: [user.id],
+    }),
+    receiver: one(user, {
+      fields: [messageTable.receiverId],
+      references: [user.id],
+    }),
+    parentMessage: one(messageTable, {
+      fields: [messageTable.parentMessageId],
+      references: [messageTable.id],
+    }),
+    // Inverse relations (other tables reference messageTable)
+    attachments: many(attachmentTable),
+    reads: many(messageReadTable),
+  })
+);
+
+// Channel relations
+export const channelTableRelations = relations(
+  channelTable,
+  ({ one, many }) => ({
+    organization: one(organization, {
+      fields: [channelTable.organizationId],
+      references: [organization.id],
+    }),
+    team: one(team, {
+      fields: [channelTable.teamId],
+      references: [team.id],
+    }),
+    createdBy: one(user, {
+      fields: [channelTable.createdBy],
+      references: [user.id],
+    }),
+    members: many(channelMemberTable),
+    messages: many(messageTable),
+    userPresence: many(userPresenceTable),
+  })
+);
+
+// Channel member relations
+export const channelMemberTableRelations = relations(
+  channelMemberTable,
+  ({ one }) => ({
+    channel: one(channelTable, {
+      fields: [channelMemberTable.channelId],
+      references: [channelTable.id],
+    }),
+    user: one(user, {
+      fields: [channelMemberTable.userId],
+      references: [user.id],
+    }),
+  })
+);
+
+// Attachment relations
+export const attachmentTableRelations = relations(
+  attachmentTable,
+  ({ one }) => ({
+    message: one(messageTable, {
+      fields: [attachmentTable.messageId],
+      references: [messageTable.id],
+    }),
+    uploadedBy: one(user, {
+      fields: [attachmentTable.uploadedBy],
+      references: [user.id],
+    }),
+  })
+);
+
+// Notification relations
+export const notificationTableRelations = relations(
+  notificationTable,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [notificationTable.userId],
+      references: [user.id],
+    }),
+  })
+);
+
+// User presence relations
+export const userPresenceTableRelations = relations(
+  userPresenceTable,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [userPresenceTable.id],
+      references: [user.id],
+    }),
+    currentChannel: one(channelTable, {
+      fields: [userPresenceTable.currentChannelId],
+      references: [channelTable.id],
+    }),
+  })
+);
+
+// Message read relations
+export const messageReadTableRelations = relations(
+  messageReadTable,
+  ({ one }) => ({
+    message: one(messageTable, {
+      fields: [messageReadTable.messageId],
+      references: [messageTable.id],
+    }),
+    user: one(user, {
+      fields: [messageReadTable.userId],
+      references: [user.id],
+    }),
+  })
+);

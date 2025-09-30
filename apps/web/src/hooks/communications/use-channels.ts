@@ -22,13 +22,14 @@ export const useChannels = (options?: UseChannelsOptions) => {
     includeArchived = false,
     limit = 50,
     offset = 0,
-    enableRealtime = true,
   } = options || {};
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<RealtimeChannel>(null);
 
   // Query for channels
-  const { data: result } = useSuspenseQuery(
+  const {
+    data: { channels = [] },
+  } = useSuspenseQuery(
     queryUtils.communication.channel.list.queryOptions({
       input: {
         type,
@@ -40,62 +41,49 @@ export const useChannels = (options?: UseChannelsOptions) => {
     })
   );
 
-  const channels = result.channels || [];
-  const total = result.total || 0;
-  const hasMore = result.hasMore;
-
-  // Setup realtime subscription for channel updates
   useEffect(() => {
-    if (!enableRealtime) {
-      return;
-    }
-
     const postgresChangesChannel = supabase
       .channel("org:channels")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "channel",
-        },
-        (payload) => {
-          const newChannel = payload.new as unknown as ChannelWithStatsOutput;
-
-          // Transform to match expected format
-          const channel: ChannelWithStatsOutput = {
-            ...newChannel,
-            createdAt: new Date(newChannel.createdAt),
-            updatedAt: new Date(newChannel.updatedAt),
-            memberCount: 0,
-            messageCount: 0,
-          };
-
-          queryClient.setQueryData(
-            queryUtils.communication.channel.list.queryKey({
-              input: {
-                type,
-                teamId,
-                includeArchived,
-                limit,
-                offset,
-              },
-            }),
-            (old) => {
-              if (!old) return old;
-
-              return {
-                ...old,
-                channels: [channel, ...(old.channels || [])],
-                total: (old.total || 0) + 1,
-                hasMore: old.hasMore,
-              };
-            }
-          );
-
-          toast.success("New channel created");
-        }
-      )
+      // .on(
+      //   "postgres_changes",
+      //   {
+      //     event: "INSERT",
+      //     schema: "public",
+      //     table: "channel",
+      //   },
+      //   (payload) => {
+      //     const newChannel = payload.new as unknown as ChannelWithStatsOutput;
+      //
+      //     // Transform to match expected format
+      //     const channel: ChannelWithStatsOutput = {
+      //       ...newChannel,
+      //       createdAt: new Date(newChannel.createdAt),
+      //       updatedAt: new Date(newChannel.updatedAt),
+      //       memberCount: 0,
+      //       messageCount: 0,
+      //     };
+      //
+      //     queryClient.setQueryData(
+      //       queryUtils.communication.channel.list.queryKey({
+      //         input: {
+      //           type,
+      //           teamId,
+      //           includeArchived,
+      //         },
+      //       }),
+      //       (old) => {
+      //         if (!old) return old;
+      //
+      //         return {
+      //           ...old,
+      //           channels: [channel, ...(old.channels || [])],
+      //         };
+      //       }
+      //     );
+      //
+      //     toast.success("New channel created");
+      //   }
+      // )
       .on(
         "postgres_changes",
         {
@@ -110,8 +98,6 @@ export const useChannels = (options?: UseChannelsOptions) => {
                 type,
                 teamId,
                 includeArchived,
-                limit,
-                offset,
               },
             }),
           });
@@ -146,7 +132,7 @@ export const useChannels = (options?: UseChannelsOptions) => {
       }
       setIsConnected(false);
     };
-  }, [enableRealtime, teamId, type, offset, limit, includeArchived]);
+  }, [teamId, type, includeArchived]);
 
   // Mutation hooks
   const { mutateAsync: createChannel, isPending: isCreatingChannel } =
@@ -193,86 +179,10 @@ export const useChannels = (options?: UseChannelsOptions) => {
       })
     );
 
-  const { mutateAsync: deleteChannel, isPending: isDeletingChannel } =
-    useMutation(
-      queryUtils.communication.channel.delete.mutationOptions({
-        onSuccess: () => {
-          if (!isConnected) {
-            queryClient.invalidateQueries({
-              queryKey: queryUtils.communication.channel.list.queryKey({
-                input: {},
-              }),
-            });
-          }
-          toast.success("Channel deleted");
-        },
-        onError: (error) => {
-          toast.message("Failed to create channel", {
-            description:
-              error instanceof Error ? error.message : "Unknown error occurred",
-          });
-        },
-      })
-    );
-
-  const { mutateAsync: joinChannel, isPending: isJoiningChannel } = useMutation(
-    queryUtils.communication.channel.join.mutationOptions({
-      onSuccess: () => {
-        if (!isConnected) {
-          queryClient.invalidateQueries({
-            queryKey: queryUtils.communication.channel.list.queryKey({
-              input: {},
-            }),
-          });
-        }
-        toast.success("Joined channel");
-      },
-      onError: (error) => {
-        toast.message("Failed to create channel", {
-          description:
-            error instanceof Error ? error.message : "Unknown error occurred",
-        });
-      },
-    })
-  );
-
-  const { mutateAsync: leaveChannel, isPending: isLeavingChannel } =
-    useMutation(
-      queryUtils.communication.channel.leave.mutationOptions({
-        onSuccess: () => {
-          if (!isConnected) {
-            queryClient.invalidateQueries({
-              queryKey: queryUtils.communication.channel.list.queryKey({
-                input: {},
-              }),
-            });
-          }
-          toast.success("Left channel");
-        },
-        onError: (error) => {
-          toast.message("Failed to create channel", {
-            description:
-              error instanceof Error ? error.message : "Unknown error occurred",
-          });
-        },
-      })
-    );
-
   return {
     channels,
-    total,
-    hasMore,
-    isLoading:
-      isCreatingChannel ||
-      isUpdatingChannel ||
-      isDeletingChannel ||
-      isJoiningChannel ||
-      isLeavingChannel,
-    isCreatingChannel,
+    isLoading: isCreatingChannel || isUpdatingChannel || isCreatingChannel,
     isUpdatingChannel,
-    isDeletingChannel,
-    isJoiningChannel,
-    isLeavingChannel,
 
     error: null,
     refetch: () => {
@@ -281,9 +191,6 @@ export const useChannels = (options?: UseChannelsOptions) => {
     isConnected,
     createChannel,
     updateChannel,
-    deleteChannel,
-    joinChannel,
-    leaveChannel,
   };
 };
 
@@ -349,28 +256,21 @@ export const useChannel = (channelId?: string) => {
   };
 };
 
-export const useChannelMembers = (channelId?: string) => {
+export const useChannelMembers = (channelId: string) => {
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<RealtimeChannel>(null);
 
-  // Query for channel members
   const { data: membersData } = useQuery(
     queryUtils.communication.channel.getMembers.queryOptions({
       input: {
-        channelId: channelId || "",
+        channelId,
         limit: 50,
         offset: 0,
       },
-      enabled: !!channelId,
     })
   );
 
-  // Setup realtime subscription for member updates
   useEffect(() => {
-    if (!channelId) {
-      return;
-    }
-
     const channelName = `channels:members:${channelId}`;
     const channel = supabase
       .channel(channelName)

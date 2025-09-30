@@ -9,6 +9,8 @@ import {
   CreateChannelInput,
   CreateChannelOutput,
   GetChannelInput,
+  GetChannelMembersInput,
+  GetChannelMembersOutput,
   ListChannelsInput,
   ListChannelsOutput,
   UpdateChannelInput,
@@ -152,5 +154,16 @@ export const channelRouter = {
       return {
         channels,
       };
+    }),
+
+  getMembers: protectedProcedure
+    .input(GetChannelMembersInput)
+    .output(GetChannelMembersOutput)
+    .handler(async ({ input, context }) => {
+      const members = await context.db.query.channelMemberTable.findMany({
+        where: eq(channelMemberTable.id, input.channelId),
+      });
+
+      return { members };
     }),
 };

@@ -1,37 +1,33 @@
 import { ORPCError } from "@orpc/server";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
-import type { Context } from "@/lib/context";
-import { protectedProcedure } from "@/lib/orpc";
-import { MessageSchema } from "@/lib/schemas/db-tables";
-import {
-  AddReactionInput,
-  CreateMessageInput,
-  DeleteMessageInput,
-  GetChannelMessagesInput,
-  GetDirectMessagesInput,
-  GetMessageInput,
-  GetThreadMessagesInput,
-  GetUnreadCountInput,
-  MarkMessageAsReadInput,
-  MessagesListOutput,
-  MessageWithSenderOutput,
-  RemoveReactionInput,
-  SearchMessageOutput,
-  SearchMessagesInput,
-  SearchMessagesListOutput,
-  SuccessOutput,
-  ThreadMessageOutput,
-  ThreadMessagesListOutput,
-  UnreadCountOutput,
-  UpdateMessageInput,
-} from "@/lib/schemas/message";
+import { and, desc, eq, ilike, sql } from "drizzle-orm";
+import { user as userTable } from "@/db/schema/auth";
 import {
   channelMemberTable,
   channelTable,
   messageReadTable,
   messageTable,
 } from "@/db/schema/communication";
-import { member, user as userTable } from "@/db/schema/auth";
+import type { Context } from "@/lib/context";
+import { protectedProcedure } from "@/lib/orpc";
+import { GetChannelMembersOutput } from "@/lib/schemas/channel";
+import { MessageSchema } from "@/lib/schemas/db-tables";
+import {
+  AddReactionInput,
+  CreateMessageInput,
+  DeleteMessageInput,
+  GetChannelMessagesInput,
+  GetMessageInput,
+  GetUnreadCountInput,
+  MarkMessageAsReadInput,
+  MessageWithSenderOutput,
+  RemoveReactionInput,
+  SearchMessageOutput,
+  SearchMessagesInput,
+  SearchMessagesListOutput,
+  SuccessOutput,
+  UnreadCountOutput,
+  UpdateMessageInput,
+} from "@/lib/schemas/message";
 
 type Database = Context["db"];
 
@@ -142,35 +138,25 @@ const hasChannelPermission = async (
   return ROLE_PRIORITY[currentRole] >= ROLE_PRIORITY[requiredRole];
 };
 
-const mapMessageWithSender = <T extends {
-  mentions: unknown;
-  senderName: string | null;
-  senderEmail: string | null;
-  senderImage: string | null;
-}>(message: T) => ({
+const mapMessageWithSender = <
+  T extends {
+    mentions: unknown;
+    senderName: string | null;
+    senderEmail: string | null;
+    senderImage: string | null;
+  },
+>(
+  message: T
+) => ({
   ...message,
   mentions: normalizeMentions(message.mentions),
 });
 
-const parseMessageWithSender = (message: ReturnType<typeof mapMessageWithSender>) =>
+const parseMessageWithSender = (
+  message: ReturnType<typeof mapMessageWithSender>
+) =>
   MessageWithSenderOutput.parse({
     ...message,
-    attachments: [],
-  });
-
-const parseThreadMessage = (message: ReturnType<typeof mapMessageWithSender>) =>
-  ThreadMessageOutput.parse({
-    id: message.id,
-    content: message.content,
-    type: message.type,
-    isEdited: message.isEdited,
-    editedAt: message.editedAt,
-    mentions: message.mentions,
-    createdAt: message.createdAt,
-    senderId: message.senderId,
-    senderName: message.senderName,
-    senderEmail: message.senderEmail,
-    senderImage: message.senderImage,
     attachments: [],
   });
 
@@ -199,7 +185,9 @@ const getMessageById = async (db: Database, messageId: string) => {
     })
     .from(messageTable)
     .innerJoin(userTable, eq(messageTable.senderId, userTable.id))
-    .where(and(eq(messageTable.id, messageId), eq(messageTable.isDeleted, false)))
+    .where(
+      and(eq(messageTable.id, messageId), eq(messageTable.isDeleted, false))
+    )
     .limit(1);
 
   if (!message) {
@@ -228,146 +216,6 @@ const updateMessageContent = async (
     .returning();
 
   return message ?? null;
-};
-
-const getChannelMessagesList = async (
-  db: Database,
-  channelId: string,
-  options: {
-    limit: number;
-    offset: number;
-    beforeId?: string;
-    afterId?: string;
-  }
-) => {
-  const rows = await db
-    .select({
-      id: messageTable.id,
-      channelId: messageTable.channelId,
-      senderId: messageTable.senderId,
-      receiverId: messageTable.receiverId,
-      content: messageTable.content,
-      type: messageTable.type,
-      parentMessageId: messageTable.parentMessageId,
-      threadCount: messageTable.threadCount,
-      isEdited: messageTable.isEdited,
-      editedAt: messageTable.editedAt,
-      mentions: messageTable.mentions,
-      isDeleted: messageTable.isDeleted,
-      deletedAt: messageTable.deletedAt,
-      reactions: messageTable.reactions,
-      createdAt: messageTable.createdAt,
-      updatedAt: messageTable.updatedAt,
-      senderName: userTable.name,
-      senderEmail: userTable.email,
-      senderImage: userTable.image,
-    })
-    .from(messageTable)
-    .innerJoin(userTable, eq(messageTable.senderId, userTable.id))
-    .where(
-      and(
-        eq(messageTable.channelId, channelId),
-        eq(messageTable.isDeleted, false)
-      )
-    )
-    .orderBy(desc(messageTable.createdAt))
-    .limit(options.limit)
-    .offset(options.offset);
-
-  return rows.map((row) => mapMessageWithSender(row));
-};
-
-const getDirectMessagesList = async (
-  db: Database,
-  userId1: string,
-  userId2: string,
-  options: { limit: number; offset: number }
-) => {
-  const rows = await db
-    .select({
-      id: messageTable.id,
-      channelId: messageTable.channelId,
-      senderId: messageTable.senderId,
-      receiverId: messageTable.receiverId,
-      content: messageTable.content,
-      type: messageTable.type,
-      parentMessageId: messageTable.parentMessageId,
-      threadCount: messageTable.threadCount,
-      isEdited: messageTable.isEdited,
-      editedAt: messageTable.editedAt,
-      mentions: messageTable.mentions,
-      isDeleted: messageTable.isDeleted,
-      deletedAt: messageTable.deletedAt,
-      reactions: messageTable.reactions,
-      createdAt: messageTable.createdAt,
-      updatedAt: messageTable.updatedAt,
-      senderName: userTable.name,
-      senderEmail: userTable.email,
-      senderImage: userTable.image,
-    })
-    .from(messageTable)
-    .innerJoin(userTable, eq(messageTable.senderId, userTable.id))
-    .where(
-      and(
-        or(
-          and(
-            eq(messageTable.senderId, userId1),
-            eq(messageTable.receiverId, userId2)
-          ),
-          and(
-            eq(messageTable.senderId, userId2),
-            eq(messageTable.receiverId, userId1)
-          )
-        ),
-        eq(messageTable.isDeleted, false)
-      )
-    )
-    .orderBy(desc(messageTable.createdAt))
-    .limit(options.limit)
-    .offset(options.offset);
-
-  return rows.map((row) => mapMessageWithSender(row));
-};
-
-const getThreadMessagesList = async (
-  db: Database,
-  parentMessageId: string,
-  limit: number
-) => {
-  const rows = await db
-    .select({
-      id: messageTable.id,
-      channelId: messageTable.channelId,
-      senderId: messageTable.senderId,
-      receiverId: messageTable.receiverId,
-      content: messageTable.content,
-      type: messageTable.type,
-      parentMessageId: messageTable.parentMessageId,
-      threadCount: messageTable.threadCount,
-      isEdited: messageTable.isEdited,
-      editedAt: messageTable.editedAt,
-      mentions: messageTable.mentions,
-      isDeleted: messageTable.isDeleted,
-      deletedAt: messageTable.deletedAt,
-      reactions: messageTable.reactions,
-      createdAt: messageTable.createdAt,
-      updatedAt: messageTable.updatedAt,
-      senderName: userTable.name,
-      senderEmail: userTable.email,
-      senderImage: userTable.image,
-    })
-    .from(messageTable)
-    .innerJoin(userTable, eq(messageTable.senderId, userTable.id))
-    .where(
-      and(
-        eq(messageTable.parentMessageId, parentMessageId),
-        eq(messageTable.isDeleted, false)
-      )
-    )
-    .orderBy(messageTable.createdAt)
-    .limit(limit);
-
-  return rows.map((row) => mapMessageWithSender(row));
 };
 
 const deleteMessageRecord = async (db: Database, messageId: string) => {
@@ -465,7 +313,7 @@ const getUnreadCountForChannel = async (
   });
 
   if (!membership?.lastReadAt) {
-    const [result] = await db
+    const [messageCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(messageTable)
       .where(
@@ -475,7 +323,7 @@ const getUnreadCountForChannel = async (
         )
       );
 
-    return result?.count ?? 0;
+    return messageCount?.count ?? 0;
   }
 
   const [result] = await db
@@ -601,127 +449,23 @@ export const messagesRouter = {
   // Get channel messages
   getChannelMessages: protectedProcedure
     .input(GetChannelMessagesInput)
-    .output(MessagesListOutput)
+    .output(GetChannelMembersOutput)
     .handler(async ({ input, context }) => {
-      const { db } = context;
-      const limit = input.limit;
-      const offset = input.offset;
-
-      const messages = await getChannelMessagesList(db, input.channelId, {
-        limit,
-        offset,
-        beforeId: input.beforeMessageId,
-        afterId: input.afterMessageId,
+      const messages = await context.db.query.messageTable.findMany({
+        where: eq(messageTable.channelId, input.channelId),
+        with: {
+          sender: {
+            columns: {
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
       });
 
       return {
-        messages: messages.map((message) => parseMessageWithSender(message)),
-        hasMore: messages.length === limit,
-      };
-    }),
-
-  // Get direct messages
-  getDirectMessages: protectedProcedure
-    .input(GetDirectMessagesInput)
-    .output(MessagesListOutput)
-    .handler(async ({ input, context }) => {
-      const { db, session } = context;
-      const user = session.user;
-      const orgId = session.session.activeOrganizationId;
-
-      if (!orgId) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Organization not found.",
-        });
-      }
-
-      // Verify both users are in the same organization
-      const bothUsersInOrg = await db.query.member.findMany({
-        where: and(
-          eq(member.organizationId, orgId),
-          eq(member.userId, user.id)
-        ),
-      });
-
-      if (bothUsersInOrg.length === 0) {
-        throw new ORPCError("FORBIDDEN", {
-          message: "You are not a member of this organization.",
-        });
-      }
-
-      const otherUserInOrg = await db.query.member.findFirst({
-        where: and(
-          eq(member.organizationId, orgId),
-          eq(member.userId, input.userId2)
-        ),
-      });
-
-      if (!otherUserInOrg) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Other user not found in this organization.",
-        });
-      }
-
-      const limit = input.limit;
-      const offset = input.offset;
-
-      const messages = await getDirectMessagesList(db, input.userId1, input.userId2, {
-        limit,
-        offset,
-      });
-
-      return {
-        messages: messages.map((message) =>
-          parseMessageWithSender(message)
-        ),
-        hasMore: messages.length === limit,
-      };
-    }),
-
-  // Get thread messages
-  getThreadMessages: protectedProcedure
-    .input(GetThreadMessagesInput)
-    .output(ThreadMessagesListOutput)
-    .handler(async ({ input, context }) => {
-      const { db, session } = context;
-      const currentUser = session.user;
-
-      const parentMessage = await getMessageById(db, input.parentMessageId);
-      if (!parentMessage) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Parent message not found.",
-        });
-      }
-
-      if (parentMessage.channelId) {
-        const access = await hasChannelAccess(
-          db,
-          parentMessage.channelId,
-          currentUser.id
-        );
-        if (!access) {
-          throw new ORPCError("FORBIDDEN", {
-            message: "You don't have access to this channel.",
-          });
-        }
-      } else if (
-        parentMessage.senderId !== currentUser.id &&
-        parentMessage.receiverId !== currentUser.id
-      ) {
-        throw new ORPCError("FORBIDDEN", {
-          message: "You don't have access to this conversation.",
-        });
-      }
-
-      const messages = await getThreadMessagesList(
-        db,
-        input.parentMessageId,
-        input.limit
-      );
-
-      return {
-        messages: messages.map((message) => parseThreadMessage(message)),
-        parentMessage: parseMessageWithSender(parentMessage),
+        messages,
       };
     }),
 
@@ -800,7 +544,12 @@ export const messagesRouter = {
         });
       }
 
-      await addReactionToMessage(db, input.messageId, currentUser.id, input.emoji);
+      await addReactionToMessage(
+        db,
+        input.messageId,
+        currentUser.id,
+        input.emoji
+      );
 
       return {
         success: true,

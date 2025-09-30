@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MessageSchema } from "./db-tables";
 
 // Message types enum
 export const MessageTypeSchema = z.enum([
@@ -37,6 +38,10 @@ export const GetChannelMessagesInput = z.object({
   offset: z.number().min(0).default(0),
   beforeMessageId: z.string().optional(),
   afterMessageId: z.string().optional(),
+});
+
+export const GetChannelMessagesOutput = z.object({
+  messages: z.array(MessageSchema),
 });
 
 // Get direct messages input
@@ -167,9 +172,7 @@ export const SearchMessageOutput = z.object({
 
 // Messages list output
 export const MessagesListOutput = z.object({
-  messages: z.array(MessageWithSenderOutput),
-  total: z.number().optional(),
-  hasMore: z.boolean().optional(),
+  messages: z.array(MessageSchema),
 });
 
 // Thread messages list output

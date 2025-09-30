@@ -1,12 +1,12 @@
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { user as userTable } from "@/db/schema/auth";
 import {
   attachmentTable,
   channelMemberTable,
   channelTable,
   messageTable,
 } from "@/db/schema/communication";
-import { user as userTable } from "@/db/schema/auth";
 import { protectedProcedure } from "@/lib/orpc";
 import {
   AttachmentOutput,

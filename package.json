@@ -23,7 +23,8 @@
     "dev:email": "turbo -F transactional dev",
     "update": "bun run --filter web update && bun run --filter server update",
     "supabase:start": "bun run --filter server supabase:start",
-    "supabase:stop": "bun run --filter server supabase:stop"
+    "supabase:stop": "bun run --filter server supabase:stop",
+    "supabase:generate-types": "bun run --filter=web --filter=server generate:supabase-types"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
