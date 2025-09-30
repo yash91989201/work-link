@@ -13,15 +13,13 @@ export const ChannelList = () => {
   );
 
   return (
-    <div>
-      <ScrollArea className="flex-1">
-        {channelListData.channels.map((channel) => (
-          <Suspense fallback={<ChannelSkeleton />} key={channel.id}>
-            <Channel {...channel} />
-          </Suspense>
-        ))}
-      </ScrollArea>
-    </div>
+    <ScrollArea className="flex-1">
+      {channelListData.channels.map((channel) => (
+        <Suspense fallback={<ChannelSkeleton />} key={channel.id}>
+          <Channel {...channel} />
+        </Suspense>
+      ))}
+    </ScrollArea>
   );
 };
 
@@ -37,7 +35,7 @@ export const Channel = ({ name, id }: { name: string; id: string }) => {
   );
   return (
     <Button
-      className="h-14 w-full"
+      className="h-14 w-full items-center justify-between"
       onClick={() => {
         navigate({
           to: "/org/$slug/communication/channels/$id",
