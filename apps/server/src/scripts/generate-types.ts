@@ -70,7 +70,7 @@ function generateTypes() {
       const importPath =
         dirName === "."
           ? `@/lib/schemas/${path.basename(relPath)}`
-          : `@/lib/schemas/${dirName}`;
+          : `@/lib/schemas/${relPath}`;
 
       for (const schemaName of schemaNames) {
         const typeName = schemaName.replace(SCHEMA_SUFFIX_REGEX, "");

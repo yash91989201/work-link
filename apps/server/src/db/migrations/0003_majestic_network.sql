@@ -1,0 +1,1 @@
+ALTER TABLE "channel_member" ADD CONSTRAINT "channel_member_channel_id_user_id_unique" UNIQUE("channel_id","user_id");

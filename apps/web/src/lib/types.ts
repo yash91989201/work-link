@@ -3,14 +3,17 @@
 import type { z } from "zod";
 
 import type { AcceptInvitationFormSchema } from "@/lib/schemas/auth";
+import type { CreateChannelFormSchema } from "@/lib/schemas/memeber/channel";
 import type { CreateOrgFormSchema } from "@/lib/schemas/org";
-import type { CreateTeamFormSchema } from "@/lib/schemas/admin";
-import type { InviteAdminFormSchema } from "@/lib/schemas/owner";
-import type { InviteMemberFormSchema } from "@/lib/schemas/admin";
+import type { CreateTeamFormSchema } from "@/lib/schemas/admin/team";
+import type { InviteAdminFormSchema } from "@/lib/schemas/owner/index";
+import type { InviteMemberFormSchema } from "@/lib/schemas/admin/member";
 import type { LogInFormSchema } from "@/lib/schemas/auth";
 import type { SignUpFormSchema } from "@/lib/schemas/auth";
 
 export type AcceptInvitationFormType = z.infer<typeof AcceptInvitationFormSchema>;
+
+export type CreateChannelFormType = z.infer<typeof CreateChannelFormSchema>;
 
 export type CreateOrgFormType = z.infer<typeof CreateOrgFormSchema>;
 

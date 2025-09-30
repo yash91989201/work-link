@@ -15,6 +15,27 @@
       "when": 1759036058688,
       "tag": "0001_harsh_tusk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759123695087,
+      "tag": "0002_concerned_mongoose",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1759125827200,
+      "tag": "0003_majestic_network",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1759180929281,
+      "tag": "0004_daffy_arclight",
+      "breakpoints": true
     }
   ]
 }

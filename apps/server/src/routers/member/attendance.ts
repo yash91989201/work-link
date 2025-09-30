@@ -8,7 +8,7 @@ import {
   MemberPunchInOutput,
   MemberPunchOutInput,
   MemberPunchOutOutput,
-} from "@/lib/schemas/member-attendance";
+} from "@/lib/schemas/attendance";
 import type { AttendanceUpdateType } from "@/lib/types";
 
 export const memberAttendanceRouter = {

@@ -1,6 +1,5 @@
-import { type Icon, IconBell, IconCirclePlus } from "@tabler/icons-react";
+import { type Icon, IconCirclePlus } from "@tabler/icons-react";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -36,14 +35,6 @@ export function NavMain({
               <IconCirclePlus />
               <span>Quick Create</span>
             </SidebarMenuButton>
-            <Button
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              size="icon"
-              variant="outline"
-            >
-              <IconBell />
-              <span className="sr-only">Inbox</span>
-            </Button>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
