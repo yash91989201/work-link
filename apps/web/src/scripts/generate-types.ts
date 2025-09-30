@@ -3,7 +3,6 @@ import path from "node:path";
 import chokidar from "chokidar";
 
 const TS_EXTENSION_REGEX = /\.ts$/;
-const SCHEMA_SUFFIX_REGEX = /Schema$/;
 const REMOVE_LEADING_DOT = /^\.\//;
 
 const schemasDir = path.resolve("src/lib/schemas");
@@ -30,10 +29,21 @@ function getAllSchemaFiles(dir: string): string[] {
 }
 
 function extractSchemaNames(content: string): string[] {
+  // Match exported const/var/let declarations that are Zod schemas
+  // Matches: z., createSelectSchema, createInsertSchema, etc.
   const matches = content.matchAll(
-    /export\s+(?:const|var|let)\s+(\w+Schema)\b/g
+    /export\s+(?:const|var|let)\s+(\w+)\s*=\s*(?:z\.|createSelectSchema|createInsertSchema)/g
   );
   return Array.from(matches).map((match) => match[1]);
+}
+
+function getTypeName(schemaName: string): string {
+  // If it ends with "Schema", remove it
+  if (schemaName.endsWith("Schema")) {
+    return schemaName.slice(0, -6); // Remove "Schema" (6 characters)
+  }
+  // Otherwise, keep the name as is
+  return schemaName;
 }
 
 function generateTypes() {
@@ -73,7 +83,7 @@ function generateTypes() {
           : `@/lib/schemas/${relPath}`;
 
       for (const schemaName of schemaNames) {
-        const typeName = schemaName.replace(SCHEMA_SUFFIX_REGEX, "");
+        const typeName = getTypeName(schemaName);
         imports.add(`import type { ${schemaName} } from "${importPath}";`);
         types.add(
           `export type ${typeName}Type = z.infer<typeof ${schemaName}>;`

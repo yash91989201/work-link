@@ -155,58 +155,7 @@ export const RecentAttachmentsListOutput = z.object({
   attachments: z.array(RecentAttachmentOutput),
 });
 
-export const SuccessOutput = z.object({
-  success: z.boolean(),
-  message: z.string(),
-});
-
 export const DeleteAttachmentOutput = z.object({
   success: z.boolean(),
   deletedAttachment: AttachmentOutput,
 });
-
-// Type exports
-export type AttachmentType = z.infer<typeof AttachmentTypeSchema>;
-export type AttachmentOutput = z.infer<typeof AttachmentOutput>;
-export type AttachmentWithMessageOutput = z.infer<
-  typeof AttachmentWithMessageOutput
->;
-export type AttachmentWithChannelOutput = z.infer<
-  typeof AttachmentWithChannelOutput
->;
-export type CreateAttachmentInput = z.infer<typeof CreateAttachmentInput>;
-export type CreateBulkAttachmentsInput = z.infer<
-  typeof CreateBulkAttachmentsInput
->;
-export type GetAttachmentInput = z.infer<typeof GetAttachmentInput>;
-export type GetMessageAttachmentsInput = z.infer<
-  typeof GetMessageAttachmentsInput
->;
-export type GetMultipleMessageAttachmentsInput = z.infer<
-  typeof GetMultipleMessageAttachmentsInput
->;
-export type GetUserAttachmentsInput = z.infer<typeof GetUserAttachmentsInput>;
-export type GetChannelAttachmentsInput = z.infer<
-  typeof GetChannelAttachmentsInput
->;
-export type SearchAttachmentsInput = z.infer<typeof SearchAttachmentsInput>;
-export type UpdateAttachmentInput = z.infer<typeof UpdateAttachmentInput>;
-export type DeleteAttachmentInput = z.infer<typeof DeleteAttachmentInput>;
-export type GetStorageStatsInput = z.infer<typeof GetStorageStatsInput>;
-export type GetRecentAttachmentsInput = z.infer<
-  typeof GetRecentAttachmentsInput
->;
-export type AttachmentsListOutput = z.infer<typeof AttachmentsListOutput>;
-export type AttachmentsWithChannelListOutput = z.infer<
-  typeof AttachmentsWithChannelListOutput
->;
-export type AttachmentsWithMessageListOutput = z.infer<
-  typeof AttachmentsWithMessageListOutput
->;
-export type StorageStatsOutput = z.infer<typeof StorageStatsOutput>;
-export type RecentAttachmentOutput = z.infer<typeof RecentAttachmentOutput>;
-export type RecentAttachmentsListOutput = z.infer<
-  typeof RecentAttachmentsListOutput
->;
-export type SuccessOutput = z.infer<typeof SuccessOutput>;
-export type DeleteAttachmentOutput = z.infer<typeof DeleteAttachmentOutput>;

@@ -183,26 +183,6 @@ export const notificationTable = pgTable("notification", {
     .notNull(),
 });
 
-// User presence/status table for real-time indicators
-export const userPresenceTable = pgTable("user_presence", {
-  id: text("user_id")
-    .primaryKey()
-    .references(() => user.id, { onDelete: "cascade" }),
-  status: text("status").notNull().default("offline"), // online, offline, away, busy
-  lastSeen: timestamp("last_seen", { withTimezone: true })
-    .$defaultFn(() => new Date())
-    .notNull(),
-  currentChannelId: text("current_channel_id").references(
-    () => channelTable.id
-  ),
-  customStatus: text("custom_status"), // Custom status message
-  statusEmoji: text("status_emoji"), // Emoji for status
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .$defaultFn(() => new Date())
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
-
 // Message read receipts for tracking who has read what
 export const messageReadTable = pgTable("message_read", {
   id: cuid2("id").defaultRandom().primaryKey(),
@@ -261,7 +241,6 @@ export const channelTableRelations = relations(
     }),
     members: many(channelMemberTable),
     messages: many(messageTable),
-    userPresence: many(userPresenceTable),
   })
 );
 
@@ -302,21 +281,6 @@ export const notificationTableRelations = relations(
     user: one(user, {
       fields: [notificationTable.userId],
       references: [user.id],
-    }),
-  })
-);
-
-// User presence relations
-export const userPresenceTableRelations = relations(
-  userPresenceTable,
-  ({ one }) => ({
-    user: one(user, {
-      fields: [userPresenceTable.id],
-      references: [user.id],
-    }),
-    currentChannel: one(channelTable, {
-      fields: [userPresenceTable.currentChannelId],
-      references: [channelTable.id],
     }),
   })
 );

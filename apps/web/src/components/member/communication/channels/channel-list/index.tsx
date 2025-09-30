@@ -1,10 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { MoreVertical } from "lucide-react";
+import { Hash, Lock, MoreVertical } from "lucide-react";
 import { Suspense } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { queryUtils } from "@/utils/orpc";
 
 export const ChannelList = () => {
@@ -14,52 +16,95 @@ export const ChannelList = () => {
 
   return (
     <ScrollArea className="flex-1">
-      {channelListData.channels.map((channel) => (
-        <Suspense fallback={<ChannelSkeleton />} key={channel.id}>
-          <Channel {...channel} />
-        </Suspense>
-      ))}
+      <div className="px-3 py-2">
+        <div className="mb-2 px-2">
+          <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+            Team Channels
+          </p>
+        </div>
+        {channelListData.channels.map((channel) => (
+          <Suspense fallback={<ChannelSkeleton />} key={channel.id}>
+            <Channel {...channel} />
+          </Suspense>
+        ))}
+      </div>
     </ScrollArea>
   );
 };
 
-export const Channel = ({ name, id }: { name: string; id: string }) => {
+export const Channel = ({
+  name,
+  id,
+  isPrivate,
+  type,
+}: {
+  name: string;
+  id: string;
+  isPrivate?: boolean;
+  type?: string;
+}) => {
   const { slug } = useParams({
     from: "/(authenticated)/org/$slug",
   });
+
   const navigate = useNavigate();
   const { data: channel } = useSuspenseQuery(
     queryUtils.communication.channel.get.queryOptions({
       input: { channelId: id },
     })
   );
+
+  const isActive = window.location.pathname.includes(id);
+
   return (
     <Button
-      className="h-14 w-full items-center justify-between"
+      className={cn(
+        "h-10 w-full justify-start gap-2 px-2 font-normal",
+        isActive && "bg-accent text-accent-foreground"
+      )}
       onClick={() => {
         navigate({
           to: "/org/$slug/communication/channels/$id",
-          params: {
-            slug,
-            id,
-          },
+          params: { slug, id },
         });
       }}
       variant="ghost"
     >
-      <div className="flex-row items-start justify-between gap-1">
-        <p className="max-w-[20ch] truncate">{name}</p>
-        <span className="text-sm">{channel?.creatorName}</span>
+      <div className="flex items-center gap-2">
+        {isPrivate ? (
+          <Lock className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <Hash className="h-4 w-4 text-muted-foreground" />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm">{name}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground text-xs">
+              {channel?.creatorName}
+            </span>
+            {type && (
+              <Badge className="px-1 py-0 text-xs" variant="secondary">
+                {type}
+              </Badge>
+            )}
+          </div>
+        </div>
       </div>
-      <MoreVertical className="size-4" />
+      <Button
+        className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+        size="icon"
+        variant="ghost"
+      >
+        <MoreVertical className="h-3 w-3" />
+      </Button>
     </Button>
   );
 };
 
 export const ChannelSkeleton = () => {
   return (
-    <div className="mb-1.5">
-      <Skeleton className="h-6 w-full" />
+    <div className="mb-1">
+      <Skeleton className="h-10 w-full" />
     </div>
   );
 };

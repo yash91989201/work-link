@@ -27,9 +27,9 @@ import {
   RecentAttachmentsListOutput,
   SearchAttachmentsInput,
   StorageStatsOutput,
-  SuccessOutput,
   UpdateAttachmentInput,
 } from "@/lib/schemas/attachment";
+import { SuccessOutput } from "@/lib/schemas/channel";
 
 const toMetadata = (value: unknown) => {
   if (value == null || typeof value !== "object") {

@@ -9,13 +9,14 @@ import {
 } from "@/db/schema/communication";
 import type { Context } from "@/lib/context";
 import { protectedProcedure } from "@/lib/orpc";
-import { GetChannelMembersOutput } from "@/lib/schemas/channel";
+import { SuccessOutput } from "@/lib/schemas/channel";
 import { MessageSchema } from "@/lib/schemas/db-tables";
 import {
   AddReactionInput,
   CreateMessageInput,
   DeleteMessageInput,
   GetChannelMessagesInput,
+  GetChannelMessagesOutput,
   GetMessageInput,
   GetUnreadCountInput,
   MarkMessageAsReadInput,
@@ -24,20 +25,11 @@ import {
   SearchMessageOutput,
   SearchMessagesInput,
   SearchMessagesListOutput,
-  SuccessOutput,
   UnreadCountOutput,
   UpdateMessageInput,
 } from "@/lib/schemas/message";
 
 type Database = Context["db"];
-
-const ROLE_PRIORITY = {
-  admin: 3,
-  moderator: 2,
-  member: 1,
-} as const;
-
-type ChannelRole = keyof typeof ROLE_PRIORITY;
 
 const normalizeMentions = (value: unknown) => {
   if (!Array.isArray(value)) {
@@ -111,31 +103,6 @@ const hasChannelAccess = async (
   }
 
   return isChannelMember(db, channelId, userId);
-};
-
-const hasChannelPermission = async (
-  db: Database,
-  channelId: string,
-  userId: string,
-  requiredRole: ChannelRole
-) => {
-  const [membership] = await db
-    .select({ role: channelMemberTable.role })
-    .from(channelMemberTable)
-    .where(
-      and(
-        eq(channelMemberTable.channelId, channelId),
-        eq(channelMemberTable.userId, userId)
-      )
-    )
-    .limit(1);
-
-  if (!membership) {
-    return false;
-  }
-
-  const currentRole = membership.role as ChannelRole;
-  return ROLE_PRIORITY[currentRole] >= ROLE_PRIORITY[requiredRole];
 };
 
 const mapMessageWithSender = <
@@ -216,16 +183,6 @@ const updateMessageContent = async (
     .returning();
 
   return message ?? null;
-};
-
-const deleteMessageRecord = async (db: Database, messageId: string) => {
-  await db
-    .update(messageTable)
-    .set({
-      isDeleted: true,
-      deletedAt: new Date(),
-    })
-    .where(eq(messageTable.id, messageId));
 };
 
 const addReactionToMessage = async (
@@ -449,10 +406,13 @@ export const messagesRouter = {
   // Get channel messages
   getChannelMessages: protectedProcedure
     .input(GetChannelMessagesInput)
-    .output(GetChannelMembersOutput)
+    .output(GetChannelMessagesOutput)
     .handler(async ({ input, context }) => {
       const messages = await context.db.query.messageTable.findMany({
-        where: eq(messageTable.channelId, input.channelId),
+        where: and(
+          eq(messageTable.channelId, input.channelId),
+          eq(messageTable.isDeleted, false)
+        ),
         with: {
           sender: {
             columns: {
@@ -474,34 +434,13 @@ export const messagesRouter = {
     .input(DeleteMessageInput)
     .output(SuccessOutput)
     .handler(async ({ input, context }) => {
-      const { db, session } = context;
-      const currentUser = session.user;
-
-      const message = await getMessageById(db, input.messageId);
-      if (!message) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Message not found.",
-        });
-      }
-
-      let canDelete = message.senderId === currentUser.id;
-
-      if (!canDelete && message.channelId) {
-        canDelete = await hasChannelPermission(
-          db,
-          message.channelId,
-          currentUser.id,
-          "admin"
-        );
-      }
-
-      if (!canDelete) {
-        throw new ORPCError("FORBIDDEN", {
-          message: "You don't have permission to delete this message.",
-        });
-      }
-
-      await deleteMessageRecord(db, input.messageId);
+      await context.db
+        .update(messageTable)
+        .set({
+          isDeleted: true,
+          deletedAt: new Date(),
+        })
+        .where(eq(messageTable.id, input.messageId));
 
       return {
         success: true,

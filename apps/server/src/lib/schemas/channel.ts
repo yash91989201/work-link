@@ -171,23 +171,3 @@ export const SuccessOutput = z.object({
   success: z.boolean(),
   message: z.string().optional(),
 });
-
-// Export types
-export type UpdateChannelInput = z.infer<typeof UpdateChannelInput>;
-export type GetChannelInput = z.infer<typeof GetChannelInput>;
-export type GetChannelsInput = z.infer<typeof GetChannelsInput>;
-export type AddChannelMemberInput = z.infer<typeof AddChannelMemberInput>;
-export type RemoveChannelMemberInput = z.infer<typeof RemoveChannelMemberInput>;
-export type UpdateChannelMemberInput = z.infer<typeof UpdateChannelMemberInput>;
-export type GetChannelMembersInput = z.infer<typeof GetChannelMembersInput>;
-export type JoinChannelInput = z.infer<typeof JoinChannelInput>;
-export type LeaveChannelInput = z.infer<typeof LeaveChannelInput>;
-export type ArchiveChannelInput = z.infer<typeof ArchiveChannelInput>;
-export type DeleteChannelInput = z.infer<typeof DeleteChannelInput>;
-export type ChannelOutput = z.infer<typeof ChannelOutput>;
-export type ChannelWithCreatorOutput = z.infer<typeof ChannelWithCreatorOutput>;
-export type ChannelMemberOutput = z.infer<typeof ChannelMemberOutput>;
-export type ChannelWithStatsOutput = z.infer<typeof ChannelWithStatsOutput>;
-export type ChannelsListOutput = z.infer<typeof ChannelsListOutput>;
-export type ChannelMembersListOutput = z.infer<typeof ChannelMembersListOutput>;
-export type SuccessOutput = z.infer<typeof SuccessOutput>;

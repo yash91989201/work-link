@@ -22,7 +22,6 @@ import {
   messageReadTable,
   messageTable,
   notificationTable,
-  userPresenceTable,
 } from "@/db/schema/communication";
 
 export const AccountSchema = createSelectSchema(account);
@@ -63,7 +62,6 @@ export const ChannelMemberSchema = createSelectSchema(channelMemberTable);
 export const MessageSchema = createSelectSchema(messageTable);
 export const AttachmentSchema = createSelectSchema(attachmentTable);
 export const NotificationSchema = createSelectSchema(notificationTable);
-export const UserPresenceSchema = createSelectSchema(userPresenceTable);
 export const MessageReadSchema = createSelectSchema(messageReadTable);
 
 export const ChannelUpdateSchema = createUpdateSchema(channelTable);
@@ -71,7 +69,6 @@ export const ChannelMemberUpdateSchema = createUpdateSchema(channelMemberTable);
 export const MessageUpdateSchema = createUpdateSchema(messageTable);
 export const AttachmentUpdateSchema = createUpdateSchema(attachmentTable);
 export const NotificationUpdateSchema = createUpdateSchema(notificationTable);
-export const UserPresenceUpdateSchema = createUpdateSchema(userPresenceTable);
 export const MessageReadUpdateSchema = createUpdateSchema(messageReadTable);
 
 export const ChannelInsertSchema = createInsertSchema(channelTable);
@@ -79,7 +76,6 @@ export const ChannelMemberInsertSchema = createInsertSchema(channelMemberTable);
 export const MessageInsertSchema = createInsertSchema(messageTable);
 export const AttachmentInsertSchema = createInsertSchema(attachmentTable);
 export const NotificationInsertSchema = createInsertSchema(notificationTable);
-export const UserPresenceInsertSchema = createInsertSchema(userPresenceTable);
 export const MessageReadInsertSchema = createInsertSchema(messageReadTable);
 
 export const ChannelTypeSchema = ChannelSchema.shape.type;

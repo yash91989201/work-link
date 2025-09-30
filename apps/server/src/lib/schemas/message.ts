@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MessageSchema } from "./db-tables";
+import { MessageSchema, UserSchema } from "./db-tables";
 
 // Message types enum
 export const MessageTypeSchema = z.enum([
@@ -41,7 +41,15 @@ export const GetChannelMessagesInput = z.object({
 });
 
 export const GetChannelMessagesOutput = z.object({
-  messages: z.array(MessageSchema),
+  messages: z.array(
+    MessageSchema.extend({
+      sender: UserSchema.pick({
+        name: true,
+        email: true,
+        image: true,
+      }),
+    })
+  ),
 });
 
 // Get direct messages input
@@ -192,33 +200,3 @@ export const SearchMessagesListOutput = z.object({
 export const UnreadCountOutput = z.object({
   count: z.number(),
 });
-
-// Success response
-export const SuccessOutput = z.object({
-  success: z.boolean(),
-  message: z.string().optional(),
-});
-
-// Export types
-export type CreateMessageInput = z.infer<typeof CreateMessageInput>;
-export type UpdateMessageInput = z.infer<typeof UpdateMessageInput>;
-export type GetChannelMessagesInput = z.infer<typeof GetChannelMessagesInput>;
-export type GetDirectMessagesInput = z.infer<typeof GetDirectMessagesInput>;
-export type GetThreadMessagesInput = z.infer<typeof GetThreadMessagesInput>;
-export type DeleteMessageInput = z.infer<typeof DeleteMessageInput>;
-export type AddReactionInput = z.infer<typeof AddReactionInput>;
-export type RemoveReactionInput = z.infer<typeof RemoveReactionInput>;
-export type MarkMessageAsReadInput = z.infer<typeof MarkMessageAsReadInput>;
-export type GetUnreadCountInput = z.infer<typeof GetUnreadCountInput>;
-export type SearchMessagesInput = z.infer<typeof SearchMessagesInput>;
-export type GetMessageInput = z.infer<typeof GetMessageInput>;
-export type MessageAttachmentOutput = z.infer<typeof MessageAttachmentOutput>;
-export type MessageOutput = z.infer<typeof MessageOutput>;
-export type MessageWithSenderOutput = z.infer<typeof MessageWithSenderOutput>;
-export type ThreadMessageOutput = z.infer<typeof ThreadMessageOutput>;
-export type SearchMessageOutput = z.infer<typeof SearchMessageOutput>;
-export type MessagesListOutput = z.infer<typeof MessagesListOutput>;
-export type ThreadMessagesListOutput = z.infer<typeof ThreadMessagesListOutput>;
-export type SearchMessagesListOutput = z.infer<typeof SearchMessagesListOutput>;
-export type UnreadCountOutput = z.infer<typeof UnreadCountOutput>;
-export type SuccessOutput = z.infer<typeof SuccessOutput>;

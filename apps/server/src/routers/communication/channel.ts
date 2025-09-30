@@ -159,11 +159,11 @@ export const channelRouter = {
   getMembers: protectedProcedure
     .input(GetChannelMembersInput)
     .output(GetChannelMembersOutput)
-    .handler(async ({ input, context }) => {
-      const members = await context.db.query.channelMemberTable.findMany({
-        where: eq(channelMemberTable.id, input.channelId),
-      });
+    .handler(() => {
+      // const members = await context.db.query.channelMemberTable.findMany({
+      //   where: eq(channelMemberTable.id, input.channelId),
+      // });
 
-      return { members };
+      return { messages: [] };
     }),
 };

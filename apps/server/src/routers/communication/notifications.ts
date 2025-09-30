@@ -5,6 +5,8 @@ import { member, user as userTable } from "@/db/schema/auth";
 import { channelTable, notificationTable } from "@/db/schema/communication";
 import type { Context } from "@/lib/context";
 import { protectedProcedure } from "@/lib/orpc";
+import { SuccessOutput } from "@/lib/schemas/channel";
+import { UnreadCountOutput } from "@/lib/schemas/message";
 import {
   CreateAnnouncementNotificationInput,
   CreateBulkNotificationsInput,
@@ -18,8 +20,6 @@ import {
   MarkNotificationAsReadInput,
   NotificationOutput,
   NotificationsListOutput,
-  SuccessOutput,
-  UnreadCountOutput,
 } from "@/lib/schemas/notification";
 
 type Database = Context["db"];

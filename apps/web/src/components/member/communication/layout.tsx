@@ -1,4 +1,4 @@
-import { ChannelSidebar } from "@/components/member/communication/channels/sidebar";
+import { ChannelSidebar } from "./channels/sidebar";
 
 export const CommunicationRootLayout = ({
   children,
@@ -6,9 +6,9 @@ export const CommunicationRootLayout = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="flex gap-1.5">
+    <div className="flex h-screen gap-0 bg-background">
       <ChannelSidebar />
-      {children}
+      <div className="flex min-h-0 flex-1">{children}</div>
     </div>
   );
 };

@@ -1,13 +1,15 @@
-import { format } from "date-fns";
-import { MessageCircle, Trash2 } from "lucide-react";
+import type { MessageType } from "@server/lib/types";
+import { format, formatDistanceToNow } from "date-fns";
+import { Edit3, MessageCircle, Reply, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMessages } from "@/hooks/communications";
 import { cn } from "@/lib/utils";
-import type { MessageType } from "@server/lib/types";
 
 interface MessageListProps {
   channelId: string;
@@ -16,15 +18,26 @@ interface MessageListProps {
 
 const EmptyState = () => (
   <div className="flex h-full items-center justify-center p-8">
-    <div className="space-y-3 text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-        <MessageCircle className="h-6 w-6 text-muted-foreground" />
+    <div className="max-w-sm space-y-6 text-center">
+      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5">
+        <MessageCircle className="h-10 w-10 text-primary/60" />
       </div>
-      <div className="space-y-1">
-        <p className="font-medium text-foreground text-sm">No messages yet</p>
-        <p className="text-muted-foreground text-xs">
-          Start the conversation by sending a message
+      <div className="space-y-3">
+        <h3 className="font-semibold text-foreground text-lg">
+          Welcome to the channel!
+        </h3>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          This is the beginning of your conversation. Start by sending a message
+          to break the ice. 🎉
         </p>
+      </div>
+      <div className="space-y-2">
+        <p className="font-medium text-muted-foreground text-xs">Tips:</p>
+        <ul className="space-y-1 text-muted-foreground text-xs">
+          <li>• Be respectful and professional</li>
+          <li>• Use @ to mention team members</li>
+          <li>• Share files with the attachment button</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -32,7 +45,7 @@ const EmptyState = () => (
 
 const MessageSkeleton = () => (
   <div className="flex gap-3 px-4 py-3">
-    <Skeleton className="h-8 w-8 flex-shrink-0 rounded-full" />
+    <Skeleton className="h-10 w-10 flex-shrink-0 rounded-full" />
     <div className="flex-1 space-y-2">
       <div className="flex items-center gap-2">
         <Skeleton className="h-4 w-24" />
@@ -46,7 +59,7 @@ const MessageSkeleton = () => (
 
 const LoadingSkeleton = () => (
   <div className="space-y-1 py-4">
-    {Array.from({ length: 10 }).map((_, index) => (
+    {Array.from({ length: 8 }).map((_, index) => (
       <MessageSkeleton key={index.toString()} />
     ))}
   </div>
@@ -62,37 +75,57 @@ interface MessageItemProps {
 
 const MessageItem = ({ message, onDelete, isDeleting }: MessageItemProps) => {
   const timestamp = format(message.createdAt, "MMM d, HH:mm");
+  const relativeTime = formatDistanceToNow(message.createdAt, {
+    addSuffix: true,
+  });
   const initials = (message.sender.name ?? "?").slice(0, 2).toUpperCase();
 
   return (
     <div
       className={cn(
-        "group flex gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
+        "group flex gap-3 px-6 py-4 transition-colors hover:bg-muted/30",
         isDeleting && "pointer-events-none opacity-50"
       )}
     >
-      <Avatar className="h-8 w-8 flex-shrink-0">
+      <Avatar className="h-10 w-10 flex-shrink-0">
         <AvatarImage
           alt={message.sender.name ?? "User"}
           src={message.sender.image ?? undefined}
         />
-        <AvatarFallback className="bg-primary/10 font-medium text-primary text-xs">
+        <AvatarFallback className="bg-primary/10 font-medium text-primary text-sm">
           {initials}
         </AvatarFallback>
       </Avatar>
 
       <div className="min-w-0 flex-1">
-        <div className="mb-1 flex items-baseline gap-2">
+        <div className="mb-2 flex items-baseline gap-3">
           <span className="font-semibold text-foreground text-sm">
             {message.sender.name ?? "Unknown User"}
           </span>
-          <span className="text-muted-foreground text-xs">{timestamp}</span>
+          <span className="text-muted-foreground text-xs" title={timestamp}>
+            {relativeTime}
+          </span>
+          {message.createdAt > new Date(Date.now() - 1000 * 60 * 5) && (
+            <Badge className="px-1 py-0 text-xs" variant="secondary">
+              New
+            </Badge>
+          )}
         </div>
         {message.content && (
           <p className="whitespace-pre-wrap break-words text-foreground text-sm leading-relaxed">
             {message.content}
           </p>
         )}
+        <div className="mt-2 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+          <Button className="h-7 px-2 text-xs" size="sm" variant="ghost">
+            <Reply className="mr-1 h-3 w-3" />
+            Reply
+          </Button>
+          <Button className="h-7 px-2 text-xs" size="sm" variant="ghost">
+            <Edit3 className="mr-1 h-3 w-3" />
+            Edit
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-start opacity-0 transition-opacity group-hover:opacity-100">
@@ -114,32 +147,36 @@ const MessageItem = ({ message, onDelete, isDeleting }: MessageItemProps) => {
 const MessageContent = ({
   messages,
   onDelete,
-  isDeleting,
+  deletingMessageId,
 }: {
   messages: (MessageType & {
     sender: { name: string; email: string; image: string | null };
   })[];
   onDelete: (messageId: string) => Promise<void>;
-  isDeleting: boolean;
-}) => (
-  <div className="space-y-0 py-2">
-    {messages.map((message) => (
-      <MessageItem
-        isDeleting={isDeleting}
-        key={message.id}
-        message={message}
-        onDelete={onDelete}
-      />
-    ))}
-  </div>
-);
+  deletingMessageId?: string;
+}) => {
+  return (
+    <div className="space-y-0">
+      {messages.map((message, index) => (
+        <div key={message.id}>
+          <MessageItem
+            isDeleting={deletingMessageId === message.id}
+            message={message}
+            onDelete={onDelete}
+          />
+          {index < messages.length - 1 && <Separator />}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const MessageListContent = ({
   isLoading,
   hasMessages,
   messages,
   onDelete,
-  isDeleting,
+  deletingMessageId,
 }: {
   isLoading: boolean;
   hasMessages: boolean;
@@ -147,7 +184,7 @@ const MessageListContent = ({
     sender: { name: string; email: string; image: string | null };
   })[];
   onDelete: (messageId: string) => Promise<void>;
-  isDeleting: boolean;
+  deletingMessageId?: string;
 }) => {
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -159,7 +196,7 @@ const MessageListContent = ({
 
   return (
     <MessageContent
-      isDeleting={isDeleting}
+      deletingMessageId={deletingMessageId}
       messages={messages}
       onDelete={onDelete}
     />
@@ -167,16 +204,21 @@ const MessageListContent = ({
 };
 
 export const MessageList = ({ channelId, className }: MessageListProps) => {
-  const { messages, isLoading, deleteMessage } = useMessages(channelId);
+  const {
+    messages,
+    isFetchingChannelMessage,
+    deletingMessageId,
+    deleteMessage,
+  } = useMessages(channelId);
 
   const handleDelete = async (messageId: string) => {
     try {
-      await deleteMessage.mutateAsync({ messageId });
-      toast.success("Message deleted successfully");
+      await deleteMessage({ messageId });
+      toast("Message deleted successfully");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to delete message";
-      toast.error(message);
+      toast(message);
     }
   };
 
@@ -187,15 +229,17 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
   const hasMessages = orderedMessages.length > 0;
 
   return (
-    <div className={cn("flex flex-1 flex-col overflow-hidden", className)}>
-      <ScrollArea className="flex-1">
-        <MessageListContent
-          hasMessages={hasMessages}
-          isDeleting={deleteMessage.isPending}
-          isLoading={isLoading}
-          messages={orderedMessages}
-          onDelete={handleDelete}
-        />
+    <div className={cn("flex-1 overflow-hidden bg-background", className)}>
+      <ScrollArea className="h-full">
+        <div className="flex flex-col">
+          <MessageListContent
+            deletingMessageId={deletingMessageId}
+            hasMessages={hasMessages}
+            isLoading={isFetchingChannelMessage}
+            messages={orderedMessages}
+            onDelete={handleDelete}
+          />
+        </div>
       </ScrollArea>
     </div>
   );

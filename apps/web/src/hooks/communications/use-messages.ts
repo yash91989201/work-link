@@ -1,15 +1,10 @@
-import type { MessageType } from "@server/lib/types";
+import type { GetChannelMessagesOutputType } from "@server/lib/types";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { supabase } from "@/lib/supabase";
-import { queryUtils } from "@/utils/orpc";
+import { queryClient, queryUtils } from "@/utils/orpc";
 
 interface UseMessagesOptions {
   limit?: number;
@@ -26,11 +21,10 @@ export const useMessages = (
   const {
     limit = 50,
     offset = 0,
-    enableRealtime = true,
     afterMessageId,
     beforeMessageId,
   } = options || {};
-  const queryClient = useQueryClient();
+  const { user } = useAuthedSession();
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<RealtimeChannel>(null);
 
@@ -38,6 +32,7 @@ export const useMessages = (
   const {
     data: { messages = [] },
     refetch: refetchGetChannelMessages,
+    isPending: isFetchingChannelMessage,
   } = useSuspenseQuery(
     queryUtils.communication.messages.getChannelMessages.queryOptions({
       input: {
@@ -50,26 +45,76 @@ export const useMessages = (
     })
   );
 
-  // Setup realtime subscription
   useEffect(() => {
-    if (!(enableRealtime && channelId)) {
-      return;
-    }
-
-    const channelName = `messages:${channelId}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "message",
-          filter: `channel_id=eq.${channelId}`,
+    const channel = supabase.channel(`org:channel:${channelId}`, {
+      config: {
+        presence: {
+          key: user.id,
         },
-        async (payload) => {
-          const newMessage = payload.new as MessageType;
+      },
+    });
 
+    channel.on("broadcast", { event: "new-message" }, async (payload) => {
+      const newMessage =
+        payload.payload as unknown as GetChannelMessagesOutputType["messages"][number];
+      const { data: sender } = await supabase
+        .from("user")
+        .select("name, email, image")
+        .eq("id", newMessage.senderId)
+        .single();
+
+      if (!sender) {
+        return;
+      }
+
+      const messageWithSender = {
+        ...newMessage,
+        sender,
+      };
+
+      queryClient.setQueryData(
+        queryUtils.communication.messages.getChannelMessages.queryKey({
+          input: {
+            channelId,
+            limit,
+            offset,
+            beforeMessageId,
+            afterMessageId,
+          },
+        }),
+        (old) => {
+          if (!old) return;
+
+          return {
+            ...old,
+            messages: [...(old.messages || []), messageWithSender],
+          };
+        }
+      );
+    });
+
+    channel.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        setIsConnected(true);
+        await channel.track({
+          userId: user.id,
+        });
+      }
+    });
+
+    channelRef.current = channel;
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [user.id, channelId, limit, offset, beforeMessageId, afterMessageId]);
+
+  // Mutation hooks
+  const { mutateAsync: createMessage, isPending: isCreatingMessage } =
+    useMutation(
+      queryUtils.communication.messages.create.mutationOptions({
+        onSuccess: async (data) => {
+          const newMessage = data;
           const { data: sender } = await supabase
             .from("user")
             .select("name, email, image")
@@ -104,111 +149,74 @@ export const useMessages = (
               };
             }
           );
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "message",
-          filter: `channel_id=eq.${channelId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({
-            queryKey:
-              queryUtils.communication.messages.getChannelMessages.queryKey({
-                input: {
-                  channelId,
-                  limit,
-                  offset,
-                  beforeMessageId,
-                  afterMessageId,
-                },
-              }),
+
+          channelRef.current?.send({
+            type: "broadcast",
+            event: "new-message",
+            payload: {
+              message: data,
+            },
           });
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "message",
-          filter: `channel_id=eq.${channelId}`,
         },
-        () => {
-          queryClient.invalidateQueries({
-            queryKey:
-              queryUtils.communication.messages.getChannelMessages.queryKey({
-                input: {
-                  channelId,
-                  limit,
-                  offset,
-                  beforeMessageId,
-                  afterMessageId,
-                },
-              }),
-          });
-        }
-      )
-      .subscribe((status) => {
-        console.log(
-          `Messages realtime connection status for ${channelId}: ${status}`
+      })
+    );
+
+  const { mutateAsync: updateMessage, isPending: isUpdatingMessage } =
+    useMutation(queryUtils.communication.messages.update.mutationOptions({}));
+
+  const deleteMutation = useMutation(
+    queryUtils.communication.messages.delete.mutationOptions({
+      onSuccess: (_data, { messageId }) => {
+        queryClient.setQueryData(
+          queryUtils.communication.messages.getChannelMessages.queryKey({
+            input: {
+              channelId,
+              limit,
+              offset,
+              beforeMessageId,
+              afterMessageId,
+            },
+          }),
+          (old) => {
+            if (!old) return;
+
+            const updatedMessages = old.messages.filter(
+              (message) => message.id !== messageId
+            );
+
+            return {
+              ...old,
+              messages: updatedMessages,
+            };
+          }
         );
-        setIsConnected(status === "SUBSCRIBED");
-      });
-
-    channelRef.current = channel;
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-      setIsConnected(false);
-    };
-  }, [
-    channelId,
-    enableRealtime,
-    queryClient,
-    offset,
-    limit,
-    beforeMessageId,
-    afterMessageId,
-  ]);
-
-  // Mutation hooks
-  const createMessage = useMutation(
-    queryUtils.communication.messages.create.mutationOptions({})
+      },
+    })
   );
 
-  const updateMessage = useMutation(
-    queryUtils.communication.messages.update.mutationOptions({})
-  );
-
-  const deleteMessage = useMutation(
-    queryUtils.communication.messages.delete.mutationOptions({})
-  );
-
-  const addReaction = useMutation(
+  const { mutateAsync: addReaction, isPending: isAddingReaction } = useMutation(
     queryUtils.communication.messages.addReaction.mutationOptions({})
   );
 
-  const removeReaction = useMutation(
-    queryUtils.communication.messages.removeReaction.mutationOptions({})
-  );
+  const { mutateAsync: removeReaction, isPending: isRemovingReaction } =
+    useMutation(
+      queryUtils.communication.messages.removeReaction.mutationOptions({})
+    );
 
   return {
     messages,
-    isLoading: false,
-    isError: false,
-    error: null,
     refetch: refetchGetChannelMessages,
+    isFetchingChannelMessage,
+    isCreatingMessage,
+    isUpdatingMessage,
+    isDeletingMessage: deleteMutation.isPending,
+    deletingMessageId: deleteMutation.variables?.messageId,
+    isAddingReaction,
+    isRemovingReaction,
     isConnected,
     createMessage,
     updateMessage,
-    deleteMessage,
+    deleteMessage: deleteMutation.mutateAsync,
     addReaction,
     removeReaction,
   };
