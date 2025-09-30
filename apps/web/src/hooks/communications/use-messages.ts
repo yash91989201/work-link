@@ -93,6 +93,37 @@ export const useMessages = (
       );
     });
 
+    channel.on("broadcast", { event: "message-updated" }, (payload) => {
+      const updatedMessage =
+        payload.payload as unknown as GetChannelMessagesOutputType["messages"][number];
+
+      queryClient.setQueryData(
+        queryUtils.communication.messages.getChannelMessages.queryKey({
+          input: {
+            channelId,
+            limit,
+            offset,
+            beforeMessageId,
+            afterMessageId,
+          },
+        }),
+        (old) => {
+          if (!old) return;
+
+          const updatedMessages = old.messages.map((message) =>
+            message.id === updatedMessage.id
+              ? { ...message, ...updatedMessage }
+              : message
+          );
+
+          return {
+            ...old,
+            messages: updatedMessages,
+          };
+        }
+      );
+    });
+
     channel.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
         setIsConnected(true);
@@ -161,8 +192,58 @@ export const useMessages = (
       })
     );
 
-  const { mutateAsync: updateMessage, isPending: isUpdatingMessage } =
-    useMutation(queryUtils.communication.messages.update.mutationOptions({}));
+  const {
+    mutateAsync: updateMessage,
+    isPending: isUpdatingMessage,
+    variables: updateMessageVariables,
+  } = useMutation(
+    queryUtils.communication.messages.update.mutationOptions({
+      onSuccess: (updatedMessage, { messageId }) => {
+        queryClient.setQueryData(
+          queryUtils.communication.messages.getChannelMessages.queryKey({
+            input: {
+              channelId,
+              limit,
+              offset,
+              beforeMessageId,
+              afterMessageId,
+            },
+          }),
+          (old) => {
+            if (!old) return;
+
+            const updatedMessages = old.messages.map((message) =>
+              message.id === messageId
+                ? {
+                    ...message,
+                    ...updatedMessage,
+                    isEdited: true,
+                    editedAt: new Date(),
+                  }
+                : message
+            );
+
+            return {
+              ...old,
+              messages: updatedMessages,
+            };
+          }
+        );
+
+        channelRef.current?.send({
+          type: "broadcast",
+          event: "message-updated",
+          payload: {
+            message: {
+              ...updatedMessage,
+              isEdited: true,
+              editedAt: new Date(),
+            },
+          },
+        });
+      },
+    })
+  );
 
   const deleteMutation = useMutation(
     queryUtils.communication.messages.delete.mutationOptions({
@@ -209,6 +290,7 @@ export const useMessages = (
     isFetchingChannelMessage,
     isCreatingMessage,
     isUpdatingMessage,
+    updatingMessageId: updateMessageVariables?.messageId,
     isDeletingMessage: deleteMutation.isPending,
     deletingMessageId: deleteMutation.variables?.messageId,
     isAddingReaction,

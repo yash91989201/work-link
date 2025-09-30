@@ -1,6 +1,7 @@
 import type { MessageType } from "@server/lib/types";
 import { format, formatDistanceToNow } from "date-fns";
-import { Edit3, MessageCircle, Reply, Trash2 } from "lucide-react";
+import { Edit3, MessageCircle, Reply, Trash2, X, Check } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuthedSession } from "@/hooks/use-authed-session";
 import { useMessages } from "@/hooks/communications";
 import { cn } from "@/lib/utils";
 
@@ -70,15 +73,55 @@ interface MessageItemProps {
     sender: { name: string; email: string; image: string | null };
   };
   onDelete: (messageId: string) => Promise<void>;
+  onEdit: (messageId: string, content: string) => Promise<void>;
   isDeleting?: boolean;
+  isUpdating?: boolean;
 }
 
-const MessageItem = ({ message, onDelete, isDeleting }: MessageItemProps) => {
+const MessageItem = ({ message, onDelete, onEdit, isDeleting, isUpdating }: MessageItemProps) => {
+  const { user } = useAuthedSession();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(message.content || "");
+  
   const timestamp = format(message.createdAt, "MMM d, HH:mm");
   const relativeTime = formatDistanceToNow(message.createdAt, {
     addSuffix: true,
   });
   const initials = (message.sender.name ?? "?").slice(0, 2).toUpperCase();
+  const canEdit = user?.id === message.senderId;
+  
+  const handleSaveEdit = async () => {
+    const trimmedContent = editContent.trim();
+    if (!trimmedContent || trimmedContent === message.content) {
+      setIsEditing(false);
+      setEditContent(message.content || "");
+      return;
+    }
+    
+    try {
+      await onEdit(message.id, trimmedContent);
+      setIsEditing(false);
+      toast("Message updated successfully");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to update message";
+      toast(errorMessage);
+    }
+  };
+  
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent(message.content || "");
+  };
+  
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSaveEdit();
+    } else if (event.key === "Escape") {
+      handleCancelEdit();
+    }
+  };
 
   return (
     <div
@@ -110,22 +153,79 @@ const MessageItem = ({ message, onDelete, isDeleting }: MessageItemProps) => {
               New
             </Badge>
           )}
+          {message.isEdited && (
+            <Badge className="px-1 py-0 text-xs" variant="outline">
+              edited
+            </Badge>
+          )}
         </div>
-        {message.content && (
-          <p className="whitespace-pre-wrap break-words text-foreground text-sm leading-relaxed">
-            {message.content}
-          </p>
+        {isEditing ? (
+          <div className="space-y-2">
+            <Textarea
+              className="min-h-[80px] resize-none"
+              disabled={isUpdating}
+              onChange={(e) => setEditContent(e.target.value)}
+              onKeyDown={handleKeyDown}
+              value={editContent}
+              autoFocus
+            />
+            <div className="flex items-center justify-between">
+              <div className="text-muted-foreground text-xs">
+                Press Enter to save, Escape to cancel, Shift+Enter for new line
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  className="h-7 px-2 text-xs"
+                  disabled={isUpdating}
+                  onClick={handleCancelEdit}
+                  size="sm"
+                  variant="ghost"
+                >
+                  <X className="mr-1 h-3 w-3" />
+                  Cancel
+                </Button>
+                <Button
+                  className="h-7 px-2 text-xs"
+                  disabled={isUpdating || !editContent.trim()}
+                  onClick={handleSaveEdit}
+                  size="sm"
+                >
+                  {isUpdating ? (
+                    <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+                  ) : (
+                    <Check className="mr-1 h-3 w-3" />
+                  )}
+                  Save
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          message.content && (
+            <p className="whitespace-pre-wrap break-words text-foreground text-sm leading-relaxed">
+              {message.content}
+            </p>
+          )
         )}
-        <div className="mt-2 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-          <Button className="h-7 px-2 text-xs" size="sm" variant="ghost">
-            <Reply className="mr-1 h-3 w-3" />
-            Reply
-          </Button>
-          <Button className="h-7 px-2 text-xs" size="sm" variant="ghost">
-            <Edit3 className="mr-1 h-3 w-3" />
-            Edit
-          </Button>
-        </div>
+        {!isEditing && (
+          <div className="mt-2 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+            <Button className="h-7 px-2 text-xs" size="sm" variant="ghost">
+              <Reply className="mr-1 h-3 w-3" />
+              Reply
+            </Button>
+            {canEdit && (
+              <Button 
+                className="h-7 px-2 text-xs" 
+                size="sm" 
+                variant="ghost"
+                onClick={() => setIsEditing(true)}
+              >
+                <Edit3 className="mr-1 h-3 w-3" />
+                Edit
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-start opacity-0 transition-opacity group-hover:opacity-100">
@@ -147,13 +247,17 @@ const MessageItem = ({ message, onDelete, isDeleting }: MessageItemProps) => {
 const MessageContent = ({
   messages,
   onDelete,
+  onEdit,
   deletingMessageId,
+  updatingMessageId,
 }: {
   messages: (MessageType & {
     sender: { name: string; email: string; image: string | null };
   })[];
   onDelete: (messageId: string) => Promise<void>;
+  onEdit: (messageId: string, content: string) => Promise<void>;
   deletingMessageId?: string;
+  updatingMessageId?: string;
 }) => {
   return (
     <div className="space-y-0">
@@ -161,8 +265,10 @@ const MessageContent = ({
         <div key={message.id}>
           <MessageItem
             isDeleting={deletingMessageId === message.id}
+            isUpdating={updatingMessageId === message.id}
             message={message}
             onDelete={onDelete}
+            onEdit={onEdit}
           />
           {index < messages.length - 1 && <Separator />}
         </div>
@@ -176,7 +282,9 @@ const MessageListContent = ({
   hasMessages,
   messages,
   onDelete,
+  onEdit,
   deletingMessageId,
+  updatingMessageId,
 }: {
   isLoading: boolean;
   hasMessages: boolean;
@@ -184,7 +292,9 @@ const MessageListContent = ({
     sender: { name: string; email: string; image: string | null };
   })[];
   onDelete: (messageId: string) => Promise<void>;
+  onEdit: (messageId: string, content: string) => Promise<void>;
   deletingMessageId?: string;
+  updatingMessageId?: string;
 }) => {
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -197,8 +307,10 @@ const MessageListContent = ({
   return (
     <MessageContent
       deletingMessageId={deletingMessageId}
+      updatingMessageId={updatingMessageId}
       messages={messages}
       onDelete={onDelete}
+      onEdit={onEdit}
     />
   );
 };
@@ -208,7 +320,9 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
     messages,
     isFetchingChannelMessage,
     deletingMessageId,
+    updatingMessageId,
     deleteMessage,
+    updateMessage,
   } = useMessages(channelId);
 
   const handleDelete = async (messageId: string) => {
@@ -219,6 +333,17 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
       const message =
         error instanceof Error ? error.message : "Failed to delete message";
       toast(message);
+    }
+  };
+  
+  const handleEdit = async (messageId: string, content: string) => {
+    try {
+      await updateMessage({ messageId, content });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update message";
+      toast(message);
+      throw error;
     }
   };
 
@@ -234,10 +359,12 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
         <div className="flex flex-col">
           <MessageListContent
             deletingMessageId={deletingMessageId}
+            updatingMessageId={updatingMessageId}
             hasMessages={hasMessages}
             isLoading={isFetchingChannelMessage}
             messages={orderedMessages}
             onDelete={handleDelete}
+            onEdit={handleEdit}
           />
         </div>
       </ScrollArea>

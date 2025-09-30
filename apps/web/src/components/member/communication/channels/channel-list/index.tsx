@@ -59,7 +59,7 @@ export const Channel = ({
   return (
     <Button
       className={cn(
-        "h-10 w-full justify-start gap-2 px-2 font-normal",
+        "h-14 w-full justify-start gap-2 px-2 font-normal",
         isActive && "bg-accent text-accent-foreground"
       )}
       onClick={() => {
@@ -77,7 +77,7 @@ export const Channel = ({
           <Hash className="h-4 w-4 text-muted-foreground" />
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm">{name}</p>
+          <p className="truncate text-left text-sm">{name}</p>
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground text-xs">
               {channel?.creatorName}
