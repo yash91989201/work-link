@@ -18,6 +18,25 @@ body {
   }
 }
 
+/* Animation delays */
+@keyframes delay-75 {
+  0%, 75% { opacity: 0; }
+  75.1%, 100% { opacity: 1; }
+}
+
+@keyframes delay-150 {
+  0%, 87.5% { opacity: 0; }
+  87.6%, 100% { opacity: 1; }
+}
+
+.delay-75 {
+  animation: delay-75 1.5s infinite;
+}
+
+.delay-150 {
+  animation: delay-150 1.5s infinite;
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.2101 0.0318 264.6645);

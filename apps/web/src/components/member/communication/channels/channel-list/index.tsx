@@ -2,7 +2,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { Hash, Lock, MoreVertical } from "lucide-react";
 import { Suspense } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,12 +35,10 @@ export const Channel = ({
   name,
   id,
   isPrivate,
-  type,
 }: {
   name: string;
   id: string;
   isPrivate?: boolean;
-  type?: string;
 }) => {
   const { slug } = useParams({
     from: "/(authenticated)/org/$slug",
@@ -82,11 +79,6 @@ export const Channel = ({
             <span className="text-muted-foreground text-xs">
               {channel?.creatorName}
             </span>
-            {type && (
-              <Badge className="px-1 py-0 text-xs" variant="secondary">
-                {type}
-              </Badge>
-            )}
           </div>
         </div>
       </div>

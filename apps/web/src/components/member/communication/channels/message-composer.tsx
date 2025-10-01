@@ -1,4 +1,4 @@
-import { MoreHorizontal, Paperclip, Send, Smile } from "lucide-react";
+import { Mic, MoreHorizontal, Paperclip, Send, Smile } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MentionSuggestions } from "@/components/shared/mention-suggestions";
@@ -41,8 +41,11 @@ export const MessageComposer = ({
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { createMessage, isCreatingMessage } = useMessages(channelId);
   const { data: channelMembersData } = useChannelMembers(channelId);
@@ -176,102 +179,225 @@ export const MessageComposer = ({
     }
   };
 
-  return (
-    <div
-      className={cn("flex-shrink-0 border-t bg-background", className)}
-      ref={containerRef}
-    >
-      <div className="p-4">
-        <div className="relative flex items-end gap-2">
-          <div className="flex items-center gap-1">
-            <Button
-              className="h-9 w-9 text-muted-foreground hover:text-foreground"
-              size="icon"
-              variant="ghost"
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  className="text-muted-foreground hover:text-foreground"
-                  size="icon"
-                  variant="ghost"
-                >
-                  <Smile />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-80 p-0" side="top">
-                <EmojiPicker onEmojiSelect={handleEmojiSelect}>
-                  <EmojiPickerSearch placeholder="Search emoji..." />
-                  <EmojiPickerContent />
-                  <EmojiPickerFooter />
-                </EmojiPicker>
-              </PopoverContent>
-            </Popover>
-          </div>
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
 
-          <div className="relative flex-1">
-            <Textarea
-              className="max-h-32 min-h-[48px] resize-none border-muted bg-muted/50 pr-10 focus:bg-background"
-              disabled={isCreatingMessage}
-              onChange={handleTextareaChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Write a message... (use @ to mention someone)"
-              ref={textareaRef}
-              value={message}
-            />
-            <div className="absolute right-2 bottom-2">
-              <span className="text-muted-foreground text-xs">
-                {message.length}/2000
-              </span>
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    // Handle file drop logic here
+  };
+
+  const handleVoiceRecord = () => {
+    if (isRecording) {
+      // Stop recording logic
+      setIsRecording(false);
+    } else {
+      // Start recording logic
+      setIsRecording(true);
+    }
+  };
+
+  return (
+    <>
+      <input
+        accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+        className="hidden"
+        multiple
+        ref={fileInputRef}
+        type="file"
+      />
+
+      <div
+        aria-label="Message composer with file drop zone"
+        className={cn(
+          "flex-shrink-0 border-t bg-gradient-to-b from-background to-muted/20 transition-all duration-200",
+          isDragging && "border-primary bg-primary/5",
+          className
+        )}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        ref={containerRef}
+      >
+        <div className="relative p-4">
+          {/* Drag overlay */}
+          {isDragging && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/10 backdrop-blur-sm">
+              <div className="text-center">
+                <Paperclip className="mx-auto mb-2 h-8 w-8 text-primary" />
+                <p className="font-medium text-primary text-sm">
+                  Drop files here
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  or click to browse
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="relative flex items-end gap-3">
+            <div className="flex items-center gap-1">
+              <Button
+                className="h-10 w-10 text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
+                onClick={handleFileUpload}
+                size="icon"
+                title="Attach file (⌘+U)"
+                variant="ghost"
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    className="text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
+                    size="icon"
+                    title="Add emoji (⌘+E)"
+                    variant="ghost"
+                  >
+                    <Smile />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-80 p-0" side="top">
+                  <EmojiPicker onEmojiSelect={handleEmojiSelect}>
+                    <EmojiPickerSearch placeholder="Search emoji..." />
+                    <EmojiPickerContent />
+                    <EmojiPickerFooter />
+                  </EmojiPicker>
+                </PopoverContent>
+              </Popover>
             </div>
 
-            {/* Mention suggestions */}
-            <MentionSuggestions
-              isVisible={showMentionSuggestions}
-              onSelect={handleMentionSelect}
-              query={mentionQuery}
-              users={mentionUsersData?.users || []}
-            />
-          </div>
+            {/* Message input */}
+            <div className="group relative flex-1">
+              <Textarea
+                className="max-h-40 min-h-[52px] resize-none rounded-lg border-muted bg-background/80 pr-12 shadow-sm backdrop-blur-sm transition-all duration-200 placeholder:text-muted-foreground/60 focus:border-primary focus:bg-background focus:shadow-md"
+                disabled={isCreatingMessage}
+                onChange={handleTextareaChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Type a message... (@ to mention, / for commands)"
+                ref={textareaRef}
+                value={message}
+              />
 
-          <div className="flex items-center gap-1">
-            <Button
-              className="h-9 w-9 text-muted-foreground hover:text-foreground"
-              size="icon"
-              variant="ghost"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-            <Button
-              className="h-9 w-9"
-              disabled={isCreatingMessage || message.trim().length === 0}
-              onClick={() => handleSubmit()}
-              size="icon"
-            >
-              {isCreatingMessage ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <Send className="h-4 w-4" />
+              {/* Character count */}
+              {message.length > 1000 && (
+                <div className="absolute top-2 right-2">
+                  <span
+                    className={cn(
+                      "font-medium text-xs",
+                      message.length > 2000
+                        ? "text-destructive"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {message.length}/2000
+                  </span>
+                </div>
               )}
-            </Button>
-          </div>
-        </div>
 
-        <div className="mt-2 flex items-center justify-between text-muted-foreground text-xs">
-          <div className="flex items-center gap-2">
-            <span>Press Enter to send, Shift+Enter for new line</span>
-            <span>•</span>
-            <span>Use @ to mention team members</span>
+              {/* Typing indicator */}
+              {message && (
+                <div className="-top-6 absolute left-0 text-muted-foreground text-xs">
+                  <span className="flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-75" />
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-150" />
+                    typing...
+                  </span>
+                </div>
+              )}
+
+              {/* Mention suggestions */}
+              <MentionSuggestions
+                isVisible={showMentionSuggestions}
+                onSelect={handleMentionSelect}
+                query={mentionQuery}
+                users={mentionUsersData?.users || []}
+              />
+            </div>
+
+            {/* Right actions */}
+            <div className="flex items-center gap-1">
+              <Button
+                className="h-10 w-10 text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
+                onClick={handleVoiceRecord}
+                size="icon"
+                title={isRecording ? "Stop recording" : "Start voice message"}
+                variant="ghost"
+              >
+                <Mic
+                  className={cn("size-4.5", isRecording && "text-red-500")}
+                />
+              </Button>
+              <Button
+                className="h-10 w-10 text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
+                size="icon"
+                title="More options"
+                variant="ghost"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+              <Button
+                className={cn(
+                  "h-10 w-10 transition-all duration-200",
+                  message.trim() && "scale-105 bg-primary hover:bg-primary/90"
+                )}
+                disabled={isCreatingMessage || message.trim().length === 0}
+                onClick={() => handleSubmit()}
+                size="icon"
+                title="Send message (Enter)"
+              >
+                {isCreatingMessage ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button className="h-auto p-0 text-xs" size="sm" variant="ghost">
-              Formatting help
-            </Button>
+
+          {/* Help text */}
+          <div className="mt-3 flex items-center justify-between text-muted-foreground text-xs">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1">
+                <kbd className="rounded bg-muted px-1.5 py-0.5 text-xs">
+                  Enter
+                </kbd>
+                to send
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <kbd className="rounded bg-muted px-1.5 py-0.5 text-xs">
+                  Shift+Enter
+                </kbd>
+                new line
+              </span>
+              <span>•</span>
+              <span>@ to mention</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                className="h-auto p-0 text-xs hover:text-primary"
+                size="sm"
+                variant="ghost"
+              >
+                Markdown supported
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
