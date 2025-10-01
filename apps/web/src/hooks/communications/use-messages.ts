@@ -102,6 +102,12 @@ export const useMessages = (
         (old) => {
           if (!old) return;
 
+          // Check if message already exists to prevent duplication
+          const messageExists = old.messages.some((msg) => msg.id === messageWithSender.id);
+          if (messageExists) {
+            return old;
+          }
+
           return {
             ...old,
             messages: [...(old.messages || []), messageWithSender],

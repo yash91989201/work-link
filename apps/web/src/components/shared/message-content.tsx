@@ -1,6 +1,4 @@
 import type { MessageType } from "@server/lib/types";
-import { UserRound } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMentionUsersDetails } from "@/hooks/communications/use-mention-users-details";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +33,7 @@ export const MessageContent = ({
     }
   }
 
-  const mentionRegex = /@(\w+(?:\s+\w+)*)/g;
+  const mentionRegex = /@([^\s@]+(?:\s+[^\s@]+)*)/g;
   const parts: Array<{
     type: "text" | "mention";
     content: string;
@@ -92,15 +90,6 @@ export const MessageContent = ({
                   : `@${part.value} (User not found)`
               }
             >
-              <Avatar className="h-4 w-4">
-                <AvatarImage
-                  alt={part.user?.name || "User"}
-                  src={part.user?.image || undefined}
-                />
-                <AvatarFallback className="text-[10px]">
-                  <UserRound />
-                </AvatarFallback>
-              </Avatar>
               {part.content}
             </span>
           );

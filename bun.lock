@@ -167,6 +167,7 @@
         "@types/node": "^24.5.2",
         "@types/react": "~19.1.14",
         "@types/react-dom": "^19.1.9",
+        "@types/react-lazy-load-image-component": "^1.6.4",
         "@vitejs/plugin-react": "^5.0.4",
         "chokidar": "^4.0.3",
         "postcss": "^8.5.6",
@@ -1304,6 +1305,8 @@
     "@types/react": ["@types/react@19.1.14", "", { "dependencies": { "csstype": "^3.0.2" } }, "sha512-ukd93VGzaNPMAUPy0gRDSC57UuQbnH9Kussp7HBjM06YFi9uZTFhOvMSO2OKqXm1rSgzOE+pVx1k1PYHGwlc8Q=="],
 
     "@types/react-dom": ["@types/react-dom@19.1.9", "", { "peerDependencies": { "@types/react": "^19.0.0" } }, "sha512-qXRuZaOsAdXKFyOhRBg6Lqqc0yay13vN7KrIg4L7N4aaHN68ma9OK3NE1BoDFgFOTfM7zg+3/8+2n8rLUH3OKQ=="],
+
+    "@types/react-lazy-load-image-component": ["@types/react-lazy-load-image-component@1.6.4", "", { "dependencies": { "@types/react": "*", "csstype": "^3.0.2" } }, "sha512-8pFPeDPF4yVG4lU1/ixZidJEEDZmEOYOTYDvmIu2IAabyuv97Q7n/93nMCocHvQ7vD1czKGiW+op55D9m3MkdA=="],
 
     "@types/sax": ["@types/sax@1.2.7", "", { "dependencies": { "@types/node": "*" } }, "sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A=="],
 

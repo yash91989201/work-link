@@ -21,7 +21,6 @@ import { useChannelMembers } from "@/hooks/communications/use-channel-members";
 import { useMentionUsers } from "@/hooks/communications/use-mention-users";
 import type { Mention } from "@/lib/mentions";
 import {
-  cleanContent,
   extractMentionUserIds,
   getCurrentWord,
   getMentionQuery,
@@ -71,12 +70,12 @@ export const MessageComposer = ({
     // Broadcast typing status if there's content
     if (content.trim()) {
       broadcastTyping(true);
-      
+
       // Clear existing timeout
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
-      
+
       // Set timeout to stop typing after 3 seconds
       typingTimeoutRef.current = setTimeout(() => {
         broadcastTyping(false);
@@ -221,13 +220,13 @@ export const MessageComposer = ({
     if (member) {
       return member.name;
     }
-    
+
     // Fallback to first part of email if name not available
     const user = mentionUsersData?.users?.find((u) => u.id === userId);
     if (user) {
       return user.name || user.email?.split("@")[0] || "Unknown";
     }
-    
+
     return "Unknown";
   };
 
@@ -252,13 +251,11 @@ export const MessageComposer = ({
       }));
 
       mentions = extractMentionUserIds(rawContent, channelMentions);
-      
-      // Clean the content by removing mention markup
-      const cleanMessageContent = cleanContent(rawContent);
+      console.log(mentions);
 
       await createMessage({
         channelId,
-        content: cleanMessageContent,
+        content: message,
         mentions: mentions.length > 0 ? mentions : undefined,
       });
       setMessage("");
@@ -327,8 +324,8 @@ export const MessageComposer = ({
               {typingUsers.length === 1
                 ? `${getUserName(typingUsers[0])} is typing`
                 : typingUsers.length === 2
-                ? `${getUserName(typingUsers[0])} and ${getUserName(typingUsers[1])} are typing`
-                : `${typingUsers.slice(0, 2).map(getUserName).join(", ")} and ${typingUsers.length - 2} other${typingUsers.length - 2 === 1 ? "" : "s"} are typing`}
+                  ? `${getUserName(typingUsers[0])} and ${getUserName(typingUsers[1])} are typing`
+                  : `${typingUsers.slice(0, 2).map(getUserName).join(", ")} and ${typingUsers.length - 2} other${typingUsers.length - 2 === 1 ? "" : "s"} are typing`}
             </span>
           </div>
         </div>
