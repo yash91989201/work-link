@@ -19,7 +19,6 @@ interface MessageContentProps {
 // Parse and render message content with mentions
 export const MessageContent = ({
   content,
-  mentions,
   mentionUsers,
 }: MessageContentProps) => {
   if (!content) return null;
@@ -27,15 +26,14 @@ export const MessageContent = ({
   // Create a map of user names to user objects for quick lookup
   const userMap = new Map<string, Mention>();
   if (mentionUsers) {
-    mentionUsers.forEach((user) => {
+    for (const user of mentionUsers) {
       if (user.name) {
         userMap.set(user.name.toLowerCase(), user);
       }
       userMap.set(user.email.toLowerCase(), user);
-    });
+    }
   }
 
-  // Simple regex to find @mentions in the content
   const mentionRegex = /@(\w+(?:\s+\w+)*)/g;
   const parts: Array<{
     type: "text" | "mention";
@@ -44,9 +42,8 @@ export const MessageContent = ({
     user?: Mention;
   }> = [];
   let lastIndex = 0;
-  let match;
-
-  while ((match = mentionRegex.exec(content)) !== null) {
+  let match: RegExpExecArray | null = mentionRegex.exec(content);
+  while (match !== null) {
     // Add text before the mention
     if (match.index > lastIndex) {
       parts.push({
@@ -54,19 +51,17 @@ export const MessageContent = ({
         content: content.slice(lastIndex, match.index),
       });
     }
-
     // Add the mention
     const mentionValue = match[1];
     const user = userMap.get(mentionValue.toLowerCase());
-
     parts.push({
       type: "mention",
       content: match[0],
       value: mentionValue,
       user,
     });
-
     lastIndex = match.index + match[0].length;
+    match = mentionRegex.exec(content);
   }
 
   // Add remaining text
@@ -89,7 +84,7 @@ export const MessageContent = ({
                   ? "cursor-pointer bg-primary/10 text-primary hover:bg-primary/20"
                   : "bg-muted text-muted-foreground"
               )}
-              key={index}
+              key={index.toString()}
               title={
                 part.user
                   ? `@${part.user.name || part.user.email}`
@@ -128,7 +123,7 @@ export const EnhancedMessageContent = ({
   message,
 }: EnhancedMessageContentProps) => {
   const { data: mentionUsers } = useMentionUsersDetails(message.mentions);
-  
+
   return (
     <MessageContent
       content={message.content || ""}
@@ -137,4 +132,3 @@ export const EnhancedMessageContent = ({
     />
   );
 };
-

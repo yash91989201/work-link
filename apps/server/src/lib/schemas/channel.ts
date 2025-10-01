@@ -49,10 +49,9 @@ export const ListChannelsOutput = z.object({
 });
 
 // Add channel member input
-export const AddChannelMemberInput = z.object({
+export const AddChannelMembersInput = z.object({
   channelId: z.string(),
-  userId: z.string(),
-  role: z.enum(["member", "admin", "moderator"]).default("member"),
+  memberIds: z.array(z.string()),
 });
 
 // Remove channel member input

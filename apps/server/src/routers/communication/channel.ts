@@ -5,6 +5,7 @@ import { member, user as userTable } from "@/db/schema/auth";
 import { channelMemberTable, channelTable } from "@/db/schema/communication";
 import { protectedProcedure } from "@/lib/orpc";
 import {
+  AddChannelMembersInput,
   ChannelWithCreatorOutput,
   CreateChannelInput,
   CreateChannelOutput,
@@ -13,6 +14,7 @@ import {
   GetChannelMembersOutput,
   ListChannelsInput,
   ListChannelsOutput,
+  SuccessOutput,
   UpdateChannelInput,
 } from "@/lib/schemas/channel";
 import { ChannelSchema } from "@/lib/schemas/db-tables";
@@ -174,5 +176,22 @@ export const channelRouter = {
         .where(eq(channelMemberTable.channelId, input.channelId));
 
       return { members };
+    }),
+
+  addMembers: protectedProcedure
+    .input(AddChannelMembersInput)
+    .output(SuccessOutput)
+    .handler(async ({ context, input }) => {
+      const channelMembers = input.memberIds.map((memberId) => ({
+        channelId: input.channelId,
+        userId: memberId,
+      }));
+
+      await context.db.insert(channelMemberTable).values(channelMembers);
+
+      return {
+        success: true,
+        message: "Members added to channel",
+      };
     }),
 };
