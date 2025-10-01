@@ -417,6 +417,17 @@ export const messagesRouter = {
               image: true,
             },
           },
+          parentMessage: {
+            with: {
+              sender: {
+                columns: {
+                  name: true,
+                  email: true,
+                  image: true,
+                },
+              },
+            },
+          },
         },
       });
 

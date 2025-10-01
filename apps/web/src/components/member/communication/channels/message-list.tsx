@@ -1,6 +1,14 @@
 import type { MessageType } from "@server/lib/types";
 import { format, formatDistanceToNow } from "date-fns";
-import { Check, Edit3, MessageCircle, Reply, Trash2, X } from "lucide-react";
+import {
+  Check,
+  CornerUpLeft,
+  Edit3,
+  MessageCircle,
+  Reply,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MentionSuggestions } from "@/components/shared/mention-suggestions";
@@ -82,12 +90,20 @@ const LoadingSkeleton = () => (
 interface MessageItemProps {
   message: MessageType & {
     sender: { name: string; email: string; image: string | null };
+    parentMessage?: MessageType & {
+      sender: { name: string; email: string; image: string | null };
+    };
   };
   channelId: string;
   onDelete: (messageId: string) => Promise<void>;
   onEdit: (
     messageId: string,
     content: string,
+    mentions?: string[]
+  ) => Promise<void>;
+  onReply: (
+    content: string,
+    parentMessageId: string,
     mentions?: string[]
   ) => Promise<void>;
   isDeleting?: boolean;
@@ -99,24 +115,29 @@ const MessageItem = ({
   channelId,
   onDelete,
   onEdit,
+  onReply,
   isDeleting,
   isUpdating,
 }: MessageItemProps) => {
   const { user } = useAuthedSession();
   const [isEditing, setIsEditing] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
   const [editContent, setEditContent] = useState(message.content || "");
+  const [replyContent, setReplyContent] = useState("");
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const replyContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: channelMembersData } = useChannelMembers(channelId);
   const { data: mentionUsersData, isFetching: isFetchingUsers } =
     useMentionUsers(channelId, mentionQuery, showMentionSuggestions);
 
-  // Handle mention detection and suggestions
+  // Handle mention detection and suggestions for edit mode
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const content = e.target.value;
     const position = e.target.selectionStart;
@@ -165,7 +186,58 @@ const MessageItem = ({
     }
   };
 
-  // Handle mention selection
+  // Handle mention detection and suggestions for reply mode
+  const handleReplyTextareaChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const content = e.target.value;
+    const position = e.target.selectionStart;
+
+    setReplyContent(content);
+    setCursorPosition(position);
+
+    // Check if current word is a mention
+    const currentWord = getCurrentWord(content, position);
+    console.log(
+      "Reply mode - Current word:",
+      currentWord,
+      "Content:",
+      content,
+      "Position:",
+      position
+    );
+
+    if (currentWord.startsWith("@")) {
+      const query = getMentionQuery(currentWord);
+      console.log(
+        "Reply mode - Mention query:",
+        query,
+        "Query length:",
+        query.length
+      );
+      if (query.length >= 0) {
+        // Allow empty query to show all users
+        setMentionQuery(query);
+        setShowMentionSuggestions(true);
+        setSelectedMentionIndex(0); // Reset selection when showing suggestions
+        console.log("Reply mode - Setting showMentionSuggestions to true");
+      } else {
+        setShowMentionSuggestions(false);
+        setMentionQuery("");
+        console.log(
+          "Reply mode - Setting showMentionSuggestions to false (invalid query)"
+        );
+      }
+    } else {
+      setShowMentionSuggestions(false);
+      setMentionQuery("");
+      console.log(
+        "Reply mode - Setting showMentionSuggestions to false (not a mention)"
+      );
+    }
+  };
+
+  // Handle mention selection for edit mode
   const handleMentionSelect = (mention: Mention) => {
     const result = insertMention(editContent, cursorPosition, mention);
     setEditContent(result.content);
@@ -178,6 +250,26 @@ const MessageItem = ({
       if (textareaRef.current) {
         textareaRef.current.focus();
         textareaRef.current.setSelectionRange(
+          result.newCursorPosition,
+          result.newCursorPosition
+        );
+      }
+    }, 0);
+  };
+
+  // Handle mention selection for reply mode
+  const handleReplyMentionSelect = (mention: Mention) => {
+    const result = insertMention(replyContent, cursorPosition, mention);
+    setReplyContent(result.content);
+    setShowMentionSuggestions(false);
+    setMentionQuery("");
+    setSelectedMentionIndex(0); // Reset selection
+
+    // Focus back to textarea and set cursor position
+    setTimeout(() => {
+      if (replyTextareaRef.current) {
+        replyTextareaRef.current.focus();
+        replyTextareaRef.current.setSelectionRange(
           result.newCursorPosition,
           result.newCursorPosition
         );
@@ -225,7 +317,9 @@ const MessageItem = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (
         containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
+        !containerRef.current.contains(event.target as Node) &&
+        replyContainerRef.current &&
+        !replyContainerRef.current.contains(event.target as Node)
       ) {
         setShowMentionSuggestions(false);
         setMentionQuery("");
@@ -293,6 +387,48 @@ const MessageItem = ({
     setEditContent(message.content || "");
   };
 
+  const handleSaveReply = async () => {
+    const trimmedContent = replyContent.trim();
+    if (!trimmedContent) {
+      return;
+    }
+
+    try {
+      // Extract mentions using the available channel members data
+      let mentions: string[] = [];
+
+      // Convert channel members to Mention format
+      const channelMentions: Mention[] = (
+        channelMembersData?.members || []
+      ).map((member) => ({
+        id: member.id,
+        name: member.name,
+        email: member.email,
+        image: member.image,
+      }));
+
+      mentions = extractMentionUserIds(trimmedContent, channelMentions);
+
+      await onReply(
+        trimmedContent,
+        message.id,
+        mentions.length > 0 ? mentions : undefined
+      );
+      setIsReplying(false);
+      setReplyContent("");
+      toast("Reply sent successfully");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to send reply";
+      toast(errorMessage);
+    }
+  };
+
+  const handleCancelReply = () => {
+    setIsReplying(false);
+    setReplyContent("");
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // First handle mention-specific keys
     handleMentionKeyDown(event);
@@ -303,6 +439,21 @@ const MessageItem = ({
       handleSaveEdit();
     } else if (!event.defaultPrevented && event.key === "Escape") {
       handleCancelEdit();
+    }
+  };
+
+  const handleReplyKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    // First handle mention-specific keys
+    handleMentionKeyDown(event);
+
+    // Then handle normal keys if not prevented
+    if (!event.defaultPrevented && event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSaveReply();
+    } else if (!event.defaultPrevented && event.key === "Escape") {
+      handleCancelReply();
     }
   };
 
@@ -324,6 +475,33 @@ const MessageItem = ({
       </Avatar>
 
       <div className="min-w-0 flex-1">
+        {/* Parent message preview */}
+        {message.parentMessage && (
+          <div className="group relative mb-3">
+            <div className="absolute top-0 bottom-0 left-0 w-0.5 bg-primary/30" />
+            <div className="ml-3 rounded-l-lg border border-border/50 border-l-primary/50 bg-gradient-to-r from-primary/5 to-muted/20 p-3 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <CornerUpLeft className="h-3 w-3 text-primary/60" />
+                <span className="font-medium text-primary/80 text-xs uppercase tracking-wide">
+                  Replying to{" "}
+                  {message.parentMessage.sender?.name ?? "Unknown User"}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  •{" "}
+                  {formatDistanceToNow(message.parentMessage.createdAt, {
+                    addSuffix: true,
+                  })}
+                </span>
+              </div>
+              <div className="rounded border-l-2 border-l-primary/30 pl-2">
+                <div className="line-clamp-3 text-muted-foreground text-sm leading-relaxed">
+                  {message.parentMessage.content}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mb-2 flex items-baseline gap-3">
           <span className="font-semibold text-foreground text-sm">
             {message.sender.name ?? "Unknown User"}
@@ -331,6 +509,12 @@ const MessageItem = ({
           <span className="text-muted-foreground text-xs" title={timestamp}>
             {relativeTime}
           </span>
+          {message.parentMessageId && (
+            <Badge className="px-1.5 py-0.5 text-xs" variant="secondary">
+              <CornerUpLeft className="mr-1 h-2.5 w-2.5" />
+              Reply
+            </Badge>
+          )}
           {message.createdAt > new Date(Date.now() - 1000 * 60 * 5) && (
             <Badge className="px-1 py-0 text-xs" variant="secondary">
               New
@@ -404,11 +588,102 @@ const MessageItem = ({
             </div>
           </div>
         ) : (
-          message.content && <EnhancedMessageContent message={message} />
+          <>
+            {message.content && <EnhancedMessageContent message={message} />}
+
+            {/* Reply form */}
+            {isReplying && (
+              <div className="relative mt-3 space-y-2" ref={replyContainerRef}>
+                <div className="group relative rounded-lg border border-border/50 bg-gradient-to-r from-primary/5 to-muted/20 p-3 shadow-sm">
+                  <div className="absolute top-0 bottom-0 left-0 w-0.5 bg-primary/30" />
+                  <div className="ml-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      <CornerUpLeft className="h-3 w-3 text-primary/60" />
+                      <span className="font-medium text-primary/80 text-xs uppercase tracking-wide">
+                        Replying to {message.sender.name ?? "Unknown User"}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        • {relativeTime}
+                      </span>
+                    </div>
+                    <div className="rounded border-l-2 border-l-primary/30 pl-2">
+                      <div className="line-clamp-2 text-muted-foreground text-sm leading-relaxed">
+                        {message.content}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <Textarea
+                  autoFocus
+                  className="min-h-[80px] resize-none border-l-2 border-l-primary/30 pl-3"
+                  disabled={isUpdating}
+                  onChange={handleReplyTextareaChange}
+                  onKeyDown={handleReplyKeyDown}
+                  placeholder="Write a reply... (@ to mention)"
+                  ref={replyTextareaRef}
+                  value={replyContent}
+                />
+                {/* Mention suggestions */}
+                {showMentionSuggestions && (
+                  <>
+                    {console.log(
+                      "Reply mode - Rendering MentionSuggestions, users:",
+                      mentionUsersData?.users?.length,
+                      "isLoading:",
+                      isFetchingUsers
+                    )}
+                    <MentionSuggestions
+                      isLoading={isFetchingUsers}
+                      isVisible={showMentionSuggestions}
+                      onSelect={handleReplyMentionSelect}
+                      query={mentionQuery}
+                      users={mentionUsersData?.users || []}
+                    />
+                  </>
+                )}
+                <div className="flex items-center justify-between">
+                  <div className="text-muted-foreground text-xs">
+                    Press Enter to send, Escape to cancel, Shift+Enter for new
+                    line
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      className="h-7 px-2 text-xs"
+                      disabled={isUpdating}
+                      onClick={handleCancelReply}
+                      size="sm"
+                      variant="ghost"
+                    >
+                      <X className="mr-1 h-3 w-3" />
+                      Cancel
+                    </Button>
+                    <Button
+                      className="h-7 px-2 text-xs"
+                      disabled={isUpdating || !replyContent.trim()}
+                      onClick={handleSaveReply}
+                      size="sm"
+                    >
+                      {isUpdating ? (
+                        <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+                      ) : (
+                        <CornerUpLeft className="mr-1 h-3 w-3" />
+                      )}
+                      Send Reply
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
-        {!isEditing && (
+        {!(isEditing || isReplying) && (
           <div className="mt-2 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-            <Button className="h-7 px-2 text-xs" size="sm" variant="ghost">
+            <Button
+              className="h-7 px-2 text-xs"
+              onClick={() => setIsReplying(true)}
+              size="sm"
+              variant="ghost"
+            >
               <Reply className="mr-1 h-3 w-3" />
               Reply
             </Button>
@@ -443,16 +718,12 @@ const MessageItem = ({
   );
 };
 
-const MessageContent = ({
-  messages,
-  channelId,
-  onDelete,
-  onEdit,
-  deletingMessageId,
-  updatingMessageId,
-}: {
+interface MessageContentProps {
   messages: (MessageType & {
     sender: { name: string; email: string; image: string | null };
+    parentMessage?: MessageType & {
+      sender: { name: string; email: string; image: string | null };
+    };
   })[];
   channelId: string;
   onDelete: (messageId: string) => Promise<void>;
@@ -461,9 +732,24 @@ const MessageContent = ({
     content: string,
     mentions?: string[]
   ) => Promise<void>;
+  onReply: (
+    content: string,
+    parentMessageId: string,
+    mentions?: string[]
+  ) => Promise<void>;
   deletingMessageId?: string;
   updatingMessageId?: string;
-}) => {
+}
+
+const MessageContent = ({
+  messages,
+  channelId,
+  onDelete,
+  onEdit,
+  onReply,
+  deletingMessageId,
+  updatingMessageId,
+}: MessageContentProps) => {
   return (
     <div className="space-y-0">
       {messages.map((message, index) => (
@@ -475,6 +761,7 @@ const MessageContent = ({
             message={message}
             onDelete={onDelete}
             onEdit={onEdit}
+            onReply={onReply}
           />
           {index < messages.length - 1 && <Separator />}
         </div>
@@ -483,20 +770,14 @@ const MessageContent = ({
   );
 };
 
-const MessageListContent = ({
-  isLoading,
-  hasMessages,
-  messages,
-  channelId,
-  onDelete,
-  onEdit,
-  deletingMessageId,
-  updatingMessageId,
-}: {
+interface MessageListContentProps {
   isLoading: boolean;
   hasMessages: boolean;
   messages: (MessageType & {
     sender: { name: string; email: string; image: string | null };
+    parentMessage?: MessageType & {
+      sender: { name: string; email: string; image: string | null };
+    };
   })[];
   channelId: string;
   onDelete: (messageId: string) => Promise<void>;
@@ -505,9 +786,26 @@ const MessageListContent = ({
     content: string,
     mentions?: string[]
   ) => Promise<void>;
+  onReply: (
+    content: string,
+    parentMessageId: string,
+    mentions?: string[]
+  ) => Promise<void>;
   deletingMessageId?: string;
   updatingMessageId?: string;
-}) => {
+}
+
+const MessageListContent = ({
+  isLoading,
+  hasMessages,
+  messages,
+  channelId,
+  onDelete,
+  onEdit,
+  onReply,
+  deletingMessageId,
+  updatingMessageId,
+}: MessageListContentProps) => {
   if (isLoading) {
     return <LoadingSkeleton />;
   }
@@ -523,6 +821,7 @@ const MessageListContent = ({
       messages={messages}
       onDelete={onDelete}
       onEdit={onEdit}
+      onReply={onReply}
       updatingMessageId={updatingMessageId}
     />
   );
@@ -534,6 +833,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
     isFetchingChannelMessage,
     deletingMessageId,
     updatingMessageId,
+    createMessage,
     deleteMessage,
     updateMessage,
     messagesEndRef,
@@ -547,6 +847,26 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
       const message =
         error instanceof Error ? error.message : "Failed to delete message";
       toast(message);
+    }
+  };
+
+  const handleReply = async (
+    content: string,
+    parentMessageId: string,
+    mentions?: string[]
+  ) => {
+    try {
+      await createMessage({
+        channelId,
+        content,
+        parentMessageId,
+        mentions,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to send reply";
+      toast(message);
+      throw error;
     }
   };
 
@@ -583,6 +903,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
             messages={orderedMessages}
             onDelete={handleDelete}
             onEdit={handleEdit}
+            onReply={handleReply}
             updatingMessageId={updatingMessageId}
           />
           <div ref={messagesEndRef} />

@@ -13,6 +13,25 @@ interface UseMessagesOptions {
   afterMessageId?: string;
 }
 
+const getParentMessageInfo = async (parentMessageId: string) => {
+  const { data: parentMessage } = await supabase
+    .from("message")
+    .select(`
+      id,
+      content,
+      senderId,
+      sender:senderId (
+        name,
+        email,
+        image
+      )
+    `)
+    .eq("id", parentMessageId)
+    .single();
+
+  return parentMessage;
+};
+
 export const useMessages = (
   channelId: string,
   options?: UseMessagesOptions
@@ -87,6 +106,7 @@ export const useMessages = (
       const messageWithSender = {
         ...newMessage,
         sender,
+        parentMessage: newMessage.parentMessageId ? await getParentMessageInfo(newMessage.parentMessageId) : undefined,
       };
 
       queryClient.setQueryData(
@@ -198,6 +218,7 @@ export const useMessages = (
           const messageWithSender = {
             ...newMessage,
             sender,
+            parentMessage: newMessage.parentMessageId ? await getParentMessageInfo(newMessage.parentMessageId) : undefined,
           };
 
           queryClient.setQueryData(
