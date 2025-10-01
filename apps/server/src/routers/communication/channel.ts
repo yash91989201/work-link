@@ -1,8 +1,8 @@
 import { ORPCError } from "@orpc/server";
 import type { SQL } from "drizzle-orm";
 import { and, eq } from "drizzle-orm";
-import { channelMemberTable, channelTable } from "@/db/schema";
 import { member, user as userTable } from "@/db/schema/auth";
+import { channelMemberTable, channelTable } from "@/db/schema/communication";
 import { protectedProcedure } from "@/lib/orpc";
 import {
   ChannelWithCreatorOutput,
@@ -159,11 +159,20 @@ export const channelRouter = {
   getMembers: protectedProcedure
     .input(GetChannelMembersInput)
     .output(GetChannelMembersOutput)
-    .handler(() => {
-      // const members = await context.db.query.channelMemberTable.findMany({
-      //   where: eq(channelMemberTable.id, input.channelId),
-      // });
+    .handler(async ({ input, context }) => {
+      const members = await context.db
+        .select({
+          id: userTable.id,
+          name: userTable.name,
+          email: userTable.email,
+          image: userTable.image,
+          role: channelMemberTable.role,
+          joinedAt: channelMemberTable.joinedAt,
+        })
+        .from(channelMemberTable)
+        .innerJoin(userTable, eq(channelMemberTable.userId, userTable.id))
+        .where(eq(channelMemberTable.channelId, input.channelId));
 
-      return { messages: [] };
+      return { members };
     }),
 };

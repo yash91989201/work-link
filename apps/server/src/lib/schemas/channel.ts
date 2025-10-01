@@ -3,7 +3,6 @@ import {
   ChannelInsertSchema,
   ChannelSchema,
   ChannelTypeSchema,
-  MessageSchema,
   UserSchema,
 } from "./db-tables";
 
@@ -78,13 +77,15 @@ export const GetChannelMembersInput = z.object({
 });
 
 export const GetChannelMembersOutput = z.object({
-  messages: z.array(
-    MessageSchema.extend({
-      sender: UserSchema.pick({
-        name: true,
-        email: true,
-        image: true,
-      }),
+  members: z.array(
+    UserSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+    }).extend({
+      role: z.string(),
+      joinedAt: z.date(),
     })
   ),
 });

@@ -2,8 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import chokidar from "chokidar";
 
+// Regex patterns
 const TS_EXTENSION_REGEX = /\.ts$/;
-const REMOVE_LEADING_DOT = /^\.\//;
+const SCHEMA_EXPORT_REGEX =
+  /export\s+(?:const|var|let)\s+(\w+(?:Schema|Input|Output))\s*=/g;
+const SIMPLE_SCHEMA_REGEX = /Schema$/;
+const NON_DB_SCHEMA_PATTERNS = /(Create|Update|Delete|Form|Insert|Select)$/;
 
 const schemasDir = path.resolve("src/lib/schemas");
 const outputFile = path.resolve("src/lib/types.ts");
@@ -19,9 +23,7 @@ if (!fs.existsSync(path.dirname(outputFile))) {
 function getAllSchemaFiles(dir: string): string[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      return getAllSchemaFiles(fullPath);
-    }
+    if (entry.isDirectory()) return getAllSchemaFiles(fullPath);
     return entry.isFile() && TS_EXTENSION_REGEX.test(entry.name)
       ? [fullPath]
       : [];
@@ -29,21 +31,26 @@ function getAllSchemaFiles(dir: string): string[] {
 }
 
 function extractSchemaNames(content: string): string[] {
-  // Match exported const/var/let declarations that are Zod schemas
-  // Matches: z., createSelectSchema, createInsertSchema, etc.
-  const matches = content.matchAll(
-    /export\s+(?:const|var|let)\s+(\w+)\s*=\s*(?:z\.|createSelectSchema|createInsertSchema)/g
+  // Match exported variables ending with Schema, Input, or Output
+  return Array.from(content.matchAll(SCHEMA_EXPORT_REGEX)).map(
+    (match) => match[1]
   );
-  return Array.from(matches).map((match) => match[1]);
 }
 
 function getTypeName(schemaName: string): string {
-  // If it ends with "Schema", remove it
-  if (schemaName.endsWith("Schema")) {
-    return schemaName.slice(0, -6); // Remove "Schema" (6 characters)
+  // For DB schemas (ending with just "Schema"), remove "Schema" and add "Type"
+  // e.g., UserSchema -> UserType
+  if (SIMPLE_SCHEMA_REGEX.test(schemaName)) {
+    const withoutSchema = schemaName.slice(0, -6);
+    // If it doesn't contain common suffixes/prefixes, treat as DB schema
+    if (!NON_DB_SCHEMA_PATTERNS.test(withoutSchema)) {
+      return `${withoutSchema}Type`;
+    }
   }
-  // Otherwise, keep the name as is
-  return schemaName;
+
+  // For all other schemas, keep the full name and add "Type"
+  // e.g., CreateChannelFormSchema -> CreateChannelFormSchemaType
+  return `${schemaName}Type`;
 }
 
 function generateTypes() {
@@ -65,29 +72,18 @@ function generateTypes() {
 
       if (schemaNames.length === 0) continue;
 
-      // Calculate the import path using @ alias
-      // Get the relative path from the schemas directory
+      // Get relative path from schemas directory
       const relPath = path
         .relative(schemasDir, file)
         .replace(/\\/g, "/")
         .replace(TS_EXTENSION_REGEX, "");
 
-      // Remove any leading "./" and get the directory name
-      const dirName = path.dirname(relPath.replace(REMOVE_LEADING_DOT, ""));
-
-      // If the file is directly in the schemas directory, use just the basename
-      // Otherwise, use the directory structure
-      const importPath =
-        dirName === "."
-          ? `@/lib/schemas/${path.basename(relPath)}`
-          : `@/lib/schemas/${relPath}`;
+      const importPath = `@/lib/schemas/${relPath}`;
 
       for (const schemaName of schemaNames) {
         const typeName = getTypeName(schemaName);
         imports.add(`import type { ${schemaName} } from "${importPath}";`);
-        types.add(
-          `export type ${typeName}Type = z.infer<typeof ${schemaName}>;`
-        );
+        types.add(`export type ${typeName} = z.infer<typeof ${schemaName}>;`);
       }
     } catch (error) {
       console.warn(`Could not process file ${file}:`, error);
@@ -100,13 +96,13 @@ import type { z } from "zod";
 
 ${Array.from(imports).sort().join("\n")}
 
-${Array.from(types).sort().join("\n\n")}
+${Array.from(types).sort().join("\n")}
 `;
 
-  // Only write if content changed
   const currentContent = fs.existsSync(outputFile)
     ? fs.readFileSync(outputFile, "utf-8")
     : "";
+
   if (currentContent !== output) {
     fs.writeFileSync(outputFile, output);
     console.log(`✅ Types written to ${outputFile}`);
@@ -118,10 +114,8 @@ ${Array.from(types).sort().join("\n\n")}
 // Initial generation
 generateTypes();
 
-const shouldWatch =
-  process.argv.includes("--watch") || process.argv.includes("-w");
-
-if (shouldWatch) {
+// Watch mode
+if (process.argv.includes("--watch") || process.argv.includes("-w")) {
   const watcher = chokidar.watch(schemasDir, {
     ignored: /(^|[/\\])node_modules[/\\]/,
     persistent: true,
@@ -145,7 +139,6 @@ if (shouldWatch) {
     .on("unlink", handleChange)
     .on("error", (error) => console.error("Watcher error:", error));
 
-  // Graceful shutdown
   const shutdown = () => {
     watcher.close().then(() => {
       console.log("✅ Watcher closed successfully");
@@ -155,4 +148,6 @@ if (shouldWatch) {
 
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
+
+  console.log("👀 Watching for changes...");
 }

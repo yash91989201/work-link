@@ -1,8 +1,9 @@
 import type { MessageType } from "@server/lib/types";
 import { format, formatDistanceToNow } from "date-fns";
-import { Edit3, MessageCircle, Reply, Trash2, X, Check } from "lucide-react";
+import { Check, Edit3, MessageCircle, Reply, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { EnhancedMessageContent } from "@/components/shared/message-content";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,8 +11,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuthedSession } from "@/hooks/use-authed-session";
 import { useMessages } from "@/hooks/communications";
+import { useAuthedSession } from "@/hooks/use-authed-session";
 import { cn } from "@/lib/utils";
 
 interface MessageListProps {
@@ -78,18 +79,24 @@ interface MessageItemProps {
   isUpdating?: boolean;
 }
 
-const MessageItem = ({ message, onDelete, onEdit, isDeleting, isUpdating }: MessageItemProps) => {
+const MessageItem = ({
+  message,
+  onDelete,
+  onEdit,
+  isDeleting,
+  isUpdating,
+}: MessageItemProps) => {
   const { user } = useAuthedSession();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content || "");
-  
+
   const timestamp = format(message.createdAt, "MMM d, HH:mm");
   const relativeTime = formatDistanceToNow(message.createdAt, {
     addSuffix: true,
   });
   const initials = (message.sender.name ?? "?").slice(0, 2).toUpperCase();
   const canEdit = user?.id === message.senderId;
-  
+
   const handleSaveEdit = async () => {
     const trimmedContent = editContent.trim();
     if (!trimmedContent || trimmedContent === message.content) {
@@ -97,7 +104,7 @@ const MessageItem = ({ message, onDelete, onEdit, isDeleting, isUpdating }: Mess
       setEditContent(message.content || "");
       return;
     }
-    
+
     try {
       await onEdit(message.id, trimmedContent);
       setIsEditing(false);
@@ -108,12 +115,12 @@ const MessageItem = ({ message, onDelete, onEdit, isDeleting, isUpdating }: Mess
       toast(errorMessage);
     }
   };
-  
+
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditContent(message.content || "");
   };
-  
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -162,12 +169,12 @@ const MessageItem = ({ message, onDelete, onEdit, isDeleting, isUpdating }: Mess
         {isEditing ? (
           <div className="space-y-2">
             <Textarea
+              autoFocus
               className="min-h-[80px] resize-none"
               disabled={isUpdating}
               onChange={(e) => setEditContent(e.target.value)}
               onKeyDown={handleKeyDown}
               value={editContent}
-              autoFocus
             />
             <div className="flex items-center justify-between">
               <div className="text-muted-foreground text-xs">
@@ -201,11 +208,7 @@ const MessageItem = ({ message, onDelete, onEdit, isDeleting, isUpdating }: Mess
             </div>
           </div>
         ) : (
-          message.content && (
-            <p className="whitespace-pre-wrap break-words text-foreground text-sm leading-relaxed">
-              {message.content}
-            </p>
-          )
+          message.content && <EnhancedMessageContent message={message} />
         )}
         {!isEditing && (
           <div className="mt-2 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
@@ -214,11 +217,11 @@ const MessageItem = ({ message, onDelete, onEdit, isDeleting, isUpdating }: Mess
               Reply
             </Button>
             {canEdit && (
-              <Button 
-                className="h-7 px-2 text-xs" 
-                size="sm" 
-                variant="ghost"
+              <Button
+                className="h-7 px-2 text-xs"
                 onClick={() => setIsEditing(true)}
+                size="sm"
+                variant="ghost"
               >
                 <Edit3 className="mr-1 h-3 w-3" />
                 Edit
@@ -307,10 +310,10 @@ const MessageListContent = ({
   return (
     <MessageContent
       deletingMessageId={deletingMessageId}
-      updatingMessageId={updatingMessageId}
       messages={messages}
       onDelete={onDelete}
       onEdit={onEdit}
+      updatingMessageId={updatingMessageId}
     />
   );
 };
@@ -335,7 +338,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
       toast(message);
     }
   };
-  
+
   const handleEdit = async (messageId: string, content: string) => {
     try {
       await updateMessage({ messageId, content });
@@ -359,12 +362,12 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
         <div className="flex flex-col">
           <MessageListContent
             deletingMessageId={deletingMessageId}
-            updatingMessageId={updatingMessageId}
             hasMessages={hasMessages}
             isLoading={isFetchingChannelMessage}
             messages={orderedMessages}
             onDelete={handleDelete}
             onEdit={handleEdit}
+            updatingMessageId={updatingMessageId}
           />
         </div>
       </ScrollArea>

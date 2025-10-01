@@ -126,8 +126,8 @@ export const messageTable = pgTable("message", {
   editedAt: timestamp("edited_at", { withTimezone: true }),
   isDeleted: boolean("is_deleted").default(false).notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  mentions: json("mentions"), // Array of user IDs mentioned in the message
-  reactions: json("reactions"), // Emoji reactions with user counts
+  mentions: json("mentions").$type<string[]>(), // Array of user IDs mentioned in the message
+  reactions: json("reactions").$type<{ reaction: string; count: number }[]>(), // Emoji reactions with user counts
   metadata: json("metadata"), // For extensibility (formatting, links, etc.)
   createdAt: timestamp("created_at", { withTimezone: true })
     .$defaultFn(() => new Date())

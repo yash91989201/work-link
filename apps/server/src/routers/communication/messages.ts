@@ -6,6 +6,7 @@ import {
   channelTable,
   messageReadTable,
   messageTable,
+  notificationTable,
 } from "@/db/schema/communication";
 import type { Context } from "@/lib/context";
 import { protectedProcedure } from "@/lib/orpc";
@@ -25,6 +26,8 @@ import {
   SearchMessageOutput,
   SearchMessagesInput,
   SearchMessagesListOutput,
+  SearchUsersInput,
+  SearchUsersOutput,
   UnreadCountOutput,
   UpdateMessageInput,
 } from "@/lib/schemas/message";
@@ -342,20 +345,79 @@ const searchChannelMessages = async (
 };
 
 export const messagesRouter = {
+  // Search for users to mention
+  searchUsers: protectedProcedure
+    .input(SearchUsersInput)
+    .output(SearchUsersOutput)
+    .handler(async ({ input, context }) => {
+      const { db, session } = context;
+      const currentUser = session.user;
+
+      // Verify user has access to the channel
+      const access = await hasChannelAccess(db, input.channelId, currentUser.id);
+      if (!access) {
+        throw new ORPCError("FORBIDDEN", {
+          message: "You don't have access to this channel.",
+        });
+      }
+
+      // Search users in the same organization who are channel members
+      const users = await db
+        .select({
+          id: userTable.id,
+          name: userTable.name,
+          email: userTable.email,
+          image: userTable.image,
+        })
+        .from(channelMemberTable)
+        .innerJoin(userTable, eq(channelMemberTable.userId, userTable.id))
+        .where(
+          and(
+            eq(channelMemberTable.channelId, input.channelId),
+            // Search by name or email
+            sql`(
+              ${userTable.name} ILIKE ${'%' + input.query + '%'} OR
+              ${userTable.email} ILIKE ${'%' + input.query + '%'}
+            )`
+          )
+        )
+        .limit(input.limit);
+
+      return { users };
+    }),
+
   // Create a new message
   create: protectedProcedure
     .input(CreateMessageInput)
     .output(MessageSchema)
     .handler(async ({ input, context }) => {
       const user = context.session.user;
+      const { db } = context;
 
-      const [newMessage] = await context.db
+      const [newMessage] = await db
         .insert(messageTable)
         .values({
           ...input,
           senderId: user.id,
         })
         .returning();
+
+      // Create mention notifications if there are mentions
+      if (input.mentions && input.mentions.length > 0) {
+        const mentionNotifications = input.mentions.map(mentionedUserId => ({
+          userId: mentionedUserId,
+          type: "mention" as const,
+          title: `${user.name || user.email} mentioned you`,
+          message: input.content?.slice(0, 200) || "You were mentioned in a message",
+          entityId: newMessage.id,
+          entityType: "message",
+        }));
+
+        // Insert mention notifications
+        await db
+          .insert(notificationTable)
+          .values(mentionNotifications);
+      }
 
       return newMessage;
     }),

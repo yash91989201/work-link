@@ -106,6 +106,25 @@ export const GetMessageInput = z.object({
   messageId: z.string(),
 });
 
+// Search users for mentions input
+export const SearchUsersInput = z.object({
+  channelId: z.string(),
+  query: z.string().min(1).max(50),
+  limit: z.number().min(1).max(20).default(10),
+});
+
+// Search users for mentions output
+export const SearchUsersOutput = z.object({
+  users: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string().nullable(),
+      email: z.string(),
+      image: z.string().nullable(),
+    })
+  ),
+});
+
 // Message attachment output schema
 export const MessageAttachmentOutput = z.object({
   id: z.string(),
