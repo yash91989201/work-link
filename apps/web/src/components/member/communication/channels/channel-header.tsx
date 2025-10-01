@@ -3,7 +3,6 @@ import { Circle, Hash, Search, Users } from "lucide-react";
 import { AddMemberForm } from "@/components/member/communication/channels/add-member-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
@@ -87,10 +86,6 @@ export function ChannelHeader({ channelId }: { channelId: string }) {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-            <Input className="h-9 w-64 pl-8" placeholder="Search messages..." />
-          </div>
           <AddMemberForm channelId={channelId} />
         </div>
       </div>

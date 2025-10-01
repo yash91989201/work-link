@@ -10,9 +10,8 @@ export const Route = createFileRoute(
 function RouteComponent() {
   return (
     <ChannelsLayout>
-      <div className="flex h-full">
-        <Outlet />
-      </div>
+      <Outlet />
+      <div className="w-80">channel info</div>
     </ChannelsLayout>
   );
 }
