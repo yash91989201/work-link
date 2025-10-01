@@ -10,10 +10,10 @@ export const useMentionUsers = (
     queryUtils.communication.messages.searchUsers.queryOptions({
       input: {
         channelId,
-        query,
+        query: query || "", // Send empty string if query is empty to show all users
         limit: 10,
       },
-      enabled: enabled && query.trim().length > 0,
+      enabled: enabled,
     })
   );
 };

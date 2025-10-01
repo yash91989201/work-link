@@ -91,26 +91,24 @@ export const getCurrentWord = (
   content: string,
   cursorPosition: number
 ): string => {
-  const words = content.split(WHITESPACE_REGEX);
-  let currentPosition = 0;
-
-  for (const word of words) {
-    const wordStart = currentPosition;
-    const wordEnd = currentPosition + word.length;
-
-    if (cursorPosition >= wordStart && cursorPosition <= wordEnd) {
-      return word;
-    }
-
-    currentPosition = wordEnd + 1; // +1 for the space
+  // Find the start of the current word
+  let start = cursorPosition;
+  while (start > 0 && content[start - 1] !== ' ' && content[start - 1] !== '\n') {
+    start--;
   }
 
-  return "";
+  // Find the end of the current word
+  let end = cursorPosition;
+  while (end < content.length && content[end] !== ' ' && content[end] !== '\n') {
+    end++;
+  }
+
+  return content.substring(start, end);
 };
 
 // Check if current word is a mention trigger
 export const isMentionTrigger = (word: string): boolean => {
-  return word.startsWith("@") && word.length > 1;
+  return word.startsWith("@");
 };
 
 // Extract mention query from current word
@@ -127,44 +125,24 @@ export const insertMention = (
   cursorPosition: number,
   mention: Mention
 ): { content: string; newCursorPosition: number } => {
-  const words = content.split(WHITESPACE_REGEX);
-  let currentPosition = 0;
-  let mentionWordIndex = -1;
-  let mentionWordStart = 0;
-  let mentionWordEnd = 0;
-
-  // Find the word at cursor position
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    const wordStart = currentPosition;
-    const wordEnd = currentPosition + word.length;
-
-    if (cursorPosition >= wordStart && cursorPosition <= wordEnd) {
-      mentionWordIndex = i;
-      mentionWordStart = wordStart;
-      mentionWordEnd = wordEnd;
-      break;
-    }
-
-    currentPosition = wordEnd + 1; // +1 for the space
+  // Find the start and end of the current word (mention being replaced)
+  let start = cursorPosition;
+  while (start > 0 && content[start - 1] !== ' ' && content[start - 1] !== '\n') {
+    start--;
   }
 
-  if (mentionWordIndex === -1) {
-    // No word at cursor position, just append
-    const newContent = `${content}${content ? " " : ""}@${mention.name}`;
-    return {
-      content: newContent,
-      newCursorPosition: newContent.length,
-    };
+  let end = cursorPosition;
+  while (end < content.length && content[end] !== ' ' && content[end] !== '\n') {
+    end++;
   }
 
   // Replace the mention word
-  const beforeMention = content.substring(0, mentionWordStart);
-  const afterMention = content.substring(mentionWordEnd);
+  const beforeMention = content.substring(0, start);
+  const afterMention = content.substring(end);
   const mentionText = `@${mention.name}`;
 
   const newContent = beforeMention + mentionText + afterMention;
-  const newCursorPosition = mentionWordStart + mentionText.length;
+  const newCursorPosition = start + mentionText.length;
 
   return {
     content: newContent,

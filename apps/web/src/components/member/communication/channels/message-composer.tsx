@@ -2,6 +2,7 @@ import { Mic, MoreHorizontal, Paperclip, Send, Smile } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MentionSuggestions } from "@/components/shared/mention-suggestions";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   EmojiPicker,
@@ -24,7 +25,6 @@ import {
   getCurrentWord,
   getMentionQuery,
   insertMention,
-  isMentionTrigger,
 } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +41,7 @@ export const MessageComposer = ({
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -49,11 +50,12 @@ export const MessageComposer = ({
 
   const { createMessage, isCreatingMessage } = useMessages(channelId);
   const { data: channelMembersData } = useChannelMembers(channelId);
-  const { data: mentionUsersData } = useMentionUsers(
-    channelId,
-    mentionQuery,
-    showMentionSuggestions
-  );
+  const { data: mentionUsersData, isFetching: isFetchingUsers } =
+    useMentionUsers(
+      channelId,
+      mentionQuery,
+      showMentionSuggestions && mentionQuery.trim().length > 0
+    );
 
   // Handle mention detection and suggestions
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -66,10 +68,17 @@ export const MessageComposer = ({
     // Check if current word is a mention
     const currentWord = getCurrentWord(content, position);
 
-    if (isMentionTrigger(currentWord)) {
+    if (currentWord.startsWith("@")) {
       const query = getMentionQuery(currentWord);
-      setMentionQuery(query);
-      setShowMentionSuggestions(true);
+      if (query.length >= 0) {
+        // Allow empty query to show all users
+        setMentionQuery(query);
+        setShowMentionSuggestions(true);
+        setSelectedMentionIndex(0); // Reset selection when showing suggestions
+      } else {
+        setShowMentionSuggestions(false);
+        setMentionQuery("");
+      }
     } else {
       setShowMentionSuggestions(false);
       setMentionQuery("");
@@ -102,6 +111,7 @@ export const MessageComposer = ({
     setMessage(result.content);
     setShowMentionSuggestions(false);
     setMentionQuery("");
+    setSelectedMentionIndex(0); // Reset selection
 
     // Focus back to textarea and set cursor position
     setTimeout(() => {
@@ -115,6 +125,41 @@ export const MessageComposer = ({
     }, 0);
   };
 
+  // Handle keyboard navigation for mentions
+  const handleMentionKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (!(showMentionSuggestions && mentionUsersData?.users)) return;
+
+    const users = mentionUsersData.users;
+    const maxIndex = Math.max(0, users.length - 1);
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        setSelectedMentionIndex((prev) => (prev + 1 > maxIndex ? 0 : prev + 1));
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        setSelectedMentionIndex((prev) => (prev - 1 < 0 ? maxIndex : prev - 1));
+        break;
+      case "Enter":
+        event.preventDefault();
+        if (users.length > 0 && selectedMentionIndex < users.length) {
+          handleMentionSelect(users[selectedMentionIndex]);
+        }
+        break;
+      case "Escape":
+        event.preventDefault();
+        setShowMentionSuggestions(false);
+        setMentionQuery("");
+        setSelectedMentionIndex(0);
+        break;
+      default:
+        break;
+    }
+  };
+
   // Hide mention suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -124,12 +169,19 @@ export const MessageComposer = ({
       ) {
         setShowMentionSuggestions(false);
         setMentionQuery("");
+        setSelectedMentionIndex(0);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (mentionUsersData !== undefined && mentionUsersData.users.length > 0) {
+      setSelectedMentionIndex(0);
+    }
+  }, [mentionUsersData]);
 
   const handleSubmit = async () => {
     const content = message.trim();
@@ -169,13 +221,13 @@ export const MessageComposer = ({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
+    // First handle mention-specific keys
+    handleMentionKeyDown(event);
+
+    // Then handle normal keys if not prevented
+    if (!event.defaultPrevented && event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       handleSubmit();
-    } else if (event.key === "Escape" && showMentionSuggestions) {
-      event.preventDefault();
-      setShowMentionSuggestions(false);
-      setMentionQuery("");
     }
   };
 
@@ -210,6 +262,16 @@ export const MessageComposer = ({
 
   return (
     <>
+      {message && (
+        <div className="w-full bg-accent p-1.5 text-muted-foreground text-xs">
+          <span className="flex items-center gap-1">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-75" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-150" />
+            Typing...
+          </span>
+        </div>
+      )}
       <input
         accept="image/*,video/*,.pdf,.doc,.docx,.txt"
         className="hidden"
@@ -218,8 +280,9 @@ export const MessageComposer = ({
         type="file"
       />
 
+      {/** biome-ignore lint/a11y/noNoninteractiveElementInteractions: <div required here> */}
+      {/** biome-ignore lint/a11y/noStaticElementInteractions: <interaction required here> */}
       <div
-        aria-label="Message composer with file drop zone"
         className={cn(
           "flex-shrink-0 border-t bg-gradient-to-b from-background to-muted/20 transition-all duration-200",
           isDragging && "border-primary bg-primary/5",
@@ -291,40 +354,23 @@ export const MessageComposer = ({
               />
 
               {/* Character count */}
-              {message.length > 1000 && (
-                <div className="absolute top-2 right-2">
-                  <span
-                    className={cn(
-                      "font-medium text-xs",
-                      message.length > 2000
-                        ? "text-destructive"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {message.length}/2000
-                  </span>
-                </div>
-              )}
-
-              {/* Typing indicator */}
-              {message && (
-                <div className="-top-6 absolute left-0 text-muted-foreground text-xs">
-                  <span className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-75" />
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-150" />
-                    typing...
-                  </span>
-                </div>
-              )}
+              <Badge
+                className="absolute right-2 bottom-2"
+                variant={message.length > 2000 ? "destructive" : "secondary"}
+              >
+                {message.length}/2000
+              </Badge>
 
               {/* Mention suggestions */}
-              <MentionSuggestions
-                isVisible={showMentionSuggestions}
-                onSelect={handleMentionSelect}
-                query={mentionQuery}
-                users={mentionUsersData?.users || []}
-              />
+              {showMentionSuggestions && (
+                <MentionSuggestions
+                  isLoading={isFetchingUsers}
+                  isVisible={showMentionSuggestions}
+                  onSelect={handleMentionSelect}
+                  query={mentionQuery}
+                  users={mentionUsersData?.users || []}
+                />
+              )}
             </div>
 
             {/* Right actions */}

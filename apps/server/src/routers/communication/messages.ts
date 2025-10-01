@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { and, desc, eq, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { user as userTable } from "@/db/schema/auth";
 import {
   channelMemberTable,
@@ -188,60 +188,6 @@ const updateMessageContent = async (
   return message ?? null;
 };
 
-const addReactionToMessage = async (
-  db: Database,
-  messageId: string,
-  userId: string,
-  emoji: string
-) => {
-  const existing = await db.query.messageTable.findFirst({
-    where: eq(messageTable.id, messageId),
-  });
-
-  if (!existing) {
-    return;
-  }
-
-  const reactions = normalizeReactions(existing.reactions);
-  const users = new Set(reactions[emoji] ?? []);
-  users.add(userId);
-  reactions[emoji] = Array.from(users);
-
-  await db
-    .update(messageTable)
-    .set({ reactions })
-    .where(eq(messageTable.id, messageId));
-};
-
-const removeReactionFromMessage = async (
-  db: Database,
-  messageId: string,
-  userId: string,
-  emoji: string
-) => {
-  const existing = await db.query.messageTable.findFirst({
-    where: eq(messageTable.id, messageId),
-  });
-
-  if (!existing) {
-    return;
-  }
-
-  const reactions = normalizeReactions(existing.reactions);
-  const filtered = (reactions[emoji] ?? []).filter((id) => id !== userId);
-
-  if (filtered.length > 0) {
-    reactions[emoji] = filtered;
-  } else {
-    delete reactions[emoji];
-  }
-
-  await db
-    .update(messageTable)
-    .set({ reactions })
-    .where(eq(messageTable.id, messageId));
-};
-
 const markMessageRead = async (
   db: Database,
   messageId: string,
@@ -345,24 +291,11 @@ const searchChannelMessages = async (
 };
 
 export const messagesRouter = {
-  // Search for users to mention
   searchUsers: protectedProcedure
     .input(SearchUsersInput)
     .output(SearchUsersOutput)
     .handler(async ({ input, context }) => {
-      const { db, session } = context;
-      const currentUser = session.user;
-
-      // Verify user has access to the channel
-      const access = await hasChannelAccess(db, input.channelId, currentUser.id);
-      if (!access) {
-        throw new ORPCError("FORBIDDEN", {
-          message: "You don't have access to this channel.",
-        });
-      }
-
-      // Search users in the same organization who are channel members
-      const users = await db
+      const users = await context.db
         .select({
           id: userTable.id,
           name: userTable.name,
@@ -374,11 +307,10 @@ export const messagesRouter = {
         .where(
           and(
             eq(channelMemberTable.channelId, input.channelId),
-            // Search by name or email
-            sql`(
-              ${userTable.name} ILIKE ${'%' + input.query + '%'} OR
-              ${userTable.email} ILIKE ${'%' + input.query + '%'}
-            )`
+            or(
+              ilike(userTable.name, `%${input.query}%`),
+              ilike(userTable.email, `%${input.query}%`)
+            )
           )
         )
         .limit(input.limit);
@@ -404,19 +336,18 @@ export const messagesRouter = {
 
       // Create mention notifications if there are mentions
       if (input.mentions && input.mentions.length > 0) {
-        const mentionNotifications = input.mentions.map(mentionedUserId => ({
+        const mentionNotifications = input.mentions.map((mentionedUserId) => ({
           userId: mentionedUserId,
           type: "mention" as const,
           title: `${user.name || user.email} mentioned you`,
-          message: input.content?.slice(0, 200) || "You were mentioned in a message",
+          message:
+            input.content?.slice(0, 200) || "You were mentioned in a message",
           entityId: newMessage.id,
           entityType: "message",
         }));
 
         // Insert mention notifications
-        await db
-          .insert(notificationTable)
-          .values(mentionNotifications);
+        await db.insert(notificationTable).values(mentionNotifications);
       }
 
       return newMessage;
@@ -515,42 +446,47 @@ export const messagesRouter = {
     .input(AddReactionInput)
     .output(SuccessOutput)
     .handler(async ({ input, context }) => {
-      const { db, session } = context;
-      const currentUser = session.user;
+      const existingMessage = await context.db.query.messageTable.findFirst({
+        where: eq(messageTable.id, input.messageId),
+        columns: {
+          reactions: true,
+        },
+      });
 
-      const message = await getMessageById(db, input.messageId);
-      if (!message) {
-        throw new ORPCError("NOT_FOUND", {
+      if (!existingMessage) {
+        return {
+          success: false,
           message: "Message not found.",
-        });
+        };
       }
 
-      if (message.channelId) {
-        const access = await hasChannelAccess(
-          db,
-          message.channelId,
-          currentUser.id
-        );
-        if (!access) {
-          throw new ORPCError("FORBIDDEN", {
-            message: "You don't have access to this channel.",
-          });
-        }
-      } else if (
-        message.senderId !== currentUser.id &&
-        message.receiverId !== currentUser.id
-      ) {
-        throw new ORPCError("FORBIDDEN", {
-          message: "You don't have access to this conversation.",
-        });
-      }
+      const existingReactions =
+        (existingMessage.reactions as { reaction: string; count: number }[]) ??
+        [];
 
-      await addReactionToMessage(
-        db,
-        input.messageId,
-        currentUser.id,
-        input.emoji
+      const updatedReactions = [...existingReactions];
+      const existingReactionIndex = updatedReactions.findIndex(
+        (r) => r.reaction === input.emoji
       );
+
+      if (existingReactionIndex >= 0) {
+        updatedReactions[existingReactionIndex] = {
+          ...updatedReactions[existingReactionIndex],
+          count: updatedReactions[existingReactionIndex].count + 1,
+        };
+      } else {
+        updatedReactions.push({
+          reaction: input.emoji,
+          count: 1,
+        });
+      }
+
+      await context.db
+        .update(messageTable)
+        .set({
+          reactions: updatedReactions,
+        })
+        .where(eq(messageTable.id, input.messageId));
 
       return {
         success: true,
@@ -563,42 +499,46 @@ export const messagesRouter = {
     .input(RemoveReactionInput)
     .output(SuccessOutput)
     .handler(async ({ input, context }) => {
-      const { db, session } = context;
-      const currentUser = session.user;
+      const existingMessage = await context.db.query.messageTable.findFirst({
+        where: eq(messageTable.id, input.messageId),
+        columns: {
+          reactions: true,
+        },
+      });
 
-      const message = await getMessageById(db, input.messageId);
-      if (!message) {
-        throw new ORPCError("NOT_FOUND", {
+      if (!existingMessage) {
+        return {
+          success: false,
           message: "Message not found.",
-        });
+        };
       }
 
-      if (message.channelId) {
-        const access = await hasChannelAccess(
-          db,
-          message.channelId,
-          currentUser.id
-        );
-        if (!access) {
-          throw new ORPCError("FORBIDDEN", {
-            message: "You don't have access to this channel.",
-          });
-        }
-      } else if (
-        message.senderId !== currentUser.id &&
-        message.receiverId !== currentUser.id
-      ) {
-        throw new ORPCError("FORBIDDEN", {
-          message: "You don't have access to this conversation.",
-        });
-      }
+      const existingReactions =
+        (existingMessage.reactions as { reaction: string; count: number }[]) ??
+        [];
 
-      await removeReactionFromMessage(
-        db,
-        input.messageId,
-        currentUser.id,
-        input.emoji
+      const updatedReactions = [...existingReactions];
+      const existingReactionIndex = updatedReactions.findIndex(
+        (r) => r.reaction === input.emoji
       );
+
+      if (existingReactionIndex >= 0) {
+        if (updatedReactions[existingReactionIndex].count > 1) {
+          updatedReactions[existingReactionIndex] = {
+            ...updatedReactions[existingReactionIndex],
+            count: updatedReactions[existingReactionIndex].count - 1,
+          };
+        } else {
+          updatedReactions.splice(existingReactionIndex, 1);
+        }
+      }
+
+      await context.db
+        .update(messageTable)
+        .set({
+          reactions: updatedReactions,
+        })
+        .where(eq(messageTable.id, input.messageId));
 
       return {
         success: true,

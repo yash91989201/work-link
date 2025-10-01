@@ -109,7 +109,7 @@ export const GetMessageInput = z.object({
 // Search users for mentions input
 export const SearchUsersInput = z.object({
   channelId: z.string(),
-  query: z.string().min(1).max(50),
+  query: z.string().max(50).default(""),
   limit: z.number().min(1).max(20).default(10),
 });
 
