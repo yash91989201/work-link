@@ -16,11 +16,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { useMessages } from "@/hooks/communications";
+import { useMessages, useTypingIndicator } from "@/hooks/communications";
 import { useChannelMembers } from "@/hooks/communications/use-channel-members";
 import { useMentionUsers } from "@/hooks/communications/use-mention-users";
 import type { Mention } from "@/lib/mentions";
 import {
+  cleanContent,
   extractMentionUserIds,
   getCurrentWord,
   getMentionQuery,
@@ -44,11 +45,13 @@ export const MessageComposer = ({
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { createMessage, isCreatingMessage } = useMessages(channelId);
+  const { typingUsers, broadcastTyping } = useTypingIndicator(channelId);
   const { data: channelMembersData } = useChannelMembers(channelId);
   const { data: mentionUsersData, isFetching: isFetchingUsers } =
     useMentionUsers(
@@ -64,6 +67,26 @@ export const MessageComposer = ({
 
     setMessage(content);
     setCursorPosition(position);
+
+    // Broadcast typing status if there's content
+    if (content.trim()) {
+      broadcastTyping(true);
+      
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
+      // Set timeout to stop typing after 3 seconds
+      typingTimeoutRef.current = setTimeout(() => {
+        broadcastTyping(false);
+      }, 3000);
+    } else {
+      broadcastTyping(false);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    }
 
     // Check if current word is a mention
     const currentWord = getCurrentWord(content, position);
@@ -183,9 +206,34 @@ export const MessageComposer = ({
     }
   }, [mentionUsersData]);
 
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Get user name from ID for typing indicator
+  const getUserName = (userId: string) => {
+    const member = channelMembersData?.members?.find((m) => m.id === userId);
+    if (member) {
+      return member.name;
+    }
+    
+    // Fallback to first part of email if name not available
+    const user = mentionUsersData?.users?.find((u) => u.id === userId);
+    if (user) {
+      return user.name || user.email?.split("@")[0] || "Unknown";
+    }
+    
+    return "Unknown";
+  };
+
   const handleSubmit = async () => {
-    const content = message.trim();
-    if (!content) {
+    const rawContent = message.trim();
+    if (!rawContent) {
       return;
     }
 
@@ -203,16 +251,20 @@ export const MessageComposer = ({
         image: member.image,
       }));
 
-      mentions = extractMentionUserIds(content, channelMentions);
+      mentions = extractMentionUserIds(rawContent, channelMentions);
+      
+      // Clean the content by removing mention markup
+      const cleanMessageContent = cleanContent(rawContent);
 
       await createMessage({
         channelId,
-        content,
+        content: cleanMessageContent,
         mentions: mentions.length > 0 ? mentions : undefined,
       });
       setMessage("");
       setShowMentionSuggestions(false);
       setMentionQuery("");
+      broadcastTyping(false); // Stop typing indicator after sending
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to send message";
@@ -262,7 +314,27 @@ export const MessageComposer = ({
 
   return (
     <>
-      {message && (
+      {/* Typing indicator for other users */}
+      {typingUsers.length > 0 && (
+        <div className="w-full bg-accent p-2 text-muted-foreground text-xs">
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-75" />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-150" />
+            </span>
+            <span>
+              {typingUsers.length === 1
+                ? `${getUserName(typingUsers[0])} is typing`
+                : typingUsers.length === 2
+                ? `${getUserName(typingUsers[0])} and ${getUserName(typingUsers[1])} are typing`
+                : `${typingUsers.slice(0, 2).map(getUserName).join(", ")} and ${typingUsers.length - 2} other${typingUsers.length - 2 === 1 ? "" : "s"} are typing`}
+            </span>
+          </div>
+        </div>
+      )}
+      {/* Typing indicator for current user */}
+      {message.trim() && typingUsers.length === 0 && (
         <div className="w-full bg-accent p-1.5 text-muted-foreground text-xs">
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
