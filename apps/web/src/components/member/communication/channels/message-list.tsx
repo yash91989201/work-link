@@ -1,8 +1,9 @@
 import type { MessageType } from "@server/lib/types";
 import { format, formatDistanceToNow } from "date-fns";
 import { Check, Edit3, MessageCircle, Reply, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { MentionSuggestions } from "@/components/shared/mention-suggestions";
 import { EnhancedMessageContent } from "@/components/shared/message-content";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +13,16 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useMessages } from "@/hooks/communications";
+import { useChannelMembers } from "@/hooks/communications/use-channel-members";
+import { useMentionUsers } from "@/hooks/communications/use-mention-users";
 import { useAuthedSession } from "@/hooks/use-authed-session";
+import type { Mention } from "@/lib/mentions";
+import {
+  extractMentionUserIds,
+  getCurrentWord,
+  getMentionQuery,
+  insertMention,
+} from "@/lib/mentions";
 import { cn } from "@/lib/utils";
 
 interface MessageListProps {
@@ -73,14 +83,20 @@ interface MessageItemProps {
   message: MessageType & {
     sender: { name: string; email: string; image: string | null };
   };
+  channelId: string;
   onDelete: (messageId: string) => Promise<void>;
-  onEdit: (messageId: string, content: string) => Promise<void>;
+  onEdit: (
+    messageId: string,
+    content: string,
+    mentions?: string[]
+  ) => Promise<void>;
   isDeleting?: boolean;
   isUpdating?: boolean;
 }
 
 const MessageItem = ({
   message,
+  channelId,
   onDelete,
   onEdit,
   isDeleting,
@@ -89,6 +105,143 @@ const MessageItem = ({
   const { user } = useAuthedSession();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content || "");
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { data: channelMembersData } = useChannelMembers(channelId);
+  const { data: mentionUsersData, isFetching: isFetchingUsers } =
+    useMentionUsers(channelId, mentionQuery, showMentionSuggestions);
+
+  // Handle mention detection and suggestions
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const content = e.target.value;
+    const position = e.target.selectionStart;
+
+    setEditContent(content);
+    setCursorPosition(position);
+
+    // Check if current word is a mention
+    const currentWord = getCurrentWord(content, position);
+    console.log(
+      "Edit mode - Current word:",
+      currentWord,
+      "Content:",
+      content,
+      "Position:",
+      position
+    );
+
+    if (currentWord.startsWith("@")) {
+      const query = getMentionQuery(currentWord);
+      console.log(
+        "Edit mode - Mention query:",
+        query,
+        "Query length:",
+        query.length
+      );
+      if (query.length >= 0) {
+        // Allow empty query to show all users
+        setMentionQuery(query);
+        setShowMentionSuggestions(true);
+        setSelectedMentionIndex(0); // Reset selection when showing suggestions
+        console.log("Edit mode - Setting showMentionSuggestions to true");
+      } else {
+        setShowMentionSuggestions(false);
+        setMentionQuery("");
+        console.log(
+          "Edit mode - Setting showMentionSuggestions to false (invalid query)"
+        );
+      }
+    } else {
+      setShowMentionSuggestions(false);
+      setMentionQuery("");
+      console.log(
+        "Edit mode - Setting showMentionSuggestions to false (not a mention)"
+      );
+    }
+  };
+
+  // Handle mention selection
+  const handleMentionSelect = (mention: Mention) => {
+    const result = insertMention(editContent, cursorPosition, mention);
+    setEditContent(result.content);
+    setShowMentionSuggestions(false);
+    setMentionQuery("");
+    setSelectedMentionIndex(0); // Reset selection
+
+    // Focus back to textarea and set cursor position
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(
+          result.newCursorPosition,
+          result.newCursorPosition
+        );
+      }
+    }, 0);
+  };
+
+  // Handle keyboard navigation for mentions
+  const handleMentionKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (!(showMentionSuggestions && mentionUsersData?.users)) return;
+
+    const users = mentionUsersData.users;
+    const maxIndex = Math.max(0, users.length - 1);
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        setSelectedMentionIndex((prev) => (prev + 1 > maxIndex ? 0 : prev + 1));
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        setSelectedMentionIndex((prev) => (prev - 1 < 0 ? maxIndex : prev - 1));
+        break;
+      case "Enter":
+        event.preventDefault();
+        if (users.length > 0 && selectedMentionIndex < users.length) {
+          handleMentionSelect(users[selectedMentionIndex]);
+        }
+        break;
+      case "Escape":
+        event.preventDefault();
+        setShowMentionSuggestions(false);
+        setMentionQuery("");
+        setSelectedMentionIndex(0);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Hide mention suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setShowMentionSuggestions(false);
+        setMentionQuery("");
+        setSelectedMentionIndex(0);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (mentionUsersData !== undefined && mentionUsersData.users.length > 0) {
+      setSelectedMentionIndex(0);
+    }
+  }, [mentionUsersData]);
 
   const timestamp = format(message.createdAt, "MMM d, HH:mm");
   const relativeTime = formatDistanceToNow(message.createdAt, {
@@ -106,7 +259,26 @@ const MessageItem = ({
     }
 
     try {
-      await onEdit(message.id, trimmedContent);
+      // Extract mentions using the available channel members data
+      let mentions: string[] = [];
+
+      // Convert channel members to Mention format
+      const channelMentions: Mention[] = (
+        channelMembersData?.members || []
+      ).map((member) => ({
+        id: member.id,
+        name: member.name,
+        email: member.email,
+        image: member.image,
+      }));
+
+      mentions = extractMentionUserIds(trimmedContent, channelMentions);
+
+      await onEdit(
+        message.id,
+        trimmedContent,
+        mentions.length > 0 ? mentions : undefined
+      );
       setIsEditing(false);
       toast("Message updated successfully");
     } catch (error) {
@@ -122,10 +294,14 @@ const MessageItem = ({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
+    // First handle mention-specific keys
+    handleMentionKeyDown(event);
+
+    // Then handle normal keys if not prevented
+    if (!event.defaultPrevented && event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       handleSaveEdit();
-    } else if (event.key === "Escape") {
+    } else if (!event.defaultPrevented && event.key === "Escape") {
       handleCancelEdit();
     }
   };
@@ -167,15 +343,35 @@ const MessageItem = ({
           )}
         </div>
         {isEditing ? (
-          <div className="space-y-2">
+          <div className="relative space-y-2" ref={containerRef}>
             <Textarea
               autoFocus
               className="min-h-[80px] resize-none"
               disabled={isUpdating}
-              onChange={(e) => setEditContent(e.target.value)}
+              onChange={handleTextareaChange}
               onKeyDown={handleKeyDown}
+              placeholder="Edit message... (@ to mention)"
+              ref={textareaRef}
               value={editContent}
             />
+            {/* Mention suggestions */}
+            {showMentionSuggestions && (
+              <>
+                {console.log(
+                  "Edit mode - Rendering MentionSuggestions, users:",
+                  mentionUsersData?.users?.length,
+                  "isLoading:",
+                  isFetchingUsers
+                )}
+                <MentionSuggestions
+                  isLoading={isFetchingUsers}
+                  isVisible={showMentionSuggestions}
+                  onSelect={handleMentionSelect}
+                  query={mentionQuery}
+                  users={mentionUsersData?.users || []}
+                />
+              </>
+            )}
             <div className="flex items-center justify-between">
               <div className="text-muted-foreground text-xs">
                 Press Enter to save, Escape to cancel, Shift+Enter for new line
@@ -249,6 +445,7 @@ const MessageItem = ({
 
 const MessageContent = ({
   messages,
+  channelId,
   onDelete,
   onEdit,
   deletingMessageId,
@@ -257,8 +454,13 @@ const MessageContent = ({
   messages: (MessageType & {
     sender: { name: string; email: string; image: string | null };
   })[];
+  channelId: string;
   onDelete: (messageId: string) => Promise<void>;
-  onEdit: (messageId: string, content: string) => Promise<void>;
+  onEdit: (
+    messageId: string,
+    content: string,
+    mentions?: string[]
+  ) => Promise<void>;
   deletingMessageId?: string;
   updatingMessageId?: string;
 }) => {
@@ -267,6 +469,7 @@ const MessageContent = ({
       {messages.map((message, index) => (
         <div key={message.id}>
           <MessageItem
+            channelId={channelId}
             isDeleting={deletingMessageId === message.id}
             isUpdating={updatingMessageId === message.id}
             message={message}
@@ -284,6 +487,7 @@ const MessageListContent = ({
   isLoading,
   hasMessages,
   messages,
+  channelId,
   onDelete,
   onEdit,
   deletingMessageId,
@@ -294,8 +498,13 @@ const MessageListContent = ({
   messages: (MessageType & {
     sender: { name: string; email: string; image: string | null };
   })[];
+  channelId: string;
   onDelete: (messageId: string) => Promise<void>;
-  onEdit: (messageId: string, content: string) => Promise<void>;
+  onEdit: (
+    messageId: string,
+    content: string,
+    mentions?: string[]
+  ) => Promise<void>;
   deletingMessageId?: string;
   updatingMessageId?: string;
 }) => {
@@ -309,6 +518,7 @@ const MessageListContent = ({
 
   return (
     <MessageContent
+      channelId={channelId}
       deletingMessageId={deletingMessageId}
       messages={messages}
       onDelete={onDelete}
@@ -340,9 +550,13 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
     }
   };
 
-  const handleEdit = async (messageId: string, content: string) => {
+  const handleEdit = async (
+    messageId: string,
+    content: string,
+    mentions?: string[]
+  ) => {
     try {
-      await updateMessage({ messageId, content });
+      await updateMessage({ messageId, content, mentions });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to update message";
@@ -362,6 +576,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
       <ScrollArea className="h-full">
         <div className="flex flex-col">
           <MessageListContent
+            channelId={channelId}
             deletingMessageId={deletingMessageId}
             hasMessages={hasMessages}
             isLoading={isFetchingChannelMessage}

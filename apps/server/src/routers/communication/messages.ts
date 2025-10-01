@@ -173,12 +173,14 @@ const getMessageById = async (db: Database, messageId: string) => {
 const updateMessageContent = async (
   db: Database,
   messageId: string,
-  content: string
+  content: string,
+  mentions: string[] | null = null
 ) => {
   const [message] = await db
     .update(messageTable)
     .set({
       content,
+      mentions,
       isEdited: true,
       editedAt: new Date(),
     })
@@ -377,7 +379,8 @@ export const messagesRouter = {
       const updated = await updateMessageContent(
         db,
         input.messageId,
-        input.content ?? ""
+        input.content ?? "",
+        input.mentions ?? null
       );
 
       if (!updated) {

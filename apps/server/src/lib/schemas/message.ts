@@ -29,6 +29,7 @@ export const CreateMessageInput = z
 export const UpdateMessageInput = z.object({
   messageId: z.string(),
   content: z.string().max(10_000).optional(),
+  mentions: z.array(z.string()).optional(),
 });
 
 // Get channel messages input
