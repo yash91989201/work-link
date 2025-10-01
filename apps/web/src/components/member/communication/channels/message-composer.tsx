@@ -1,4 +1,4 @@
-import { Mic, MoreHorizontal, Paperclip, Send, Smile } from "lucide-react";
+import { Mic, Paperclip, Send, Smile } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MentionSuggestions } from "@/components/shared/mention-suggestions";
@@ -313,32 +313,15 @@ export const MessageComposer = ({
             <div className="flex items-center gap-1">
               <Button
                 className="h-10 w-10 text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
-                onClick={handleFileUpload}
+                onClick={handleVoiceRecord}
                 size="icon"
-                title="Attach file (⌘+U)"
+                title={isRecording ? "Stop recording" : "Start voice message"}
                 variant="ghost"
               >
-                <Paperclip className="h-4 w-4" />
+                <Mic
+                  className={cn("size-4.5", isRecording && "text-red-500")}
+                />
               </Button>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    className="text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
-                    size="icon"
-                    title="Add emoji (⌘+E)"
-                    variant="ghost"
-                  >
-                    <Smile />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="start" className="w-80 p-0" side="top">
-                  <EmojiPicker onEmojiSelect={handleEmojiSelect}>
-                    <EmojiPickerSearch placeholder="Search emoji..." />
-                    <EmojiPickerContent />
-                    <EmojiPickerFooter />
-                  </EmojiPicker>
-                </PopoverContent>
-              </Popover>
             </div>
 
             {/* Message input */}
@@ -375,24 +358,33 @@ export const MessageComposer = ({
 
             {/* Right actions */}
             <div className="flex items-center gap-1">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    className="text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
+                    size="icon"
+                    title="Add emoji (⌘+E)"
+                    variant="ghost"
+                  >
+                    <Smile />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-80 p-0" side="top">
+                  <EmojiPicker onEmojiSelect={handleEmojiSelect}>
+                    <EmojiPickerSearch placeholder="Search emoji..." />
+                    <EmojiPickerContent />
+                    <EmojiPickerFooter />
+                  </EmojiPicker>
+                </PopoverContent>
+              </Popover>
               <Button
                 className="h-10 w-10 text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
-                onClick={handleVoiceRecord}
+                onClick={handleFileUpload}
                 size="icon"
-                title={isRecording ? "Stop recording" : "Start voice message"}
+                title="Attach file (⌘+U)"
                 variant="ghost"
               >
-                <Mic
-                  className={cn("size-4.5", isRecording && "text-red-500")}
-                />
-              </Button>
-              <Button
-                className="h-10 w-10 text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
-                size="icon"
-                title="More options"
-                variant="ghost"
-              >
-                <MoreHorizontal className="h-4 w-4" />
+                <Paperclip className="h-4 w-4" />
               </Button>
               <Button
                 className={cn(
