@@ -6,6 +6,7 @@ import {
   Edit3,
   MessageCircle,
   Reply,
+  Send,
   Trash2,
   X,
 } from "lucide-react";
@@ -17,9 +18,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useMessages } from "@/hooks/communications";
 import { useChannelMembers } from "@/hooks/communications/use-channel-members";
 import { useMentionUsers } from "@/hooks/communications/use-mention-users";
@@ -460,8 +465,9 @@ const MessageItem = ({
   return (
     <div
       className={cn(
-        "group flex gap-3 px-6 py-4 transition-colors hover:bg-muted/30",
-        isDeleting && "pointer-events-none opacity-50"
+        "group flex gap-3 rounded-lg border bg-card/50 px-4 py-3 transition-colors hover:bg-card",
+        isDeleting && "pointer-events-none opacity-50",
+        canEdit && "border-l-2 border-l-primary/50"
       )}
     >
       <Avatar className="h-10 w-10 flex-shrink-0">
@@ -530,7 +536,7 @@ const MessageItem = ({
           <div className="relative space-y-2" ref={containerRef}>
             <Textarea
               autoFocus
-              className="min-h-[80px] resize-none"
+              className="min-h-[80px] resize-none rounded-lg border bg-background/80 shadow-sm"
               disabled={isUpdating}
               onChange={handleTextareaChange}
               onKeyDown={handleKeyDown}
@@ -615,7 +621,7 @@ const MessageItem = ({
                 </div>
                 <Textarea
                   autoFocus
-                  className="min-h-[80px] resize-none border-l-2 border-l-primary/30 pl-3"
+                  className="min-h-[80px] resize-none rounded-lg border bg-background/80 shadow-sm"
                   disabled={isUpdating}
                   onChange={handleReplyTextareaChange}
                   onKeyDown={handleReplyKeyDown}
@@ -666,9 +672,9 @@ const MessageItem = ({
                       {isUpdating ? (
                         <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
                       ) : (
-                        <CornerUpLeft className="mr-1 h-3 w-3" />
+                        <Send className="mr-1 h-3 w-3" />
                       )}
-                      Send Reply
+                      Send
                     </Button>
                   </div>
                 </div>
@@ -678,41 +684,58 @@ const MessageItem = ({
         )}
         {!(isEditing || isReplying) && (
           <div className="mt-2 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-            <Button
-              className="h-7 px-2 text-xs"
-              onClick={() => setIsReplying(true)}
-              size="sm"
-              variant="ghost"
-            >
-              <Reply className="mr-1 h-3 w-3" />
-              Reply
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  className="h-7 px-2 text-xs"
+                  onClick={() => setIsReplying(true)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  <Reply className="mr-1 h-3 w-3" />
+                  Reply
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>Reply to message</TooltipContent>
+            </Tooltip>
             {canEdit && (
-              <Button
-                className="h-7 px-2 text-xs"
-                onClick={() => setIsEditing(true)}
-                size="sm"
-                variant="ghost"
-              >
-                <Edit3 className="mr-1 h-3 w-3" />
-                Edit
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setIsEditing(true)}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <Edit3 className="mr-1 h-3 w-3" />
+                    Edit
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent sideOffset={6}>
+                  Edit your message
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         )}
       </div>
 
       <div className="flex items-start opacity-0 transition-opacity group-hover:opacity-100">
-        <Button
-          aria-label="Delete message"
-          className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-          disabled={isDeleting}
-          onClick={() => onDelete(message.id)}
-          size="icon"
-          variant="ghost"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              aria-label="Delete message"
+              className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              disabled={isDeleting}
+              onClick={() => onDelete(message.id)}
+              size="icon"
+              variant="ghost"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>Delete</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
@@ -751,7 +774,7 @@ const MessageContent = ({
   updatingMessageId,
 }: MessageContentProps) => {
   return (
-    <div className="space-y-0">
+    <div className="space-y-3">
       {messages.map((message, index) => (
         <div key={message.id}>
           <MessageItem
@@ -763,7 +786,6 @@ const MessageContent = ({
             onEdit={onEdit}
             onReply={onReply}
           />
-          {index < messages.length - 1 && <Separator />}
         </div>
       ))}
     </div>
@@ -894,7 +916,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
   return (
     <div className={cn("flex-1 overflow-hidden bg-background", className)}>
       <ScrollArea className="h-full">
-        <div className="flex flex-col">
+        <div className="flex flex-col px-3 pt-3 sm:px-4">
           <MessageListContent
             channelId={channelId}
             deletingMessageId={deletingMessageId}
