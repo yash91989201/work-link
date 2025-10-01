@@ -1,7 +1,7 @@
 import type { GetChannelMessagesOutputType } from "@server/lib/types";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { supabase } from "@/lib/supabase";
 import { queryClient, queryUtils } from "@/utils/orpc";
@@ -11,7 +11,6 @@ interface UseMessagesOptions {
   offset?: number;
   beforeMessageId?: string;
   afterMessageId?: string;
-  enableRealtime?: boolean;
 }
 
 export const useMessages = (
@@ -27,6 +26,11 @@ export const useMessages = (
   const { user } = useAuthedSession();
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<RealtimeChannel>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
   // Query for messages
   const {
@@ -55,8 +59,21 @@ export const useMessages = (
     });
 
     channel.on("broadcast", { event: "new-message" }, async (payload) => {
-      const newMessage =
-        payload.payload as unknown as GetChannelMessagesOutputType["messages"][number];
+      const payloadMessage = payload.payload
+        .message as unknown as GetChannelMessagesOutputType["messages"][number];
+
+      const newMessage = {
+        ...payloadMessage,
+        createdAt: new Date(payloadMessage.createdAt),
+        updatedAt: new Date(payloadMessage.updatedAt),
+        ...(payloadMessage.editedAt != null && {
+          editedAt: new Date(payloadMessage.editedAt),
+        }),
+        ...(payloadMessage.deletedAt != null && {
+          deletedAt: new Date(payloadMessage.deletedAt),
+        }),
+      };
+
       const { data: sender } = await supabase
         .from("user")
         .select("name, email, image")
@@ -91,6 +108,8 @@ export const useMessages = (
           };
         }
       );
+
+      setTimeout(() => scrollToBottom(), 50);
     });
 
     channel.on("broadcast", { event: "message-updated" }, (payload) => {
@@ -138,7 +157,21 @@ export const useMessages = (
     return () => {
       channel.unsubscribe();
     };
-  }, [user.id, channelId, limit, offset, beforeMessageId, afterMessageId]);
+  }, [
+    user.id,
+    channelId,
+    limit,
+    offset,
+    beforeMessageId,
+    afterMessageId,
+    scrollToBottom,
+  ]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => scrollToBottom(), 50);
+    }
+  }, [messages, scrollToBottom]);
 
   // Mutation hooks
   const { mutateAsync: createMessage, isPending: isCreatingMessage } =
@@ -301,6 +334,8 @@ export const useMessages = (
     deleteMessage: deleteMutation.mutateAsync,
     addReaction,
     removeReaction,
+    messagesEndRef,
+    scrollToBottom,
   };
 };
 

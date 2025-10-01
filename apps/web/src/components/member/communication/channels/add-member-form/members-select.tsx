@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { ChevronDown, RefreshCw, UserPlus } from "lucide-react";
+import { ChevronDown, RefreshCw } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -55,8 +55,7 @@ export const AddMembersSelect = () => {
       render={({ field }) => (
         <FormItem>
           <FormLabel>
-            <span className="flex items-center gap-2">
-              <UserPlus className="size-4" />
+            <span className="flex flex-1 items-center gap-2">
               Select Members
             </span>
             <Badge className="ml-2" variant="secondary">
@@ -99,8 +98,7 @@ export function AddMembersSelectSkeleton() {
       render={() => (
         <FormItem>
           <FormLabel>
-            <span className="flex items-center gap-2">
-              <UserPlus className="size-4" />
+            <span className="flex flex-1 items-center gap-2">
               Select Members
             </span>
             <Badge className="ml-2" variant="secondary">
@@ -130,4 +128,3 @@ export function AddMembersSelectSkeleton() {
     />
   );
 }
-

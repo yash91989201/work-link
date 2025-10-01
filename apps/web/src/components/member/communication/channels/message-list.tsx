@@ -326,6 +326,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
     updatingMessageId,
     deleteMessage,
     updateMessage,
+    messagesEndRef,
   } = useMessages(channelId);
 
   const handleDelete = async (messageId: string) => {
@@ -369,6 +370,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
             onEdit={handleEdit}
             updatingMessageId={updatingMessageId}
           />
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
     </div>
