@@ -1,4 +1,5 @@
 import type { MessageType } from "@server/lib/types";
+import { UserRound } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMentionUsersDetails } from "@/hooks/communications/use-mention-users-details";
 import { cn } from "@/lib/utils";
@@ -97,7 +98,7 @@ export const MessageContent = ({
                   src={part.user?.image || undefined}
                 />
                 <AvatarFallback className="text-[10px]">
-                  {(part.user?.name || "U").slice(0, 2).toUpperCase()}
+                  <UserRound />
                 </AvatarFallback>
               </Avatar>
               {part.content}
