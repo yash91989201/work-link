@@ -331,3 +331,27 @@ try {
   console.log(e);
 }
 ```
+
+## Operations Performed
+
+### Task: Analyze current tables and create channelJoinRequestTable
+
+**Completed on:** 2025-10-02
+
+**Operations:**
+1. Added `joinRequestStatusEnum` enum with values: "pending", "approved", "rejected"
+2. Created `channelJoinRequestTable` with fields:
+   - id: cuid2 primary key
+   - channelId: references channelTable.id (cascade on delete)
+   - userId: references user.id (cascade on delete)
+   - status: joinRequestStatusEnum (default "pending")
+   - message: optional text message from requester
+   - requestedAt: timestamp (auto-generated)
+   - reviewedBy: references user.id (set null on delete)
+   - reviewedAt: timestamp
+   - createdAt: timestamp (auto-generated)
+   - updatedAt: timestamp (auto-updated)
+3. Added `joinRequests: many(channelJoinRequestTable)` relation to `channelTableRelations`
+4. Created `channelJoinRequestTableRelations` with relations to channel, user, and reviewedBy
+
+**Purpose:** This table manages requests for users to join private channels, allowing channel admins to review and approve/reject join requests.

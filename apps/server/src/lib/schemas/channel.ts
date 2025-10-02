@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   ChannelInsertSchema,
+  ChannelJoinRequestSchema,
   ChannelSchema,
   ChannelTypeSchema,
   UserSchema,
@@ -171,3 +172,16 @@ export const SuccessOutput = z.object({
   success: z.boolean(),
   message: z.string().optional(),
 });
+
+export const IsChannelMemberInput = z.object({
+  channelId: z.string(),
+});
+
+export const IsChannelMemberOutput = z.boolean();
+
+export const ChannelJoinRequestInput = z.object({
+  channelId: z.string(),
+  note: z.string().optional(),
+});
+
+export const ChannelJoinRequestOutput = ChannelJoinRequestSchema;

@@ -17,6 +17,7 @@ import {
 } from "@/db/schema/auth";
 import {
   attachmentTable,
+  channelJoinRequestTable,
   channelMemberTable,
   channelTable,
   messageReadTable,
@@ -79,3 +80,6 @@ export const NotificationInsertSchema = createInsertSchema(notificationTable);
 export const MessageReadInsertSchema = createInsertSchema(messageReadTable);
 
 export const ChannelTypeSchema = ChannelSchema.shape.type;
+export const ChannelJoinRequestSchema = createSelectSchema(channelJoinRequestTable);
+export const ChannelJoinRequestUpdateSchema = createUpdateSchema(channelJoinRequestTable);
+export const ChannelJoinRequestInsertSchema = createInsertSchema(channelJoinRequestTable);

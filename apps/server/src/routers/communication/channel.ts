@@ -2,16 +2,24 @@ import { ORPCError } from "@orpc/server";
 import type { SQL } from "drizzle-orm";
 import { and, eq } from "drizzle-orm";
 import { member, user as userTable } from "@/db/schema/auth";
-import { channelMemberTable, channelTable } from "@/db/schema/communication";
+import {
+  channelJoinRequestTable,
+  channelMemberTable,
+  channelTable,
+} from "@/db/schema/communication";
 import { protectedProcedure } from "@/lib/orpc";
 import {
   AddChannelMembersInput,
+  ChannelJoinRequestInput,
+  ChannelJoinRequestOutput,
   ChannelWithCreatorOutput,
   CreateChannelInput,
   CreateChannelOutput,
   GetChannelInput,
   GetChannelMembersInput,
   GetChannelMembersOutput,
+  IsChannelMemberInput,
+  IsChannelMemberOutput,
   ListChannelsInput,
   ListChannelsOutput,
   SuccessOutput,
@@ -176,6 +184,19 @@ export const channelRouter = {
 
       return { members };
     }),
+  isMember: protectedProcedure
+    .input(IsChannelMemberInput)
+    .output(IsChannelMemberOutput)
+    .handler(async ({ input, context }) => {
+      const isMember = await context.db.query.channelMemberTable.findFirst({
+        where: and(
+          eq(channelMemberTable.channelId, input.channelId),
+          eq(channelMemberTable.userId, context.session.user.id)
+        ),
+      });
+
+      return typeof isMember !== "undefined";
+    }),
 
   addMembers: protectedProcedure
     .input(AddChannelMembersInput)
@@ -192,5 +213,21 @@ export const channelRouter = {
         success: true,
         message: "Members added to channel",
       };
+    }),
+
+  joinRequest: protectedProcedure
+    .input(ChannelJoinRequestInput)
+    .output(ChannelJoinRequestOutput)
+    .handler(async ({ input, context }) => {
+      const [newRequest] = await context.db
+        .insert(channelJoinRequestTable)
+        .values({
+          channelId: input.channelId,
+          userId: context.session.user.id,
+          note: input.note,
+        })
+        .returning();
+
+      return newRequest;
     }),
 };

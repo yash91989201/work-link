@@ -55,6 +55,13 @@ export const attachmentTypeEnum = pgEnum("attachment_type", [
   "other",
 ]);
 
+// Join request status
+export const joinRequestStatusEnum = pgEnum("join_request_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
 // Channels table - represents communication channels
 export const channelTable = pgTable("channel", {
   id: cuid2("id").defaultRandom().primaryKey(),
@@ -106,6 +113,33 @@ export const channelMemberTable = pgTable(
   ]
 );
 
+// Channel join requests - for private channels
+export const channelJoinRequestTable = pgTable("channel_join_request", {
+  id: cuid2("id").defaultRandom().primaryKey(),
+  channelId: text("channel_id")
+    .notNull()
+    .references(() => channelTable.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  status: joinRequestStatusEnum("status").notNull().default("pending"),
+  note: text("note"),
+  requestedAt: timestamp("requested_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  reviewedBy: text("reviewed_by").references(() => user.id, {
+    onDelete: "set null",
+  }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
 // Messages table - all messages across channels and DMs
 export const messageTable = pgTable("message", {
   id: cuid2("id").defaultRandom().primaryKey(),
@@ -125,6 +159,8 @@ export const messageTable = pgTable("message", {
   isEdited: boolean("is_edited").default(false).notNull(),
   editedAt: timestamp("edited_at", { withTimezone: true }),
   isDeleted: boolean("is_deleted").default(false).notNull(),
+  isPinned: boolean("is_pinned").default(false).notNull(),
+  pinnedAt: timestamp("pinned_at", { withTimezone: true }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   mentions: json("mentions").$type<string[]>(), // Array of user IDs mentioned in the message
   reactions: json("reactions").$type<{ reaction: string; count: number }[]>(), // Emoji reactions with user counts
@@ -241,6 +277,7 @@ export const channelTableRelations = relations(
     }),
     members: many(channelMemberTable),
     messages: many(messageTable),
+    joinRequests: many(channelJoinRequestTable),
   })
 );
 
@@ -254,6 +291,25 @@ export const channelMemberTableRelations = relations(
     }),
     user: one(user, {
       fields: [channelMemberTable.userId],
+      references: [user.id],
+    }),
+  })
+);
+
+// Channel join request relations
+export const channelJoinRequestTableRelations = relations(
+  channelJoinRequestTable,
+  ({ one }) => ({
+    channel: one(channelTable, {
+      fields: [channelJoinRequestTable.channelId],
+      references: [channelTable.id],
+    }),
+    user: one(user, {
+      fields: [channelJoinRequestTable.userId],
+      references: [user.id],
+    }),
+    reviewedBy: one(user, {
+      fields: [channelJoinRequestTable.reviewedBy],
       references: [user.id],
     }),
   })
