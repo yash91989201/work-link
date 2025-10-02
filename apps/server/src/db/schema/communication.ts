@@ -161,6 +161,9 @@ export const messageTable = pgTable("message", {
   isDeleted: boolean("is_deleted").default(false).notNull(),
   isPinned: boolean("is_pinned").default(false).notNull(),
   pinnedAt: timestamp("pinned_at", { withTimezone: true }),
+  pinnedBy: text("pinned_by").references(() => user.id, {
+    onDelete: "set null",
+  }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   mentions: json("mentions").$type<string[]>(), // Array of user IDs mentioned in the message
   reactions: json("reactions").$type<{ reaction: string; count: number }[]>(), // Emoji reactions with user counts
@@ -252,6 +255,10 @@ export const messageTableRelations = relations(
     parentMessage: one(messageTable, {
       fields: [messageTable.parentMessageId],
       references: [messageTable.id],
+    }),
+    pinnedBy: one(user, {
+      fields: [messageTable.pinnedBy],
+      references: [user.id],
     }),
     // Inverse relations (other tables reference messageTable)
     attachments: many(attachmentTable),
