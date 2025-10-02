@@ -4,7 +4,7 @@ import { CreateTeamDialog } from "./create-team-dialog";
 import { TeamDetailsDialog } from "./team-details-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, Building2, Search, Filter } from "lucide-react";
+import { UserPlus, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface Team {

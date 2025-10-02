@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { OwnerHeader } from "./header";
 
 interface OwnerRootLayoutProps {
   children: React.ReactNode;
@@ -10,8 +11,9 @@ export const OwnerRootLayout = ({
   className,
 }: OwnerRootLayoutProps) => {
   return (
-    <div className={cn("w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8", className)}>
-      {children}
+    <div className="min-h-screen bg-background">
+      <OwnerHeader organizationName="Acme Corp" organizationSlug="acme-corp" />
+      <main className={cn("container mx-auto", className)}>{children}</main>
     </div>
   );
 };

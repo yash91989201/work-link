@@ -1,4 +1,3 @@
-import { Container } from "@/components/container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InvitationManagement } from "./invitation-management";
 import { MemberManagement } from "./member-management";
@@ -7,7 +6,7 @@ import { TeamManagement } from "./team-management";
 
 export const OwnerDashboard = () => {
   return (
-    <Container>
+    <div className="mx-auto">
       <div className="space-y-6">
         <div className="flex flex-col gap-4">
           <h1 className="font-bold text-3xl tracking-tight">
@@ -40,7 +39,6 @@ export const OwnerDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Container>
+    </div>
   );
 };
-
