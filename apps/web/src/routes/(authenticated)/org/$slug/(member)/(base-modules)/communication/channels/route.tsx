@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { ChannelInfoSidebar } from "@/components/member/communication/channels/channel-info-sidebar";
 import { ChannelsLayout } from "@/components/member/communication/channels/layout";
 
 export const Route = createFileRoute(
@@ -11,7 +12,7 @@ function RouteComponent() {
   return (
     <ChannelsLayout>
       <Outlet />
-      <div className="w-80">channel info</div>
+      <ChannelInfoSidebar />
     </ChannelsLayout>
   );
 }
