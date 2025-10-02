@@ -1,5 +1,4 @@
-import { Hash, Settings, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Hash } from "lucide-react";
 import { ChannelList } from "./channel-list";
 import { CreateChannelForm } from "./create-channel-form";
 
@@ -11,12 +10,6 @@ export const ChannelSidebar = () => {
           <Hash className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-lg">Channels</h2>
         </div>
-        <div className="flex items-center gap-1">
-          <Button className="h-8 w-8" size="icon" variant="ghost">
-            <Users className="h-4 w-4" />
-          </Button>
-          <CreateChannelForm />
-        </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
@@ -24,10 +17,7 @@ export const ChannelSidebar = () => {
       </div>
 
       <div className="border-t p-3">
-        <Button className="w-full justify-start gap-2" variant="ghost">
-          <Settings className="h-4 w-4" />
-          <span>Channel Settings</span>
-        </Button>
+        <CreateChannelForm />
       </div>
     </div>
   );

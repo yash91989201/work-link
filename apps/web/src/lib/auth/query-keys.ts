@@ -36,6 +36,9 @@ export const getAuthQueryKey = {
     // Current user session
     session: () => ["auth", "user", "session"] as const,
 
+    // active org member role for user
+    activeMemberRole: () => ["auth", "user", "active-member-role"] as const,
+
     // User profile
     profile: () => ["auth", "user", "profile"] as const,
 

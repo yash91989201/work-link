@@ -809,16 +809,16 @@ const MessageContent = ({
 
   // UI helpers
   const levelClasses = (level: number) => {
-    switch (true) {
-      case level <= 0:
-        return "";
-      case level === 1:
-        return "ml-4 border-l-2 border-primary/30 bg-muted/20 rounded-lg pl-3 py-1";
-      case level === 2:
-        return "ml-8 border-l-2 border-primary/20 bg-muted/30 rounded-lg pl-3 py-1";
-      default:
-        return "ml-12 border-l-2 border-primary/10 bg-muted/40 rounded-lg pl-3 py-1";
+    if (level <= 0) {
+      return "";
     }
+    if (level === 1) {
+      return "ml-4 border-l-2 border-primary/30 bg-muted/20 rounded-lg pl-3 py-1";
+    }
+    if (level === 2) {
+      return "ml-8 border-l-2 border-primary/20 bg-muted/30 rounded-lg pl-3 py-1";
+    }
+    return "ml-12 border-l-2 border-primary/10 bg-muted/40 rounded-lg pl-3 py-1";
   };
 
   const countDescendants = (node: ThreadNode): number =>
@@ -1014,7 +1014,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
   return (
     <div className={cn("flex-1 overflow-hidden bg-background", className)}>
       <ScrollArea className="h-full">
-        <div className="flex flex-col p-3 sm:px-4">
+        <div className="flex flex-col pt-3 sm:px-4">
           <MessageListContent
             channelId={channelId}
             deletingMessageId={deletingMessageId}

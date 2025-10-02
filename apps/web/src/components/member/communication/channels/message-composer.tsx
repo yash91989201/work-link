@@ -1,5 +1,5 @@
 import { Mic, Paperclip, Send, Smile } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MentionSuggestions } from "@/components/shared/mention-suggestions";
 import { Badge } from "@/components/ui/badge";
@@ -214,22 +214,6 @@ export const MessageComposer = ({
     };
   }, []);
 
-  // Get user name from ID for typing indicator
-  const getUserName = (userId: string) => {
-    const member = channelMembersData?.members?.find((m) => m.id === userId);
-    if (member) {
-      return member.name;
-    }
-
-    // Fallback to first part of email if name not available
-    const user = mentionUsersData?.users?.find((u) => u.id === userId);
-    if (user) {
-      return user.name || user.email?.split("@")[0] || "Unknown";
-    }
-
-    return "Unknown";
-  };
-
   const handleSubmit = async () => {
     const rawContent = message.trim();
     if (!rawContent) {
@@ -251,7 +235,6 @@ export const MessageComposer = ({
       }));
 
       mentions = extractMentionUserIds(rawContent, channelMentions);
-      console.log(mentions);
 
       await createMessage({
         channelId,
@@ -309,9 +292,42 @@ export const MessageComposer = ({
     }
   };
 
+  const typingIndicatorText = useMemo(() => {
+    if (typingUsers.length === 0) {
+      return "";
+    }
+
+    const getUserName = (userId: string) => {
+      const member = channelMembersData?.members?.find((m) => m.id === userId);
+      if (member) {
+        return member.name;
+      }
+
+      // Fallback to first part of email if name not available
+      const user = mentionUsersData?.users?.find((u) => u.id === userId);
+      if (user) {
+        return user.name || user.email?.split("@")[0] || "Unknown";
+      }
+
+      return "Unknown";
+    };
+
+    if (typingUsers.length === 1) {
+      return `${getUserName(typingUsers[0])} is typing`;
+    }
+
+    if (typingUsers.length === 2) {
+      return `${getUserName(typingUsers[0])} and ${getUserName(typingUsers[1])} are typing`;
+    }
+
+    const firstTwoUsers = typingUsers.slice(0, 2).map(getUserName).join(", ");
+    const remainingCount = typingUsers.length - 2;
+    const otherText = remainingCount === 1 ? "other" : "others";
+    return `${firstTwoUsers} and ${remainingCount} ${otherText} are typing`;
+  }, [typingUsers, channelMembersData, mentionUsersData]);
+
   return (
     <>
-      {/* Typing indicator for other users */}
       {typingUsers.length > 0 && (
         <div className="w-full bg-accent p-2 text-muted-foreground text-xs">
           <div className="flex items-center gap-2">
@@ -320,13 +336,7 @@ export const MessageComposer = ({
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-75" />
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary delay-150" />
             </span>
-            <span>
-              {typingUsers.length === 1
-                ? `${getUserName(typingUsers[0])} is typing`
-                : typingUsers.length === 2
-                  ? `${getUserName(typingUsers[0])} and ${getUserName(typingUsers[1])} are typing`
-                  : `${typingUsers.slice(0, 2).map(getUserName).join(", ")} and ${typingUsers.length - 2} other${typingUsers.length - 2 === 1 ? "" : "s"} are typing`}
-            </span>
+            <span>{typingIndicatorText}</span>
           </div>
         </div>
       )}

@@ -71,12 +71,12 @@ export const AddMemberForm = ({ channelId }: AddMemberFormProps) => {
     <Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
       <DialogTrigger asChild>
         <Button
-          className="size-6 rounded-sm"
-          size="icon"
+          className="w-full justify-start rounded-sm"
           title="Add Channel Members"
-          variant="secondary"
+          variant="outline"
         >
           <UserPlus />
+          <span>Add Member</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
