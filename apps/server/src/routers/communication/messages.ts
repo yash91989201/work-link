@@ -22,6 +22,8 @@ import {
   GetUnreadCountInput,
   MarkMessageAsReadInput,
   MessageWithSenderOutput,
+  PinMessageInput,
+  PinMessageOutput,
   RemoveReactionInput,
   SearchMessageOutput,
   SearchMessagesInput,
@@ -679,7 +681,6 @@ export const messagesRouter = {
       };
     }),
 
-  // Get a single message
   get: protectedProcedure
     .input(GetMessageInput)
     .output(MessageWithSenderOutput.nullable())
@@ -713,5 +714,20 @@ export const messagesRouter = {
       }
 
       return parseMessageWithSender(message);
+    }),
+
+  pin: protectedProcedure
+    .input(PinMessageInput)
+    .output(PinMessageOutput)
+    .handler(async ({ context, input }) => {
+      await context.db
+        .update(messageTable)
+        .set({ isPinned: true, pinnedAt: new Date() })
+        .where(eq(messageTable.id, input.messageId));
+
+      return {
+        success: true,
+        message: "Message pinned successfully.",
+      };
     }),
 };

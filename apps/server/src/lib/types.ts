@@ -116,6 +116,8 @@ import type { NotificationsListOutput } from "@/lib/schemas/notification";
 import type { OrganizationInsertSchema } from "@/lib/schemas/db-tables";
 import type { OrganizationSchema } from "@/lib/schemas/db-tables";
 import type { OrganizationUpdateSchema } from "@/lib/schemas/db-tables";
+import type { PinMessageInput } from "@/lib/schemas/message";
+import type { PinMessageOutput } from "@/lib/schemas/message";
 import type { RecentAttachmentOutput } from "@/lib/schemas/attachment";
 import type { RecentAttachmentsListOutput } from "@/lib/schemas/attachment";
 import type { RemoveChannelMemberInput } from "@/lib/schemas/channel";
@@ -266,6 +268,8 @@ export type NotificationsListOutputType = z.infer<typeof NotificationsListOutput
 export type OrganizationInsertSchemaType = z.infer<typeof OrganizationInsertSchema>;
 export type OrganizationType = z.infer<typeof OrganizationSchema>;
 export type OrganizationUpdateSchemaType = z.infer<typeof OrganizationUpdateSchema>;
+export type PinMessageInputType = z.infer<typeof PinMessageInput>;
+export type PinMessageOutputType = z.infer<typeof PinMessageOutput>;
 export type RecentAttachmentOutputType = z.infer<typeof RecentAttachmentOutput>;
 export type RecentAttachmentsListOutputType = z.infer<typeof RecentAttachmentsListOutput>;
 export type RemoveChannelMemberInputType = z.infer<typeof RemoveChannelMemberInput>;

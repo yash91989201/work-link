@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SuccessOutput } from "./channel";
 import { MessageSchema, UserSchema } from "./db-tables";
 
 // Message types enum
@@ -220,3 +221,9 @@ export const SearchMessagesListOutput = z.object({
 export const UnreadCountOutput = z.object({
   count: z.number(),
 });
+
+export const PinMessageInput = z.object({
+  messageId: z.string(),
+});
+
+export const PinMessageOutput = SuccessOutput;
