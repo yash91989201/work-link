@@ -1,5 +1,6 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useMutation } from "@tanstack/react-query";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { Loader, Plus } from "lucide-react";
 import { Suspense, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
@@ -39,6 +40,9 @@ import { queryClient, queryUtils } from "@/utils/orpc";
 import { MembersSelect, MembersSelectSkeleton } from "./members-select";
 
 export const CreateChannelForm = () => {
+  const navigate = useNavigate();
+  const { slug } = useParams({ from: "/(authenticated)/org/$slug/(member)" });
+
   const { session, user } = useAuthedSession();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -76,7 +80,15 @@ export const CreateChannelForm = () => {
   );
 
   const onSubmit: SubmitHandler<CreateChannelFormType> = async (formData) => {
-    await createChannel(formData);
+    const createChannelRes = await createChannel(formData);
+
+    navigate({
+      to: "/org/$slug/communication/channels/$id",
+      params: {
+        slug,
+        id: createChannelRes.id,
+      },
+    });
     setDialogOpen(false);
   };
 

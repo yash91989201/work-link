@@ -36,6 +36,13 @@
       "when": 1759180929281,
       "tag": "0004_daffy_arclight",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1759379229957,
+      "tag": "0005_bumpy_betty_ross",
+      "breakpoints": true
     }
   ]
 }

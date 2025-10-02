@@ -2,6 +2,8 @@ import type { MessageType } from "@server/lib/types";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   Check,
+  ChevronDown,
+  ChevronRight,
   CornerUpLeft,
   Edit3,
   MessageCircle,
@@ -773,23 +775,119 @@ const MessageContent = ({
   deletingMessageId,
   updatingMessageId,
 }: MessageContentProps) => {
-  return (
-    <div className="space-y-3">
-      {messages.map((message, index) => (
-        <div key={message.id}>
+  type Msg = MessageContentProps["messages"][number];
+  type ThreadNode = { message: Msg; children: ThreadNode[] };
+
+  const nodesById = new Map<string, ThreadNode>();
+  const roots: ThreadNode[] = [];
+
+  // Initialize nodes
+  for (const m of messages) {
+    nodesById.set(m.id, { message: m, children: [] });
+  }
+
+  // Link children to parents to build the tree
+  for (const node of nodesById.values()) {
+    const parentId = node.message.parentMessageId as string | undefined;
+    if (parentId && nodesById.has(parentId)) {
+      nodesById.get(parentId)?.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  // Sort messages chronologically at each level
+  const sortNodes = (arr: ThreadNode[]) => {
+    arr.sort(
+      (a, b) => a.message.createdAt.getTime() - b.message.createdAt.getTime()
+    );
+    for (const n of arr) {
+      sortNodes(n.children);
+    }
+  };
+  sortNodes(roots);
+
+  // UI helpers
+  const levelClasses = (level: number) => {
+    switch (true) {
+      case level <= 0:
+        return "";
+      case level === 1:
+        return "ml-4 border-l-2 border-primary/30 bg-muted/20 rounded-lg pl-3 py-1";
+      case level === 2:
+        return "ml-8 border-l-2 border-primary/20 bg-muted/30 rounded-lg pl-3 py-1";
+      default:
+        return "ml-12 border-l-2 border-primary/10 bg-muted/40 rounded-lg pl-3 py-1";
+    }
+  };
+
+  const countDescendants = (node: ThreadNode): number =>
+    node.children.reduce((acc, child) => acc + 1 + countDescendants(child), 0);
+
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const toggleCollapse = (id: string) =>
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const renderNode = (node: ThreadNode, level: number) => {
+    const isCollapsed = collapsedIds.has(node.message.id);
+    const hasChildren = node.children.length > 0;
+    const replyCount = hasChildren ? countDescendants(node) : 0;
+
+    return (
+      <div className={cn(levelClasses(level))} key={node.message.id}>
+        <div className="relative">
+          {/* vertical thread rail accent */}
+          {level > 0 && (
+            <div className="-left-[11px] pointer-events-none absolute top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/40 via-border to-transparent" />
+          )}
           <MessageItem
             channelId={channelId}
-            isDeleting={deletingMessageId === message.id}
-            isUpdating={updatingMessageId === message.id}
-            message={message}
+            isDeleting={deletingMessageId === node.message.id}
+            isUpdating={updatingMessageId === node.message.id}
+            message={node.message}
             onDelete={onDelete}
             onEdit={onEdit}
             onReply={onReply}
           />
         </div>
-      ))}
-    </div>
-  );
+
+        {hasChildren && (
+          <div className="mt-1 flex items-center gap-2 pl-1">
+            <Button
+              className="h-7 px-2 text-muted-foreground hover:text-foreground"
+              onClick={() => toggleCollapse(node.message.id)}
+              size="sm"
+              variant="ghost"
+            >
+              {isCollapsed ? (
+                <ChevronRight className="mr-1 h-3.5 w-3.5" />
+              ) : (
+                <ChevronDown className="mr-1 h-3.5 w-3.5" />
+              )}
+              <span className="text-xs">
+                {isCollapsed ? "View" : "Hide"} {replyCount} repl
+                {replyCount === 1 ? "y" : "ies"}
+              </span>
+            </Button>
+            {!isCollapsed && <div className="h-px flex-1 bg-border/50" />}
+          </div>
+        )}
+
+        {hasChildren && !isCollapsed && (
+          <div className="mt-2 space-y-2">
+            {node.children.map((child) => renderNode(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return <div className="space-y-3">{roots.map((n) => renderNode(n, 0))}</div>;
 };
 
 interface MessageListContentProps {
@@ -916,7 +1014,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
   return (
     <div className={cn("flex-1 overflow-hidden bg-background", className)}>
       <ScrollArea className="h-full">
-        <div className="flex flex-col px-3 pt-3 sm:px-4">
+        <div className="flex flex-col p-3 sm:px-4">
           <MessageListContent
             channelId={channelId}
             deletingMessageId={deletingMessageId}

@@ -27,7 +27,6 @@ const toMetadata = (value: unknown) => {
 };
 
 export const channelRouter = {
-  // Create a new channel
   create: protectedProcedure
     .input(CreateChannelInput)
     .output(CreateChannelOutput)

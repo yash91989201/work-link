@@ -21,6 +21,7 @@ import { Route as authenticatedOrgSlugIndexRouteImport } from './routes/(authent
 import { Route as authenticatedOrgSlugownerRouteRouteImport } from './routes/(authenticated)/org/$slug/(owner)/route'
 import { Route as authenticatedOrgSlugmemberRouteRouteImport } from './routes/(authenticated)/org/$slug/(member)/route'
 import { Route as authenticatedOrgSlugadminDashboardRouteRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/route'
+import { Route as authenticatedOrgSlugownerManageIndexRouteImport } from './routes/(authenticated)/org/$slug/(owner)/manage/index'
 import { Route as authenticatedOrgSlugmemberTeamIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/index'
 import { Route as authenticatedOrgSlugadminDashboardIndexRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/index'
 import { Route as authenticatedOrgSlugownerManageInvitationsRouteImport } from './routes/(authenticated)/org/$slug/(owner)/manage/invitations'
@@ -98,6 +99,12 @@ const authenticatedOrgSlugadminDashboardRouteRoute =
     id: '/(admin)/dashboard',
     path: '/dashboard',
     getParentRoute: () => authenticatedOrgSlugRouteRoute,
+  } as any)
+const authenticatedOrgSlugownerManageIndexRoute =
+  authenticatedOrgSlugownerManageIndexRouteImport.update({
+    id: '/manage/',
+    path: '/manage/',
+    getParentRoute: () => authenticatedOrgSlugownerRouteRoute,
   } as any)
 const authenticatedOrgSlugmemberTeamIndexRoute =
   authenticatedOrgSlugmemberTeamIndexRouteImport.update({
@@ -216,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/org/$slug/manage/invitations': typeof authenticatedOrgSlugownerManageInvitationsRoute
   '/org/$slug/dashboard/': typeof authenticatedOrgSlugadminDashboardIndexRoute
   '/org/$slug/team': typeof authenticatedOrgSlugmemberTeamIndexRoute
+  '/org/$slug/manage': typeof authenticatedOrgSlugownerManageIndexRoute
   '/org/$slug/communication/channels': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsRouteRouteWithChildren
   '/org/$slug/dashboard/members': typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
   '/org/$slug/dashboard/teams': typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
@@ -239,6 +247,7 @@ export interface FileRoutesByTo {
   '/org/$slug/manage/invitations': typeof authenticatedOrgSlugownerManageInvitationsRoute
   '/org/$slug/dashboard': typeof authenticatedOrgSlugadminDashboardIndexRoute
   '/org/$slug/team': typeof authenticatedOrgSlugmemberTeamIndexRoute
+  '/org/$slug/manage': typeof authenticatedOrgSlugownerManageIndexRoute
   '/org/$slug/communication/channels': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsRouteRouteWithChildren
   '/org/$slug/dashboard/members': typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
   '/org/$slug/dashboard/teams': typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
@@ -270,6 +279,7 @@ export interface FileRoutesById {
   '/(authenticated)/org/$slug/(owner)/manage/invitations': typeof authenticatedOrgSlugownerManageInvitationsRoute
   '/(authenticated)/org/$slug/(admin)/dashboard/': typeof authenticatedOrgSlugadminDashboardIndexRoute
   '/(authenticated)/org/$slug/(member)/team/': typeof authenticatedOrgSlugmemberTeamIndexRoute
+  '/(authenticated)/org/$slug/(owner)/manage/': typeof authenticatedOrgSlugownerManageIndexRoute
   '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsRouteRouteWithChildren
   '/(authenticated)/org/$slug/(admin)/dashboard/members/': typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
   '/(authenticated)/org/$slug/(admin)/dashboard/teams/': typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/org/$slug/manage/invitations'
     | '/org/$slug/dashboard/'
     | '/org/$slug/team'
+    | '/org/$slug/manage'
     | '/org/$slug/communication/channels'
     | '/org/$slug/dashboard/members'
     | '/org/$slug/dashboard/teams'
@@ -321,6 +332,7 @@ export interface FileRouteTypes {
     | '/org/$slug/manage/invitations'
     | '/org/$slug/dashboard'
     | '/org/$slug/team'
+    | '/org/$slug/manage'
     | '/org/$slug/communication/channels'
     | '/org/$slug/dashboard/members'
     | '/org/$slug/dashboard/teams'
@@ -351,6 +363,7 @@ export interface FileRouteTypes {
     | '/(authenticated)/org/$slug/(owner)/manage/invitations'
     | '/(authenticated)/org/$slug/(admin)/dashboard/'
     | '/(authenticated)/org/$slug/(member)/team/'
+    | '/(authenticated)/org/$slug/(owner)/manage/'
     | '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels'
     | '/(authenticated)/org/$slug/(admin)/dashboard/members/'
     | '/(authenticated)/org/$slug/(admin)/dashboard/teams/'
@@ -458,6 +471,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/org/$slug/dashboard'
       preLoaderRoute: typeof authenticatedOrgSlugadminDashboardRouteRouteImport
       parentRoute: typeof authenticatedOrgSlugRouteRoute
+    }
+    '/(authenticated)/org/$slug/(owner)/manage/': {
+      id: '/(authenticated)/org/$slug/(owner)/manage/'
+      path: '/manage'
+      fullPath: '/org/$slug/manage'
+      preLoaderRoute: typeof authenticatedOrgSlugownerManageIndexRouteImport
+      parentRoute: typeof authenticatedOrgSlugownerRouteRoute
     }
     '/(authenticated)/org/$slug/(member)/team/': {
       id: '/(authenticated)/org/$slug/(member)/team/'
@@ -645,6 +665,7 @@ const authenticatedOrgSlugmemberRouteRouteWithChildren =
 
 interface authenticatedOrgSlugownerRouteRouteChildren {
   authenticatedOrgSlugownerManageInvitationsRoute: typeof authenticatedOrgSlugownerManageInvitationsRoute
+  authenticatedOrgSlugownerManageIndexRoute: typeof authenticatedOrgSlugownerManageIndexRoute
   authenticatedOrgSlugownerManageSettingsIndexRoute: typeof authenticatedOrgSlugownerManageSettingsIndexRoute
 }
 
@@ -652,6 +673,8 @@ const authenticatedOrgSlugownerRouteRouteChildren: authenticatedOrgSlugownerRout
   {
     authenticatedOrgSlugownerManageInvitationsRoute:
       authenticatedOrgSlugownerManageInvitationsRoute,
+    authenticatedOrgSlugownerManageIndexRoute:
+      authenticatedOrgSlugownerManageIndexRoute,
     authenticatedOrgSlugownerManageSettingsIndexRoute:
       authenticatedOrgSlugownerManageSettingsIndexRoute,
   }
