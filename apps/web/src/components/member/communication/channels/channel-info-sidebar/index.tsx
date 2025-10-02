@@ -186,10 +186,7 @@ export const ChannelInfoSidebar = () => {
 
           <Separator />
 
-          <Members
-            memberCount={channel.memberCount}
-            members={channel.members}
-          />
+          <Members members={channel.members} />
 
           <Separator />
 

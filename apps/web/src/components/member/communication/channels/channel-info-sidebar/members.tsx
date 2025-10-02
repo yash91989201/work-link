@@ -34,10 +34,8 @@ const formatRelativeTime = (date: Date) => {
 };
 
 export const Members = ({
-  memberCount,
   members,
 }: {
-  memberCount: number;
   members: {
     id: string;
     name: string;
@@ -70,9 +68,6 @@ export const Members = ({
             <Badge className="text-xs" variant="outline">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
               3
-            </Badge>
-            <Badge className="text-xs" variant="outline">
-              Total: {memberCount}
             </Badge>
           </div>
           <Button
