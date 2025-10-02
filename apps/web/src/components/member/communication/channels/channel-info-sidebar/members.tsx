@@ -1,5 +1,5 @@
 import { Search, Users, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -46,9 +46,10 @@ export const Members = ({
     lastSeen: Date;
   }[];
 }) => {
-  // Dummy state for search UI and active count
   const [showSearch, setShowSearch] = useState(false);
   const [query, setQuery] = useState("");
+  const [accordionValue, setAccordionValue] = useState<string>("members");
+  const [_isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -58,25 +59,46 @@ export const Members = ({
     }
   }, [showSearch]);
 
+  useEffect(() => {
+    if (accordionValue === "" && showSearch) {
+      setShowSearch(false);
+    }
+  }, [accordionValue, showSearch]);
+
+  const handleSearchClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const isAccordionClosed = accordionValue === "";
+
+    if (isAccordionClosed) {
+      setAccordionValue("members");
+      startTransition(() => {
+        setTimeout(() => {
+          setShowSearch(true);
+        }, 250);
+      });
+    } else {
+      setShowSearch((s) => !s);
+    }
+  };
+
   return (
-    <Accordion collapsible defaultValue="members" type="single">
+    <Accordion
+      collapsible
+      onValueChange={setAccordionValue}
+      type="single"
+      value={accordionValue}
+    >
       <AccordionItem value="members">
         <AccordionTrigger className="px-0 hover:no-underline">
           <div className="flex flex-1 items-center gap-1.5">
             <Users className="h-4 w-4 text-muted-foreground" />
             <h4 className="font-medium text-foreground text-sm">Members</h4>
-            <Badge className="text-xs" variant="outline">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
-              3
-            </Badge>
           </div>
           <Button
             aria-label={showSearch ? "Close search" : "Open search"}
             className="h-6 w-6"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowSearch((s) => !s);
-            }}
+            onClick={handleSearchClick}
             size="icon"
             variant="ghost"
           >
@@ -88,7 +110,6 @@ export const Members = ({
           </Button>
         </AccordionTrigger>
         <AccordionContent className="pt-0">
-          {/* Sliding search input */}
           <div
             className={cn(
               "overflow-hidden transition-[max-height,opacity,transform] duration-200 ease-out",

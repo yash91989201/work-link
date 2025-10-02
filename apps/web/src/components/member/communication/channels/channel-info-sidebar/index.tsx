@@ -118,8 +118,8 @@ export const ChannelInfoSidebar = () => {
     <div className="flex h-full w-96 flex-col overflow-hidden border-border border-l bg-background">
       {/* Fixed Header */}
       <div className="flex-shrink-0 border-border border-b p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
               {channel.isPrivate ? (
                 <Lock className="h-4 w-4 text-primary" />
@@ -140,6 +140,10 @@ export const ChannelInfoSidebar = () => {
                 </Badge>
                 <Badge className="text-xs" variant="outline">
                   {channel.memberCount} members
+                </Badge>
+                <Badge className="text-xs" variant="outline">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
+                  3 active
                 </Badge>
               </div>
             </div>

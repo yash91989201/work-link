@@ -1,11 +1,14 @@
-import { Pin, PinOff } from "lucide-react";
+import { Pin, PinOff, Search, X } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 
 const getInitials = (name: string) => {
   return name
@@ -40,18 +43,104 @@ export const PinnedMessages = ({
   }[];
   onUnpin?: (id: string) => void;
 }) => {
+  const [showSearch, setShowSearch] = useState(false);
+  const [query, setQuery] = useState("");
+  const [accordionValue, setAccordionValue] = useState<string>("pinned-messages");
+  const [_isPending, startTransition] = useTransition();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (showSearch) {
+      const t = setTimeout(() => inputRef.current?.focus(), 0);
+      return () => clearTimeout(t);
+    }
+  }, [showSearch]);
+
+  useEffect(() => {
+    if (accordionValue === "" && showSearch) {
+      setShowSearch(false);
+    }
+  }, [accordionValue, showSearch]);
+
+  const handleSearchClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const isAccordionClosed = accordionValue === "";
+
+    if (isAccordionClosed) {
+      setAccordionValue("pinned-messages");
+      startTransition(() => {
+        setTimeout(() => {
+          setShowSearch(true);
+        }, 250);
+      });
+    } else {
+      setShowSearch((s) => !s);
+    }
+  };
+
+  // Filter pinned messages based on search query
+  const filteredMessages = query.trim()
+    ? pinnedMessages.filter(
+        (message) =>
+          message.content.toLowerCase().includes(query.toLowerCase()) ||
+          message.author.toLowerCase().includes(query.toLowerCase())
+      )
+    : pinnedMessages;
+
   return (
-    <Accordion type="single" collapsible defaultValue="pinned-messages">
+    <Accordion
+      collapsible
+      onValueChange={setAccordionValue}
+      type="single"
+      value={accordionValue}
+    >
       <AccordionItem value="pinned-messages">
         <AccordionTrigger className="px-0 hover:no-underline">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-1 items-center gap-1.5">
             <Pin className="h-4 w-4 text-muted-foreground" />
             <h4 className="font-medium text-foreground text-sm">Pinned Messages</h4>
           </div>
+          <Button
+            aria-label={showSearch ? "Close search" : "Open search"}
+            className="h-6 w-6"
+            onClick={handleSearchClick}
+            size="icon"
+            variant="ghost"
+          >
+            {showSearch ? (
+              <X className="h-3 w-3" />
+            ) : (
+              <Search className="h-3 w-3" />
+            )}
+          </Button>
         </AccordionTrigger>
         <AccordionContent className="pt-0">
+          <div
+            className={cn(
+              "overflow-hidden transition-[max-height,opacity,transform] duration-200 ease-out",
+              showSearch
+                ? "max-h-16 translate-y-0 opacity-100"
+                : "-translate-y-1 max-h-0 opacity-0"
+            )}
+          >
+            <div className="p-3">
+              <Input
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search pinned messages..."
+                ref={inputRef}
+                value={query}
+              />
+            </div>
+          </div>
+
           <div className="space-y-3">
-            {pinnedMessages.map((message) => (
+            {filteredMessages.length === 0 && query.trim() && (
+              <p className="py-4 text-center text-muted-foreground text-sm">
+                No messages found matching "{query}"
+              </p>
+            )}
+            {filteredMessages.map((message) => (
               <div
                 className="rounded-lg border border-border/50 bg-muted/30 p-3"
                 key={message.id}
