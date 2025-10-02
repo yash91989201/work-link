@@ -106,7 +106,9 @@ export const useMessages = (
       const messageWithSender = {
         ...newMessage,
         sender,
-        parentMessage: newMessage.parentMessageId ? await getParentMessageInfo(newMessage.parentMessageId) : undefined,
+        parentMessage: newMessage.parentMessageId
+          ? await getParentMessageInfo(newMessage.parentMessageId)
+          : undefined,
       };
 
       queryClient.setQueryData(
@@ -123,7 +125,9 @@ export const useMessages = (
           if (!old) return;
 
           // Check if message already exists to prevent duplication
-          const messageExists = old.messages.some((msg) => msg.id === messageWithSender.id);
+          const messageExists = old.messages.some(
+            (msg) => msg.id === messageWithSender.id
+          );
           if (messageExists) {
             return old;
           }
@@ -218,7 +222,9 @@ export const useMessages = (
           const messageWithSender = {
             ...newMessage,
             sender,
-            parentMessage: newMessage.parentMessageId ? await getParentMessageInfo(newMessage.parentMessageId) : undefined,
+            parentMessage: newMessage.parentMessageId
+              ? await getParentMessageInfo(newMessage.parentMessageId)
+              : undefined,
           };
 
           queryClient.setQueryData(
@@ -335,6 +341,42 @@ export const useMessages = (
     })
   );
 
+  const pinMutation = useMutation(
+    queryUtils.communication.messages.pin.mutationOptions({
+      onSuccess: (_data, { messageId }) => {
+        queryClient.setQueryData(
+          queryUtils.communication.messages.getChannelMessages.queryKey({
+            input: {
+              channelId,
+              limit,
+              offset,
+              beforeMessageId,
+              afterMessageId,
+            },
+          }),
+          (old) => {
+            if (!old) return;
+
+            const updatedMessages = old.messages.map((message) => {
+              if (message.id !== messageId) return message;
+
+              return {
+                ...message,
+                pin: true,
+                pinnedBy: user.id,
+              };
+            });
+
+            return {
+              ...old,
+              messages: updatedMessages,
+            };
+          }
+        );
+      },
+    })
+  );
+
   const { mutateAsync: addReaction, isPending: isAddingReaction } = useMutation(
     queryUtils.communication.messages.addReaction.mutationOptions({})
   );
@@ -363,6 +405,9 @@ export const useMessages = (
     removeReaction,
     messagesEndRef,
     scrollToBottom,
+    pinMessage: pinMutation.mutateAsync,
+    isPinningMessage: pinMutation.isPending,
+    pinningMessageId: pinMutation.variables?.messageId,
   };
 };
 

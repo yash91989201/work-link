@@ -7,6 +7,7 @@ import {
   CornerUpLeft,
   Edit3,
   MessageCircle,
+  Pin,
   Reply,
   Send,
   Trash2,
@@ -113,6 +114,7 @@ interface MessageItemProps {
     parentMessageId: string,
     mentions?: string[]
   ) => Promise<void>;
+  onPin: (messageId: string) => void;
   isDeleting?: boolean;
   isUpdating?: boolean;
 }
@@ -123,6 +125,7 @@ const MessageItem = ({
   onDelete,
   onEdit,
   onReply,
+  onPin,
   isDeleting,
   isUpdating,
 }: MessageItemProps) => {
@@ -154,42 +157,21 @@ const MessageItem = ({
 
     // Check if current word is a mention
     const currentWord = getCurrentWord(content, position);
-    console.log(
-      "Edit mode - Current word:",
-      currentWord,
-      "Content:",
-      content,
-      "Position:",
-      position
-    );
 
     if (currentWord.startsWith("@")) {
       const query = getMentionQuery(currentWord);
-      console.log(
-        "Edit mode - Mention query:",
-        query,
-        "Query length:",
-        query.length
-      );
       if (query.length >= 0) {
         // Allow empty query to show all users
         setMentionQuery(query);
         setShowMentionSuggestions(true);
         setSelectedMentionIndex(0); // Reset selection when showing suggestions
-        console.log("Edit mode - Setting showMentionSuggestions to true");
       } else {
         setShowMentionSuggestions(false);
         setMentionQuery("");
-        console.log(
-          "Edit mode - Setting showMentionSuggestions to false (invalid query)"
-        );
       }
     } else {
       setShowMentionSuggestions(false);
       setMentionQuery("");
-      console.log(
-        "Edit mode - Setting showMentionSuggestions to false (not a mention)"
-      );
     }
   };
 
@@ -205,42 +187,21 @@ const MessageItem = ({
 
     // Check if current word is a mention
     const currentWord = getCurrentWord(content, position);
-    console.log(
-      "Reply mode - Current word:",
-      currentWord,
-      "Content:",
-      content,
-      "Position:",
-      position
-    );
 
     if (currentWord.startsWith("@")) {
       const query = getMentionQuery(currentWord);
-      console.log(
-        "Reply mode - Mention query:",
-        query,
-        "Query length:",
-        query.length
-      );
       if (query.length >= 0) {
         // Allow empty query to show all users
         setMentionQuery(query);
         setShowMentionSuggestions(true);
         setSelectedMentionIndex(0); // Reset selection when showing suggestions
-        console.log("Reply mode - Setting showMentionSuggestions to true");
       } else {
         setShowMentionSuggestions(false);
         setMentionQuery("");
-        console.log(
-          "Reply mode - Setting showMentionSuggestions to false (invalid query)"
-        );
       }
     } else {
       setShowMentionSuggestions(false);
       setMentionQuery("");
-      console.log(
-        "Reply mode - Setting showMentionSuggestions to false (not a mention)"
-      );
     }
   };
 
@@ -633,21 +594,13 @@ const MessageItem = ({
                 />
                 {/* Mention suggestions */}
                 {showMentionSuggestions && (
-                  <>
-                    {console.log(
-                      "Reply mode - Rendering MentionSuggestions, users:",
-                      mentionUsersData?.users?.length,
-                      "isLoading:",
-                      isFetchingUsers
-                    )}
-                    <MentionSuggestions
-                      isLoading={isFetchingUsers}
-                      isVisible={showMentionSuggestions}
-                      onSelect={handleReplyMentionSelect}
-                      query={mentionQuery}
-                      users={mentionUsersData?.users || []}
-                    />
-                  </>
+                  <MentionSuggestions
+                    isLoading={isFetchingUsers}
+                    isVisible={showMentionSuggestions}
+                    onSelect={handleReplyMentionSelect}
+                    query={mentionQuery}
+                    users={mentionUsersData?.users || []}
+                  />
                 )}
                 <div className="flex items-center justify-between">
                   <div className="text-muted-foreground text-xs">
@@ -718,6 +671,20 @@ const MessageItem = ({
                 </TooltipContent>
               </Tooltip>
             )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  className="h-7 px-2 text-xs"
+                  onClick={() => onPin(message.id)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  <Pin className="mr-1 h-3 w-3" />
+                  Pin
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>Pin this message</TooltipContent>
+            </Tooltip>
           </div>
         )}
       </div>
@@ -762,6 +729,7 @@ interface MessageContentProps {
     parentMessageId: string,
     mentions?: string[]
   ) => Promise<void>;
+  onPin: (messageId: string) => Promise<void>;
   deletingMessageId?: string;
   updatingMessageId?: string;
 }
@@ -772,6 +740,7 @@ const MessageContent = ({
   onDelete,
   onEdit,
   onReply,
+  onPin,
   deletingMessageId,
   updatingMessageId,
 }: MessageContentProps) => {
@@ -852,6 +821,7 @@ const MessageContent = ({
             message={node.message}
             onDelete={onDelete}
             onEdit={onEdit}
+            onPin={onPin}
             onReply={onReply}
           />
         </div>
@@ -911,6 +881,7 @@ interface MessageListContentProps {
     parentMessageId: string,
     mentions?: string[]
   ) => Promise<void>;
+  onPin: (messageId: string) => Promise<void>;
   deletingMessageId?: string;
   updatingMessageId?: string;
 }
@@ -925,6 +896,7 @@ const MessageListContent = ({
   onReply,
   deletingMessageId,
   updatingMessageId,
+  onPin,
 }: MessageListContentProps) => {
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -941,6 +913,7 @@ const MessageListContent = ({
       messages={messages}
       onDelete={onDelete}
       onEdit={onEdit}
+      onPin={onPin}
       onReply={onReply}
       updatingMessageId={updatingMessageId}
     />
@@ -957,6 +930,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
     deleteMessage,
     updateMessage,
     messagesEndRef,
+    pinMessage,
   } = useMessages(channelId);
 
   const handleDelete = async (messageId: string) => {
@@ -1005,6 +979,17 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
     }
   };
 
+  const handlePin = async (messageId: string) => {
+    try {
+      await pinMessage({ messageId });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to pin message";
+      toast(message);
+      throw error;
+    }
+  };
+
   const orderedMessages = [...messages].sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
   );
@@ -1023,6 +1008,7 @@ export const MessageList = ({ channelId, className }: MessageListProps) => {
             messages={orderedMessages}
             onDelete={handleDelete}
             onEdit={handleEdit}
+            onPin={handlePin}
             onReply={handleReply}
             updatingMessageId={updatingMessageId}
           />

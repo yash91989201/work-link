@@ -171,12 +171,18 @@ export const ChannelInfoSidebar = () => {
       </div>
 
       <ScrollArea className="h-0 flex-1">
-        <div className="space-y-6 p-4 pb-8">
+        <div className="space-y-3 p-3">
           <Actions channelId={channelId} />
 
           <Separator />
 
-          <PinnedMessages pinnedMessages={channel.pinnedMessages} />
+          <PinnedMessages
+            onUnpin={(id) => {
+              // TODO: wire with API
+              console.log("Unpin message", id);
+            }}
+            pinnedMessages={channel.pinnedMessages}
+          />
 
           <Separator />
 
