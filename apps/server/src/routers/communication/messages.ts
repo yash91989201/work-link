@@ -412,7 +412,9 @@ export const messagesRouter = {
         where: and(
           eq(messageTable.channelId, input.channelId),
           eq(messageTable.isDeleted, false),
-          eq(messageTable.isPinned, input.pinned ?? false)
+          input?.pinned !== undefined
+            ? eq(messageTable.isPinned, input.pinned)
+            : undefined
         ),
         with: {
           sender: {
