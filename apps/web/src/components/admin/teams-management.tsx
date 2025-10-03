@@ -75,6 +75,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreateTeamForm } from "./team/create-team-form";
 
 // Mock data types
 interface Team {
@@ -560,12 +561,7 @@ export const AdminTeamsManagement = () => {
               <UserPlus className="mr-2 h-4 w-4" />
               Invite Members
             </Button>
-            <CreateTeamDialog>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Create New Team
-              </Button>
-            </CreateTeamDialog>
+            <CreateTeamForm />
           </div>
         </div>
       </div>

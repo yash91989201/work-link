@@ -9,7 +9,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   return (
-    <div>
+    <div className="flex h-full w-full items-center justify-center">
       <CreateTeamForm />
     </div>
   );
