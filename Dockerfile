@@ -5,10 +5,12 @@ WORKDIR /app
 COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/server/package.json ./apps/server/
+COPY packages/transactional/package.json ./packages/transactional/
 RUN bun install --frozen-lockfile
 
 COPY apps/web ./apps/web
 COPY apps/server ./apps/server
+COPY packages/transactional ./packages/transactional
 
 ARG VITE_ENV
 ENV VITE_ENV=$VITE_ENV
