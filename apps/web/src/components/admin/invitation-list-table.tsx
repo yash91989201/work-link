@@ -298,31 +298,55 @@ export const InvitationListTable = () => {
                     <TableCell>
                       <div className="text-sm">
                         <p>
-                          {new Date(invitation.createdAt).toLocaleDateString()}
+                          {invitation.createdAt
+                            ? new Date(
+                                invitation.createdAt
+                              ).toLocaleDateString()
+                            : "N/A"}
                         </p>
                         <p className="text-muted-foreground text-xs">
-                          {formatRelativeTime(new Date(invitation.createdAt))}
+                          {invitation.createdAt
+                            ? formatRelativeTime(new Date(invitation.createdAt))
+                            : "N/A"}
                         </p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <p
-                          className={
-                            new Date(invitation.expiresAt) < new Date()
-                              ? "text-red-600"
-                              : ""
-                          }
-                        >
-                          {new Date(invitation.expiresAt).toLocaleDateString()}
-                        </p>
-                        <p
-                          className={`text-xs ${new Date(invitation.expiresAt) < new Date() ? "text-red-600" : "text-muted-foreground"}`}
-                        >
-                          {new Date(invitation.expiresAt) < new Date()
-                            ? "Expired"
-                            : `${Math.ceil((new Date(invitation.expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days left`}
-                        </p>
+                        {invitation.status === "accepted" ? (
+                          <div className="text-muted-foreground text-sm">
+                            N/A
+                          </div>
+                        ) : (
+                          <div className="text-sm">
+                            <p
+                              className={
+                                new Date(invitation.expiresAt) < new Date()
+                                  ? "text-red-600"
+                                  : ""
+                              }
+                            >
+                              {new Date(
+                                invitation.expiresAt
+                              ).toLocaleDateString()}
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                new Date(invitation.expiresAt) < new Date()
+                                  ? "text-red-600"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              {new Date(invitation.expiresAt) < new Date()
+                                ? "Expired"
+                                : `${Math.ceil(
+                                    (new Date(invitation.expiresAt).getTime() -
+                                      new Date().getTime()) /
+                                      (1000 * 60 * 60 * 24)
+                                  )} days left`}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
