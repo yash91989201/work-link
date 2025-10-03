@@ -30,11 +30,9 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ARG VITE_SUPABASE_PUBLISHABLE_KEY
 ENV VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY
 
-# Build the web app
 WORKDIR /app/apps/web
 RUN bun run build
 
-# Production stage with nginx
 FROM nginx:1.27-alpine AS production
 WORKDIR /usr/share/nginx/html
 
@@ -44,5 +42,4 @@ COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
