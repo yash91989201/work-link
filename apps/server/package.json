@@ -19,14 +19,14 @@
     "generate:supabase-types": "bunx supabase gen types typescript --project-id 'efwcqjpambjkeoirvwai' --schema public > ./src/lib/supabase/types.ts"
   },
   "dependencies": {
-    "@better-auth/expo": "^1.3.25",
+    "@better-auth/expo": "^1.3.26",
     "@orpc/client": "^1.9.2",
     "@orpc/openapi": "^1.9.2",
     "@orpc/server": "^1.9.2",
     "@orpc/zod": "^1.9.2",
     "@supabase/supabase-js": "^2.58.0",
     "@t3-oss/env-core": "^0.13.8",
-    "better-auth": "^1.3.25",
+    "better-auth": "^1.3.26",
     "dotenv": "^17.2.3",
     "drizzle-cuid2": "^2.1.0",
     "drizzle-orm": "^0.44.6",
