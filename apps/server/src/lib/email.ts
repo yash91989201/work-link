@@ -15,7 +15,7 @@ export const sendOrgInvitationEmail = async ({
   orgName: string;
 }) => {
   const { data: _, error } = await resend.emails.send({
-    from: "Work Link <test@resend.dev",
+    from: "Work Link <onboarding@resend.dev",
     to: email,
     subject: "You're invited to join an organization on Work Link",
     react: OrgInvitationEmail({
