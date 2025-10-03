@@ -1,13 +1,12 @@
 // Main dashboard component
 
 export { CreateTeamDialog } from "./create-team-dialog";
+// Layout and Navigation
+export { OwnerHeader } from "./header";
 // Invitation management components
 export { InvitationManagement } from "./invitation-management";
 export { InvitationTable } from "./invitation-table";
 export { InviteMemberDialog } from "./invite-member-dialog";
-// Layout and Navigation
-export { OwnerRootLayout } from "./layout";
-export { OwnerHeader } from "./header";
 // Member management components
 export { MemberManagement } from "./member-management";
 export { MemberTable } from "./member-table";
@@ -19,4 +18,3 @@ export { TeamDetailsDialog } from "./team-details-dialog";
 export { TeamList } from "./team-list";
 // Team management components
 export { TeamManagement } from "./team-management";
-

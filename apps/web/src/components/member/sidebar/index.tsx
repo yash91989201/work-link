@@ -35,7 +35,7 @@ const data = {
   navMain: [
     {
       title: "Communication",
-      url: "/org/$slug/communication",
+      url: "/org/$slug/communication/channels",
       icon: IconBuildingBroadcastTower,
     },
     {

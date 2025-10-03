@@ -1,13 +1,13 @@
-import type { ChannelWithStatsOutput } from "@server/lib/schemas/channel";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { queryClient, queryUtils } from "@/utils/orpc";
+import type { ChannelWithCreatorOutputType } from "@server/lib/types";
 
 interface UseChannelsOptions {
-  type?: ChannelWithStatsOutput["type"];
+  type?: ChannelWithCreatorOutputType;
   teamId?: string;
   includeArchived?: boolean;
   limit?: number;

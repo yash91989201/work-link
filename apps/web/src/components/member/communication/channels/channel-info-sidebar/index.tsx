@@ -181,9 +181,9 @@ export const ChannelInfoSidebar = () => {
           <Separator />
 
           <PinnedMessages
-            onUnpin={(id) => {
+            onUnpin={(messageId) => {
               // TODO: wire with API
-              console.log("Unpin message", id);
+              console.log("Unpin message", messageId);
             }}
             pinnedMessages={channel.pinnedMessages}
           />

@@ -6,7 +6,7 @@ import { PendingSkeleton } from "@/components/member/communication/channels/pend
 import { orpcClient } from "@/utils/orpc";
 
 export const Route = createFileRoute(
-  "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id"
+  "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/"
 )({
   loader: async ({ params }) => {
     const isMember = await orpcClient.communication.channel.isMember({
