@@ -16,8 +16,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { acceptInvitationAndActivate } from "@/lib/auth/invitation";
 import { deriveNameFromEmail } from "@/lib/auth/utils";
+import { authClient } from "@/lib/auth-client";
 import { AcceptInvitationFormSchema } from "@/lib/schemas/auth";
 import type { AcceptInvitationFormType } from "@/lib/types";
+
+export const getUserOrgLink = (role: string) => {
+  if (role === "admin") {
+    return "/org/$slug/dashboard";
+  }
+
+  return "/org/$slug/attendance";
+};
 
 export function AcceptInvitationForm() {
   const { id: invitationId } = useParams({
@@ -43,12 +52,21 @@ export function AcceptInvitationForm() {
     mutationKey: ["acceptInvitation", invitationId],
     mutationFn: (formValues: AcceptInvitationFormType) =>
       acceptInvitationAndActivate({ ...formValues, invitationId }),
-    onSuccess: (slug) => {
+    onSuccess: async (slug) => {
       toast.success("Invitation accepted successfully!");
+
+      const { data, error } =
+        await authClient.organization.getActiveMemberRole();
+
+      if (error !== null) {
+        throw new Error(error.message);
+      }
+
+      const orgLink = getUserOrgLink(data.role);
 
       if (slug) {
         navigate({
-          to: "/org/$slug",
+          to: orgLink,
           params: { slug },
         });
         return;

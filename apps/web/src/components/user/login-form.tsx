@@ -1,4 +1,4 @@
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { type SubmitHandler, useForm } from "react-hook-form";
@@ -39,7 +39,7 @@ export function LogInForm() {
   });
 
   const form = useForm<LogInFormType>({
-    resolver: zodResolver(LogInFormSchema),
+    resolver: standardSchemaResolver(LogInFormSchema),
     defaultValues: { email: "", password: "" },
   });
 
