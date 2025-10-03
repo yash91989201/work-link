@@ -163,22 +163,6 @@ export const InvitationListTable = () => {
     toast.success("Invitation link copied to clipboard");
   };
 
-  const formatRelativeTime = (date: Date) => {
-    const now = new Date();
-    const diffInHours = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
-    );
-
-    if (diffInHours < 1) {
-      return "Just now";
-    }
-    if (diffInHours < 24) {
-      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-    }
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-  };
-
   const getRoleIcon = (role: string) => {
     switch (role) {
       case "admin":
@@ -219,7 +203,6 @@ export const InvitationListTable = () => {
                 <TableHead>Member</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Invited</TableHead>
                 <TableHead>Expires</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
@@ -227,7 +210,7 @@ export const InvitationListTable = () => {
             <TableBody>
               {invitationList.length === 0 ? (
                 <TableRow>
-                  <TableCell className="h-24 text-center" colSpan={6}>
+                  <TableCell className="h-24 text-center" colSpan={5}>
                     <div className="flex flex-col items-center gap-2">
                       <Mail className="h-8 w-8 text-muted-foreground" />
                       <p className="text-muted-foreground text-sm">
@@ -297,22 +280,6 @@ export const InvitationListTable = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <p>
-                          {invitation.createdAt
-                            ? new Date(
-                                invitation.createdAt
-                              ).toLocaleDateString()
-                            : "N/A"}
-                        </p>
-                        <p className="text-muted-foreground text-xs">
-                          {invitation.createdAt
-                            ? formatRelativeTime(new Date(invitation.createdAt))
-                            : "N/A"}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
                         {invitation.status === "accepted" ? (
                           <div className="text-muted-foreground text-sm">
                             N/A
@@ -351,11 +318,7 @@ export const InvitationListTable = () => {
                     </TableCell>
                     <TableCell>
                       {invitation.status === "accepted" ? (
-                        <div className="flex items-center gap-1">
-                          <Badge className="text-xs" variant="outline">
-                            Joined
-                          </Badge>
-                        </div>
+                        <div className="text-muted-foreground text-sm">N/A</div>
                       ) : (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -427,7 +390,6 @@ export const InvitationListTableSkeleton = () => {
                 <TableHead>Member</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Invited</TableHead>
                 <TableHead>Expires</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
@@ -454,12 +416,6 @@ export const InvitationListTableSkeleton = () => {
                     <div className="flex items-center gap-2">
                       <Skeleton className="h-3 w-3" />
                       <Skeleton className="h-6 w-20 rounded-full" />
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-16" />
                     </div>
                   </TableCell>
                   <TableCell>
