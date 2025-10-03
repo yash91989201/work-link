@@ -20,13 +20,25 @@ body {
 
 /* Animation delays */
 @keyframes delay-75 {
-  0%, 75% { opacity: 0; }
-  75.1%, 100% { opacity: 1; }
+  0%,
+  75% {
+    opacity: 0;
+  }
+  75.1%,
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes delay-150 {
-  0%, 87.5% { opacity: 0; }
-  87.6%, 100% { opacity: 1; }
+  0%,
+  87.5% {
+    opacity: 0;
+  }
+  87.6%,
+  100% {
+    opacity: 1;
+  }
 }
 
 .delay-75 {
@@ -269,8 +281,7 @@ body {
   outline: none;
 }
 
-[frimousse-loading]
-[frimousse-empty], {
+[frimousse-loading] [frimousse-empty] {
   position: absolute;
   inset: 0;
   display: flex;
