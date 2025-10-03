@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CreateTeamForm } from "@/components/admin/teams/create-team-form";
 
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(admin)/dashboard/teams/"
@@ -8,9 +7,5 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  return (
-    <div>
-      <CreateTeamForm />
-    </div>
-  );
+  return <div>dummy ui here</div>;
 }

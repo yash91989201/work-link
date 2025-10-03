@@ -38,18 +38,15 @@ function extractSchemaNames(content: string): string[] {
 }
 
 function getTypeName(schemaName: string): string {
-  // For DB schemas (ending with just "Schema"), remove "Schema" and add "Type"
-  // e.g., UserSchema -> UserType
+  // For schemas ending with "Schema", remove "Schema" and add "Type"
+  // This handles both simple DB schemas (UserSchema -> UserType)
+  // and operation schemas (AttendanceUpdateSchema -> AttendanceUpdateType)
   if (SIMPLE_SCHEMA_REGEX.test(schemaName)) {
-    const withoutSchema = schemaName.slice(0, -6);
-    // If it doesn't contain common suffixes/prefixes, treat as DB schema
-    if (!NON_DB_SCHEMA_PATTERNS.test(withoutSchema)) {
-      return `${withoutSchema}Type`;
-    }
+    return `${schemaName.slice(0, -6)}Type`;
   }
 
-  // For all other schemas, keep the full name and add "Type"
-  // e.g., CreateChannelFormSchema -> CreateChannelFormSchemaType
+  // For all other schemas (Input, Output, etc.), keep the full name and add "Type"
+  // e.g., CreateChannelFormInput -> CreateChannelFormInputType
   return `${schemaName}Type`;
 }
 
