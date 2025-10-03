@@ -53,6 +53,7 @@ WORKDIR /app
 
 COPY --from=builder /app/apps/server/dist ./dist
 COPY --from=builder /app/apps/server/package.json ./package.json
+COPY packages/transactional ./packages/transactional
 
 RUN bun install --frozen-lockfile --production
 
