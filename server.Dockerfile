@@ -47,14 +47,19 @@ WORKDIR /app/apps/server
 RUN bun run build
 
 FROM oven/bun:1.2.23-slim AS production
-
 WORKDIR /app
 
-COPY --from=builder /app/apps/server/dist ./dist
-COPY --from=builder /app/apps/server/package.json ./package.json
-COPY packages/transactional ./packages/transactional
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/bun.lock ./bun.lock
+
+COPY --from=builder /app/apps/server/dist ./apps/server/dist
+COPY --from=builder /app/apps/server/package.json ./apps/server/package.json
+
+COPY --from=builder /app/packages/transactional ./packages/transactional
 
 RUN bun install --frozen-lockfile --production
+
+WORKDIR /app/apps/server
 
 EXPOSE ${PORT}
 
