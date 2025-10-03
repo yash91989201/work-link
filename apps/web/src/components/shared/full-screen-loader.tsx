@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Image } from "./image";
 
 interface FullScreenLoaderProps {
   className?: string;
@@ -14,13 +15,7 @@ export function FullScreenLoader({ className }: FullScreenLoaderProps) {
     >
       <div className="flex flex-col items-center gap-4">
         <picture className="relative">
-          <img
-            alt="Loading"
-            className="animate-pulse"
-            height={240}
-            src="/logo.webp"
-            width={240}
-          />
+          <Image alt="Work Link logo" height={32} src="/logo.webp" width={32} />
         </picture>
         <h1 className="font-bold text-2xl text-foreground lg:text-3xl">
           Work Link
