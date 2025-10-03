@@ -3,13 +3,31 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
 import type { Invitation } from "better-auth/plugins/organization";
-import { Copy, MoreHorizontal } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Copy,
+  Crown,
+  Mail,
+  MoreHorizontal,
+  RefreshCw,
+  Shield,
+  UserPlus,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DataTable from "@/components/ui/data-table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +35,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -31,6 +50,11 @@ import { useAuthedSession } from "@/hooks/use-authed-session";
 import { getAuthQueryKey } from "@/lib/auth/query-keys";
 import { authClient } from "@/lib/auth-client";
 import { getRoleBadgeVariant, getStatusBadgeVariant } from "@/lib/org";
+
+// Extended invitation type that includes createdAt
+type ExtendedInvitation = Invitation & {
+  createdAt: Date;
+};
 
 export const InvitationListTable = () => {
   const { session } = useAuthedSession();
@@ -50,7 +74,7 @@ export const InvitationListTable = () => {
         throw new Error(error.message);
       }
 
-      return data;
+      return data as ExtendedInvitation[];
     },
   });
 
@@ -83,7 +107,7 @@ export const InvitationListTable = () => {
   });
 
   const resendInvitationMutation = useMutation({
-    mutationFn: async (invitation: Invitation) => {
+    mutationFn: async (invitation: ExtendedInvitation) => {
       const { data, error } = await authClient.organization.inviteMember({
         email: invitation.email,
         role: "admin",
@@ -114,137 +138,294 @@ export const InvitationListTable = () => {
     cancelInvitationMutation.mutate(invitationId);
   };
 
-  const handleResendInvitation = (invitation: Invitation) => {
+  const handleResendInvitation = (invitation: ExtendedInvitation) => {
     resendInvitationMutation.mutate(invitation);
   };
 
-  const handleCopyInvitationLink = (invitation: Invitation) => {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Clock className="h-3 w-3 text-yellow-600" />;
+      case "accepted":
+        return <CheckCircle className="h-3 w-3 text-green-600" />;
+      case "rejected":
+        return <XCircle className="h-3 w-3 text-red-600" />;
+      case "expired":
+        return <AlertCircle className="h-3 w-3 text-gray-600" />;
+      default:
+        return <Clock className="h-3 w-3 text-gray-600" />;
+    }
+  };
+
+  const handleCopyInvitationLink = (invitation: ExtendedInvitation) => {
     const invitationLink = `${env.VITE_WEB_URL}/accept-invitation/${invitation.id}?email=${invitation.email}`;
     navigator.clipboard.writeText(invitationLink);
     toast.success("Invitation link copied to clipboard");
   };
 
-  const columns: ColumnDef<Invitation>[] = [
-    {
-      accessorKey: "email",
-      header: "Email",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("email")}</div>
-      ),
-    },
-    {
-      accessorKey: "role",
-      header: "Role",
-      cell: ({ row }) => (
-        <Badge variant={getRoleBadgeVariant(row.getValue("role"))}>
-          {row.getValue("role")}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => (
-        <Badge variant={getStatusBadgeVariant(row.getValue("status"))}>
-          {row.getValue("status")}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "expiresAt",
-      header: "Expires At",
-      cell: ({ row }) =>
-        new Date(row.getValue("expiresAt")).toLocaleDateString(),
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        const invitation = row.original;
+  const formatRelativeTime = (date: Date) => {
+    const now = new Date();
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    );
 
-        if (invitation.status === "accepted") {
-          return <Badge variant="outline">N/A</Badge>;
-        }
+    if (diffInHours < 1) {
+      return "Just now";
+    }
+    if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+    }
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+  };
 
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="h-8 w-8 p-0" variant="ghost">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => handleCopyInvitationLink(invitation)}
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Copy invitation link
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={resendInvitationMutation.isPending}
-                onClick={() => handleResendInvitation(invitation)}
-              >
-                Resend
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive"
-                disabled={cancelInvitationMutation.isPending}
-                onClick={() => handleCancelInvitation(invitation.id)}
-              >
-                Cancel
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ];
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case "admin":
+        return <Crown className="h-3 w-3 text-red-600" />;
+      case "manager":
+        return <Shield className="h-3 w-3 text-blue-600" />;
+      case "team-lead":
+        return <UserPlus className="h-3 w-3 text-green-600" />;
+      default:
+        return <UserPlus className="h-3 w-3 text-gray-600" />;
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      <DataTable columns={columns} data={invitationList} />
-    </div>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Invitations</CardTitle>
+            <CardDescription>
+              Manage member invitations and track their status
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <Input className="w-64" placeholder="Search invitations..." />
+            <Button size="sm" variant="outline">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Invited</TableHead>
+                <TableHead>Expires</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invitationList.length === 0 ? (
+                <TableRow>
+                  <TableCell className="h-24 text-center" colSpan={6}>
+                    <div className="flex flex-col items-center gap-2">
+                      <Mail className="h-8 w-8 text-muted-foreground" />
+                      <p className="text-muted-foreground text-sm">
+                        No invitations found
+                      </p>
+                      <Button size="sm">
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Send First Invitation
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                invitationList.map((invitation) => (
+                  <TableRow className="hover:bg-muted/50" key={invitation.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src="" />
+                          <AvatarFallback>
+                            {invitation.email.split("@")[0].charAt(0).toUpperCase()}
+                            {invitation.email.split("@")[0].split(".").pop()?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm">
+                            {invitation.email.split("@")[0].charAt(0).toUpperCase() + invitation.email.split("@")[0].slice(1).replace(".", " ")}
+                          </p>
+                          <p className="text-muted-foreground text-xs">{invitation.email}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getRoleIcon(invitation.role)}
+                        <Badge className="capitalize" variant={getRoleBadgeVariant(invitation.role)}>
+                          {invitation.role}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(invitation.status)}
+                        <Badge
+                          className="capitalize"
+                          variant={getStatusBadgeVariant(invitation.status)}
+                        >
+                          {invitation.status}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <p>{new Date(invitation.createdAt).toLocaleDateString()}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {formatRelativeTime(new Date(invitation.createdAt))}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <p className={new Date(invitation.expiresAt) < new Date() ? "text-red-600" : ""}>
+                          {new Date(invitation.expiresAt).toLocaleDateString()}
+                        </p>
+                        <p
+                          className={`text-xs ${new Date(invitation.expiresAt) < new Date() ? "text-red-600" : "text-muted-foreground"}`}
+                        >
+                          {new Date(invitation.expiresAt) < new Date() 
+                            ? "Expired" 
+                            : `${Math.ceil((new Date(invitation.expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days left`
+                          }
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {invitation.status === "accepted" ? (
+                        <div className="flex items-center gap-1">
+                          <Badge className="text-xs" variant="outline">
+                            Joined
+                          </Badge>
+                        </div>
+                      ) : (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button className="h-8 w-8 p-0" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              onClick={() => handleCopyInvitationLink(invitation)}
+                            >
+                              <Copy className="mr-2 h-4 w-4" />
+                              Copy link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              disabled={resendInvitationMutation.isPending}
+                              onClick={() => handleResendInvitation(invitation)}
+                            >
+                              <Mail className="mr-2 h-4 w-4" />
+                              Resend email
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              disabled={cancelInvitationMutation.isPending}
+                              onClick={() => handleCancelInvitation(invitation.id)}
+                            >
+                              Cancel invitation
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
 export const InvitationListTableSkeleton = () => {
   return (
-    <div className="space-y-4">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Expires At</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <TableRow key={index.toString()}>
-                <TableCell>
-                  <Skeleton className="h-4 w-48" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-6 w-16 rounded-full" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-6 w-20 rounded-full" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-24" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-8 w-8" />
-                </TableCell>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="mb-2 h-6 w-24" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-10 w-24" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Invited</TableHead>
+                <TableHead>Expires</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index.toString()}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3 w-3" />
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3 w-3" />
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-8 w-8" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { InvitationListTable } from "@/components/admin/invitation-list-table";
-import { InviteMemberForm } from "@/components/admin/members/invite-member-form";
+import { MembersDashboard } from "@/components/admin/members/members-dashboard";
 
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(admin)/dashboard/members/"
@@ -9,11 +8,5 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  return (
-    <div>
-      <InviteMemberForm />
-
-      <InvitationListTable />
-    </div>
-  );
+  return <MembersDashboard />;
 }

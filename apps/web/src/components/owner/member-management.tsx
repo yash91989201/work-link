@@ -1,11 +1,17 @@
+import { Filter, Search, UserPlus } from "lucide-react";
 import { useState } from "react";
-import { MemberTable } from "./member-table";
-import { InviteMemberDialog } from "./invite-member-dialog";
-import { RoleChangeDialog } from "./role-change-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, Search, Filter } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { InviteMemberDialog } from "./invite-member-dialog";
+import { MemberTable } from "./member-table";
+import { RoleChangeDialog } from "./role-change-dialog";
 
 interface Member {
   id: string;
@@ -61,7 +67,9 @@ export const MemberManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Member Management</CardTitle>
-              <CardDescription>Manage organization members and their roles</CardDescription>
+              <CardDescription>
+                Manage organization members and their roles
+              </CardDescription>
             </div>
             <Button onClick={() => setIsInviteDialogOpen(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
@@ -70,41 +78,42 @@ export const MemberManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
               <Input
+                className="pl-8"
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search members..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
               />
             </div>
-            <Button variant="outline" size="icon">
+            <Button size="icon" variant="outline">
               <Filter className="h-4 w-4" />
             </Button>
           </div>
 
           <MemberTable
+            currentUserId="current-user-id"
             members={filteredMembers}
-            onRoleChange={handleRoleChange}
-            currentUserId="current-user-id" // Replace with actual current user ID
+            onRoleChange={handleRoleChange} // Replace with actual current user ID
           />
         </CardContent>
       </Card>
 
       <InviteMemberDialog
-        open={isInviteDialogOpen}
         onOpenChange={setIsInviteDialogOpen}
+        open={isInviteDialogOpen}
       />
 
       {selectedMember && (
         <RoleChangeDialog
-          open={isRoleChangeDialogOpen}
-          onOpenChange={setIsRoleChangeDialogOpen}
           member={selectedMember}
+          onOpenChange={setIsRoleChangeDialogOpen}
+          open={isRoleChangeDialogOpen}
         />
       )}
     </div>
   );
 };
+

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AdminDashboard } from "@/components/admin/dashboard/admin-dashboard";
 
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(admin)/dashboard/"
@@ -7,5 +8,5 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  return <div>content</div>;
+  return <AdminDashboard />;
 }

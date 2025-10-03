@@ -1,4 +1,3 @@
-import type { InvitationStatus } from "better-auth/plugins/organization";
 import { authClient } from "@/lib/auth-client";
 
 export const getActiveOrgSlug = async () => {
@@ -28,7 +27,7 @@ export const getActiveOrgSlug = async () => {
   return orgSlug;
 };
 
-export const getStatusBadgeVariant = (status: InvitationStatus) => {
+export const getStatusBadgeVariant = (status: string) => {
   if (status === "pending") {
     return "secondary";
   }
@@ -41,7 +40,7 @@ export const getStatusBadgeVariant = (status: InvitationStatus) => {
   return "secondary";
 };
 
-export const getRoleBadgeVariant = (role: "member" | "admin" | "owner") => {
+export const getRoleBadgeVariant = (role: string) => {
   if (role === "owner") {
     return "default";
   }
