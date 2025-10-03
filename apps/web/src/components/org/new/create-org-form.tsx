@@ -82,7 +82,7 @@ export const CreateOrgForm = () => {
       }
 
       navigate({
-        to: "/org/$slug",
+        to: "/org/$slug/manage",
         params: {
           slug: org.slug,
         },

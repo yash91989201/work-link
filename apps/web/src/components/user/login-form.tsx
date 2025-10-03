@@ -16,6 +16,18 @@ import { authClient } from "@/lib/auth-client";
 import { LogInFormSchema } from "@/lib/schemas/auth";
 import type { LogInFormType } from "@/lib/types";
 
+export const getUserOrgLink = (role: string) => {
+  if (role === "owner") {
+    return "/org/$slug/manage";
+  }
+
+  if (role === "admin") {
+    return "/org/$slug/dashboard";
+  }
+
+  return "/org/$slug/attendance";
+};
+
 export function LogInForm() {
   const navigate = useNavigate();
 
@@ -53,9 +65,18 @@ export function LogInForm() {
         organizationSlug: org.slug,
       });
 
+      const { data, error } =
+        await authClient.organization.getActiveMemberRole();
+
+      if (error !== null) {
+        throw new Error(error.message);
+      }
+
+      const orgLink = getUserOrgLink(data.role);
+
       if (org) {
         navigate({
-          to: "/org/$slug",
+          to: orgLink,
           params: {
             slug: org.slug,
           },

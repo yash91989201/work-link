@@ -233,10 +233,6 @@ export const InvitationListTable = () => {
                       <p className="text-muted-foreground text-sm">
                         No invitations found
                       </p>
-                      <Button size="sm">
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Send First Invitation
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -248,22 +244,42 @@ export const InvitationListTable = () => {
                         <Avatar className="h-8 w-8">
                           <AvatarImage src="" />
                           <AvatarFallback>
-                            {invitation.email.split("@")[0].charAt(0).toUpperCase()}
-                            {invitation.email.split("@")[0].split(".").pop()?.charAt(0).toUpperCase()}
+                            {invitation.email
+                              .split("@")[0]
+                              .charAt(0)
+                              .toUpperCase()}
+                            {invitation.email
+                              .split("@")[0]
+                              .split(".")
+                              .pop()
+                              ?.charAt(0)
+                              .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-medium text-sm">
-                            {invitation.email.split("@")[0].charAt(0).toUpperCase() + invitation.email.split("@")[0].slice(1).replace(".", " ")}
+                            {invitation.email
+                              .split("@")[0]
+                              .charAt(0)
+                              .toUpperCase() +
+                              invitation.email
+                                .split("@")[0]
+                                .slice(1)
+                                .replace(".", " ")}
                           </p>
-                          <p className="text-muted-foreground text-xs">{invitation.email}</p>
+                          <p className="text-muted-foreground text-xs">
+                            {invitation.email}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {getRoleIcon(invitation.role)}
-                        <Badge className="capitalize" variant={getRoleBadgeVariant(invitation.role)}>
+                        <Badge
+                          className="capitalize"
+                          variant={getRoleBadgeVariant(invitation.role)}
+                        >
                           {invitation.role}
                         </Badge>
                       </div>
@@ -281,7 +297,9 @@ export const InvitationListTable = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <p>{new Date(invitation.createdAt).toLocaleDateString()}</p>
+                        <p>
+                          {new Date(invitation.createdAt).toLocaleDateString()}
+                        </p>
                         <p className="text-muted-foreground text-xs">
                           {formatRelativeTime(new Date(invitation.createdAt))}
                         </p>
@@ -289,16 +307,21 @@ export const InvitationListTable = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <p className={new Date(invitation.expiresAt) < new Date() ? "text-red-600" : ""}>
+                        <p
+                          className={
+                            new Date(invitation.expiresAt) < new Date()
+                              ? "text-red-600"
+                              : ""
+                          }
+                        >
                           {new Date(invitation.expiresAt).toLocaleDateString()}
                         </p>
                         <p
                           className={`text-xs ${new Date(invitation.expiresAt) < new Date() ? "text-red-600" : "text-muted-foreground"}`}
                         >
-                          {new Date(invitation.expiresAt) < new Date() 
-                            ? "Expired" 
-                            : `${Math.ceil((new Date(invitation.expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days left`
-                          }
+                          {new Date(invitation.expiresAt) < new Date()
+                            ? "Expired"
+                            : `${Math.ceil((new Date(invitation.expiresAt).getTime() - Date.now().getTime()) / (1000 * 60 * 60 * 24))} days left`}
                         </p>
                       </div>
                     </TableCell>
@@ -318,7 +341,9 @@ export const InvitationListTable = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem
-                              onClick={() => handleCopyInvitationLink(invitation)}
+                              onClick={() =>
+                                handleCopyInvitationLink(invitation)
+                              }
                             >
                               <Copy className="mr-2 h-4 w-4" />
                               Copy link
@@ -334,7 +359,9 @@ export const InvitationListTable = () => {
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
                               disabled={cancelInvitationMutation.isPending}
-                              onClick={() => handleCancelInvitation(invitation.id)}
+                              onClick={() =>
+                                handleCancelInvitation(invitation.id)
+                              }
                             >
                               Cancel invitation
                             </DropdownMenuItem>
