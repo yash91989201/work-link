@@ -267,11 +267,11 @@ const MemberStatsCard = ({
   const getColorClasses = () => {
     switch (color) {
       case "success":
-        return "border-green-200 bg-green-50";
+        return "border-green-200 bg-green-50 text-green-500";
       case "warning":
-        return "border-yellow-200 bg-yellow-50";
+        return "border-yellow-200 bg-yellow-50 text-yellow-500";
       case "danger":
-        return "border-red-200 bg-red-50";
+        return "border-red-200 bg-red-50 text-red-500";
       default:
         return "";
     }
@@ -517,7 +517,7 @@ export const MembersDashboard = () => {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <MemberStatsCard
                   change={12}
-                  color="success"
+                  color="warning"
                   icon={Users}
                   title="Total Members"
                   trend="up"
