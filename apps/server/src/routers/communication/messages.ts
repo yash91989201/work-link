@@ -30,6 +30,8 @@ import {
   SearchMessagesListOutput,
   SearchUsersInput,
   SearchUsersOutput,
+  UnPinMessageInput,
+  UnPinMessageOutput,
   UnreadCountOutput,
   UpdateMessageInput,
 } from "@/lib/schemas/message";
@@ -409,7 +411,8 @@ export const messagesRouter = {
       const messages = await context.db.query.messageTable.findMany({
         where: and(
           eq(messageTable.channelId, input.channelId),
-          eq(messageTable.isDeleted, false)
+          eq(messageTable.isDeleted, false),
+          eq(messageTable.isPinned, input.pinned ?? false)
         ),
         with: {
           sender: {
@@ -723,6 +726,20 @@ export const messagesRouter = {
       await context.db
         .update(messageTable)
         .set({ isPinned: true, pinnedAt: new Date() })
+        .where(eq(messageTable.id, input.messageId));
+
+      return {
+        success: true,
+        message: "Message pinned successfully.",
+      };
+    }),
+  unPin: protectedProcedure
+    .input(UnPinMessageInput)
+    .output(UnPinMessageOutput)
+    .handler(async ({ context, input }) => {
+      await context.db
+        .update(messageTable)
+        .set({ isPinned: false, pinnedAt: null })
         .where(eq(messageTable.id, input.messageId));
 
       return {

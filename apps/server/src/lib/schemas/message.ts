@@ -40,6 +40,7 @@ export const GetChannelMessagesInput = z.object({
   offset: z.number().min(0).default(0),
   beforeMessageId: z.string().optional(),
   afterMessageId: z.string().optional(),
+  pinned: z.boolean().default(false).optional(),
 });
 
 export const GetChannelMessagesOutput = z.object({
@@ -227,3 +228,9 @@ export const PinMessageInput = z.object({
 });
 
 export const PinMessageOutput = SuccessOutput;
+
+export const UnPinMessageInput = z.object({
+  messageId: z.string(),
+});
+
+export const UnPinMessageOutput = SuccessOutput;

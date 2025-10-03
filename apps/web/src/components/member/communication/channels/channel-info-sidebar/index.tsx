@@ -7,6 +7,7 @@ import {
   MoreHorizontal,
   Settings,
 } from "lucide-react";
+import { Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +23,7 @@ import { Actions } from "./actions";
 import { ChannelInfo } from "./channel-info";
 import { JoinRequests } from "./join-requests";
 import { Members } from "./members";
-import { PinnedMessages } from "./pinned-messages";
+import { PinnedMessages, PinnedMessagesSkeleton } from "./pinned-messages";
 
 const mockChannel = {
   id: "ch-123",
@@ -42,21 +43,6 @@ const mockChannel = {
   memberCount: 24,
   messageCount: 1247,
   lastMessageAt: new Date("2025-01-10T10:30:00"),
-  pinnedMessages: [
-    {
-      id: "msg-1",
-      content:
-        "Product launch scheduled for next Tuesday - everyone please prepare demos",
-      author: "Sarah Chen",
-      timestamp: new Date("2025-01-08"),
-    },
-    {
-      id: "msg-2",
-      content: "Design review documents are shared in the project folder",
-      author: "Mike Johnson",
-      timestamp: new Date("2025-01-05"),
-    },
-  ],
   members: [
     {
       id: "user-1",
@@ -180,13 +166,15 @@ export const ChannelInfoSidebar = () => {
 
           <Separator />
 
-          <PinnedMessages
-            onUnpin={(messageId) => {
-              // TODO: wire with API
-              console.log("Unpin message", messageId);
-            }}
-            pinnedMessages={channel.pinnedMessages}
-          />
+          <Suspense fallback={<PinnedMessagesSkeleton />}>
+            <PinnedMessages
+              channelId={channelId}
+              onUnpin={(messageId) => {
+                // TODO: wire with API
+                console.log("Unpin message", messageId);
+              }}
+            />
+          </Suspense>
 
           <Separator />
 
