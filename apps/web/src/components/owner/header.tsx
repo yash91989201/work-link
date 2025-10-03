@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { cn } from "@/lib/utils";
 
 interface OwnerHeaderProps {
@@ -80,6 +81,8 @@ export function OwnerHeader({
     },
   ];
 
+  const activeOrg = useActiveOrganization();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center">
@@ -88,7 +91,7 @@ export function OwnerHeader({
             <Image
               alt="Work Link logo"
               height={32}
-              src="/logo.webp"
+              src={activeOrg?.logo ?? "/logo.webp"}
               width={32}
             />
             <h2 className="hidden font-bold text-xl sm:inline-block xl:text-2xl">
