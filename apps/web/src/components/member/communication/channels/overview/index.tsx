@@ -1,3 +1,4 @@
+import type { ListChannelsOutputType } from "@server/lib/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import {
@@ -20,14 +21,6 @@ import {
 import { queryUtils } from "@/utils/orpc";
 import { ChannelTips } from "./tips";
 
-interface Channel {
-  id: string;
-  name: string;
-  description?: string | null;
-  isPrivate?: boolean;
-  creatorName?: string | null;
-}
-
 export const ChannelsOverview = () => {
   const { data: channelListData } = useSuspenseQuery(
     queryUtils.communication.channel.list.queryOptions({ input: {} })
@@ -49,9 +42,8 @@ export const ChannelsOverview = () => {
   );
 };
 
-const RecentChannels = ({ channels }: { channels: Channel[] }) => {
+const RecentChannels = ({ channels }: ListChannelsOutputType) => {
   const { slug } = useParams({ from: "/(authenticated)/org/$slug" });
-  const navigate = useNavigate();
 
   if (channels.length === 0) {
     return (
@@ -85,12 +77,7 @@ const RecentChannels = ({ channels }: { channels: Channel[] }) => {
       <h2 className="mb-4 font-semibold text-2xl">Recent Channels</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {channels.map((channel) => (
-          <ChannelCard
-            channel={channel}
-            key={channel.id}
-            navigate={navigate}
-            slug={slug}
-          />
+          <ChannelCard channel={channel} key={channel.id} slug={slug} />
         ))}
       </div>
     </div>
@@ -100,12 +87,11 @@ const RecentChannels = ({ channels }: { channels: Channel[] }) => {
 const ChannelCard = ({
   channel,
   slug,
-  navigate,
 }: {
-  channel: Channel;
+  channel: ListChannelsOutputType["channels"][number];
   slug: string;
-  navigate: any;
 }) => {
+  const navigate = useNavigate();
   const handleClick = () => {
     navigate({
       to: "/org/$slug/communication/channels/$id",
@@ -142,7 +128,7 @@ const ChannelCard = ({
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between text-muted-foreground text-sm">
-          <span>Created by {channel.creatorName || "Unknown"}</span>
+          <span>Created by {channel.creator.name}</span>
           <ArrowRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
       </CardContent>

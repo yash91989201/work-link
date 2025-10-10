@@ -19,7 +19,6 @@ export function MessageContent({ message }: MessageContentProps) {
       <div className="prose prose-sm dark:prose-invert max-w-none">
         <EnhancedMessageContent message={message} />
       </div>
-      {/* Attachments will be implemented in a future update */}
     </div>
   );
 }

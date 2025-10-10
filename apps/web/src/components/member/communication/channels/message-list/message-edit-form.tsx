@@ -2,8 +2,9 @@ import { Check, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MentionSuggestions } from "@/components/shared/mention-suggestions";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import { Textarea } from "@/components/ui/textarea";
-import { useMentionInput } from "@/hooks/communications/features/use-mention-input";
+import { useMentionInput } from "@/hooks/communications/use-mention-input";
 import { extractMentionUserIds, type Mention } from "@/lib/mentions";
 
 interface MessageEditFormProps {
@@ -100,7 +101,7 @@ export function MessageEditForm({
   };
 
   return (
-    <div className="relative mt-2 space-y-2">
+    <div className="relative mt-2 space-y-3">
       <div className="relative">
         <Textarea
           className="min-h-[80px] resize-none"
@@ -124,33 +125,42 @@ export function MessageEditForm({
         )}
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button
-          disabled={!text.trim() || isSaving}
-          onClick={handleSave}
-          size="sm"
-        >
-          {isSaving ? (
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          ) : (
-            <>
-              <Check className="mr-1 h-4 w-4" />
-              Save
-            </>
-          )}
-        </Button>
-        <Button
-          disabled={isSaving}
-          onClick={onCancel}
-          size="sm"
-          variant="outline"
-        >
-          <X className="mr-1 h-4 w-4" />
-          Cancel
-        </Button>
-        <span className="text-muted-foreground text-xs">
-          Escape to cancel • Ctrl+Enter to save
-        </span>
+      <div className="flex items-center justify-between">
+        <div className="5 flex items-center gap-1">
+          <p className="text-muted-foreground text-sm">
+            <Kbd>Esc</Kbd>&nbsp;to cancel
+          </p>
+
+          <span>•</span>
+          <p className="text-muted-foreground text-sm">
+            <Kbd>Ctrl + Enter</Kbd>&nbsp;to save
+          </p>
+        </div>
+        <div className="5 flex items-center gap-1">
+          <Button
+            disabled={!text.trim() || isSaving}
+            onClick={handleSave}
+            size="sm"
+          >
+            {isSaving ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              <>
+                <Check className="mr-1 h-4 w-4" />
+                Save
+              </>
+            )}
+          </Button>
+          <Button
+            disabled={isSaving}
+            onClick={onCancel}
+            size="sm"
+            variant="outline"
+          >
+            <X className="mr-1 h-4 w-4" />
+            Cancel
+          </Button>
+        </div>
       </div>
     </div>
   );

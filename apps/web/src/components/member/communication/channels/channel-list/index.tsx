@@ -53,6 +53,8 @@ export const Channel = ({
 
   const isActive = window.location.pathname.includes(id);
 
+  if (!channel) return null;
+
   return (
     <Button
       className={cn(
@@ -77,7 +79,7 @@ export const Channel = ({
           <p className="truncate text-left text-sm">{name}</p>
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground text-xs">
-              {channel?.creatorName}
+              {channel.creator.name}
             </span>
           </div>
         </div>

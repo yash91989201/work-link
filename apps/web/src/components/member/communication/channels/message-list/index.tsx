@@ -1,43 +1,16 @@
-import { MessageCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMessages } from "@/hooks/communications/use-messages-refactored";
+import { useMessages } from "@/hooks/communications/use-messages";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "./empty-state";
 import { MessageItem } from "./message-item";
 
 interface MessageListProps {
   channelId: string;
   className?: string;
 }
-
-const EmptyState = () => (
-  <div className="flex h-full items-center justify-center p-8">
-    <div className="max-w-sm space-y-6 text-center">
-      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5">
-        <MessageCircle className="h-10 w-10 text-primary/60" />
-      </div>
-      <div className="space-y-3">
-        <h3 className="font-semibold text-foreground text-lg">
-          Welcome to the channel!
-        </h3>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-          This is the beginning of your conversation. Start by sending a message
-          to break the ice. 🎉
-        </p>
-      </div>
-      <div className="space-y-2">
-        <p className="font-medium text-muted-foreground text-xs">Tips:</p>
-        <ul className="space-y-1 text-muted-foreground text-xs">
-          <li>• Be respectful and professional</li>
-          <li>• Use @ to mention team members</li>
-          <li>• Share files with the attachment button</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-);
 
 const MessageSkeleton = () => (
   <div className="flex gap-3 px-4 py-3">
@@ -68,11 +41,15 @@ export function MessageList({ channelId, className }: MessageListProps) {
     deletingMessageId,
     updatingMessageId,
     pinningMessageId,
+    isPinningMessage,
+    isDeletingMessage,
+    isUpdatingMessage,
     createMessage,
     deleteMessage,
     updateMessage,
     messagesEndRef,
     pinMessage,
+    unpinMessage,
   } = useMessages(channelId);
 
   const handleDelete = useCallback(
@@ -123,9 +100,13 @@ export function MessageList({ channelId, className }: MessageListProps) {
   );
 
   const handlePin = useCallback(
-    async (messageId: string) => {
+    async (messageId: string, isPinned: boolean) => {
       try {
-        await pinMessage({ messageId });
+        if (isPinned) {
+          await unpinMessage({ messageId });
+        } else {
+          await pinMessage({ messageId });
+        }
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Failed to pin message";
@@ -133,7 +114,7 @@ export function MessageList({ channelId, className }: MessageListProps) {
         throw error;
       }
     },
-    [pinMessage]
+    [pinMessage, unpinMessage]
   );
 
   // Memoize sorted messages
@@ -172,9 +153,9 @@ export function MessageList({ channelId, className }: MessageListProps) {
           {orderedMessages.map((message) => (
             <MessageItem
               channelId={channelId}
-              isDeleting={deletingMessageId === message.id}
-              isUpdating={updatingMessageId === message.id}
-              isPinning={pinningMessageId === message.id}
+              isDeleting={isDeletingMessage && deletingMessageId === message.id}
+              isPinning={isPinningMessage && pinningMessageId === message.id}
+              isUpdating={isUpdatingMessage && updatingMessageId === message.id}
               key={message.id}
               message={message}
               onDelete={handleDelete}

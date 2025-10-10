@@ -19,86 +19,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useChannelContext } from "@/contexts/channel-context";
 import { Actions } from "./actions";
 import { ChannelInfo } from "./channel-info";
 import { JoinRequests } from "./join-requests";
 import { Members } from "./members";
 import { PinnedMessages, PinnedMessagesSkeleton } from "./pinned-messages";
 
-const mockChannel = {
-  id: "ch-123",
-  name: "product-development",
-  description:
-    "Discussion about product features, roadmap, and development updates",
-  type: "team" as const,
-  isPrivate: false,
-  isArchived: false,
-  createdAt: new Date("2024-01-15"),
-  createdBy: {
-    id: "user-1",
-    name: "Sarah Chen",
-    email: "sarah@example.com",
-    avatar: "/avatars/sarah.jpg",
-  },
-  memberCount: 24,
-  messageCount: 1247,
-  lastMessageAt: new Date("2025-01-10T10:30:00"),
-  members: [
-    {
-      id: "user-1",
-      name: "Sarah Chen",
-      email: "sarah@example.com",
-      role: "admin",
-      avatar: "/avatars/sarah.jpg",
-      isOnline: true,
-      lastSeen: new Date(),
-    },
-    {
-      id: "user-2",
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      role: "member",
-      avatar: "/avatars/mike.jpg",
-      isOnline: true,
-      lastSeen: new Date(),
-    },
-    {
-      id: "user-3",
-      name: "Emily Davis",
-      email: "emily@example.com",
-      role: "moderator",
-      avatar: "/avatars/emily.jpg",
-      isOnline: false,
-      lastSeen: new Date("2025-01-09"),
-    },
-    {
-      id: "user-4",
-      name: "Alex Kim",
-      email: "alex@example.com",
-      role: "member",
-      avatar: null,
-      isOnline: true,
-      lastSeen: new Date(),
-    },
-    {
-      id: "user-5",
-      name: "Jordan Taylor",
-      email: "jordan@example.com",
-      role: "member",
-      avatar: "/avatars/jordan.jpg",
-      isOnline: false,
-      lastSeen: new Date("2025-01-08"),
-    },
-  ],
-};
-
 export const ChannelInfoSidebar = () => {
-  const { id } = useParams({
+  const { id: channelId } = useParams({
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
 
-  const channelId = id;
-  const channel = mockChannel;
+  const { channel, channelMembers, onlineUsersCount } = useChannelContext();
 
   return (
     <div className="flex h-full w-96 flex-col overflow-hidden border-border border-l bg-background">
@@ -125,11 +58,11 @@ export const ChannelInfoSidebar = () => {
                   private
                 </Badge>
                 <Badge className="text-xs" variant="outline">
-                  {channel.memberCount} members
+                  {channelMembers.length} members
                 </Badge>
                 <Badge className="text-xs" variant="outline">
                   <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
-                  3 active
+                  {onlineUsersCount} online
                 </Badge>
               </div>
             </div>
@@ -167,18 +100,12 @@ export const ChannelInfoSidebar = () => {
           <Separator />
 
           <Suspense fallback={<PinnedMessagesSkeleton />}>
-            <PinnedMessages
-              channelId={channelId}
-              onUnpin={(messageId) => {
-                // TODO: wire with API
-                console.log("Unpin message", messageId);
-              }}
-            />
+            <PinnedMessages channelId={channelId} />
           </Suspense>
 
           <Separator />
 
-          <Members members={channel.members} />
+          <Members members={channelMembers} />
 
           <Separator />
 
@@ -189,9 +116,7 @@ export const ChannelInfoSidebar = () => {
           <ChannelInfo
             channelDescription={channel.description ?? ""}
             createdAt={channel.createdAt}
-            createdByName={channel.createdBy.name}
-            lastMessageAt={channel.lastMessageAt}
-            messageCount={channel.messageCount}
+            createdByName={channel.creator.name}
           />
         </div>
       </ScrollArea>

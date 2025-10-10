@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MentionSuggestions } from "@/components/shared/mention-suggestions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useMentionInput } from "@/hooks/communications/features/use-mention-input";
+import { useMentionInput } from "@/hooks/communications/use-mention-input";
 import { extractMentionUserIds, type Mention } from "@/lib/mentions";
 
 interface MessageReplyFormProps {

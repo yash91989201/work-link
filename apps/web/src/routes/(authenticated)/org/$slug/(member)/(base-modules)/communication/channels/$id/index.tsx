@@ -3,7 +3,6 @@ import { JoinRequestForm } from "@/components/member/communication/channels/join
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
 import { MessageList } from "@/components/member/communication/channels/message-list";
 import { PendingSkeleton } from "@/components/member/communication/channels/pending-skeleton";
-import { ChannelProvider } from "@/contexts/channel-context";
 import { orpcClient } from "@/utils/orpc";
 
 export const Route = createFileRoute(
@@ -34,10 +33,10 @@ function RouteComponent() {
   return (
     <div className="flex min-h-0 flex-1 flex-col border-r">
       {isMember ? (
-        <ChannelProvider channelId={id}>
+        <>
           <MessageList channelId={id} />
           <MessageComposer channelId={id} />
-        </ChannelProvider>
+        </>
       ) : (
         <JoinRequestForm channelId={id} channelName={channelName} />
       )}

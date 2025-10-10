@@ -27,7 +27,7 @@ interface MessageItemProps {
     parentMessageId: string,
     mentions?: string[]
   ) => Promise<void>;
-  onPin: (messageId: string) => Promise<void>;
+  onPin: (messageId: string, isPinned: boolean) => Promise<void>;
   isDeleting?: boolean;
   isUpdating?: boolean;
   isPinning?: boolean;
@@ -92,8 +92,8 @@ export function MessageItem({
   );
 
   const handlePin = useCallback(async () => {
-    await onPin(message.id);
-  }, [message.id, onPin]);
+    await onPin(message.id, message.isPinned);
+  }, [message.id, message.isPinned, onPin]);
 
   return (
     <div

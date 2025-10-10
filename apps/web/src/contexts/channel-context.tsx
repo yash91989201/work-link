@@ -1,16 +1,20 @@
+import type { GetChannelOutputType } from "@server/lib/types";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createContext, type ReactNode, useContext, useMemo } from "react";
-import { useChannelMembers } from "@/hooks/communications/use-channel-members";
-
-interface ChannelMember {
-  id: string;
-  name: string;
-  email: string;
-  image: string | null;
-}
+import { useChannelPresence } from "@/hooks/communications/use-channel-presence";
+import { queryUtils } from "@/utils/orpc";
 
 interface ChannelContextValue {
   channelId: string;
-  channelMembers: ChannelMember[];
+  channel: GetChannelOutputType;
+  channelMembers: {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+    isOnline: boolean;
+  }[];
+  onlineUsersCount: number;
   isLoading: boolean;
 }
 
@@ -22,15 +26,46 @@ interface ChannelProviderProps {
 }
 
 export function ChannelProvider({ channelId, children }: ChannelProviderProps) {
-  const { data: membersData, isLoading } = useChannelMembers(channelId);
+  const { data: channel } = useSuspenseQuery(
+    queryUtils.communication.channel.get.queryOptions({ input: { channelId } })
+  );
+
+  const { data: membersData, isLoading } = useQuery(
+    queryUtils.communication.channel.getMembers.queryOptions({
+      input: {
+        channelId,
+      },
+    })
+  );
+
+  const { onlineUserIds } = useChannelPresence(channelId);
+
+  const members = membersData?.members || [];
+
+  const membersWithActiveStatus = useMemo(
+    () =>
+      members.map((member) => ({
+        ...member,
+        isOnline: onlineUserIds.includes(member.id),
+      })),
+    [members, onlineUserIds]
+  );
 
   const value = useMemo(
     () => ({
       channelId,
-      channelMembers: membersData?.members || [],
+      channelMembers: membersWithActiveStatus,
+      onlineUsersCount: onlineUserIds.length,
       isLoading,
+      channel,
     }),
-    [channelId, membersData, isLoading]
+    [
+      channel,
+      channelId,
+      isLoading,
+      membersWithActiveStatus,
+      onlineUserIds.length,
+    ]
   );
 
   return (

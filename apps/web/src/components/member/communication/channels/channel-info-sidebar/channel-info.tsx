@@ -1,29 +1,13 @@
 import { Info } from "lucide-react";
 
-const formatRelativeTime = (date: Date) => {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffHours < 1) return "just now";
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString();
-};
-
 export const ChannelInfo = ({
   createdByName,
   createdAt,
-  messageCount,
-  lastMessageAt,
   channelDescription,
 }: {
   channelDescription: string;
   createdByName: string;
   createdAt: Date;
-  messageCount: number;
-  lastMessageAt: Date;
 }) => {
   return (
     <div>
@@ -40,21 +24,9 @@ export const ChannelInfo = ({
           <span className="font-medium text-foreground">{createdByName}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Created</span>
+          <span className="text-muted-foreground">Created On</span>
           <span className="font-medium text-foreground">
             {createdAt.toLocaleDateString()}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Messages</span>
-          <span className="font-medium text-foreground">
-            {messageCount.toLocaleString()}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Last Activity</span>
-          <span className="font-medium text-foreground">
-            {formatRelativeTime(lastMessageAt)}
           </span>
         </div>
       </div>

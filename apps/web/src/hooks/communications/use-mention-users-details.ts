@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import type { Mention } from "@/lib/mentions";
 import { supabase } from "@/lib/supabase";
 
-// Fetch user details for mentions in a message
 export const useMentionUsersDetails = (mentionIds: string[] | null) => {
   return useQuery({
     queryKey: ["mention-users", mentionIds],

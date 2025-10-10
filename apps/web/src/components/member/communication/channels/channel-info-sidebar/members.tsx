@@ -7,7 +7,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -21,18 +20,6 @@ const getInitials = (name: string) => {
     .slice(0, 2);
 };
 
-const formatRelativeTime = (date: Date) => {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffHours < 1) return "just now";
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString();
-};
-
 export const Members = ({
   members,
 }: {
@@ -40,10 +27,8 @@ export const Members = ({
     id: string;
     name: string;
     email: string;
-    role: string;
-    avatar: string | null;
+    image: string | null;
     isOnline: boolean;
-    lastSeen: Date;
   }[];
 }) => {
   const [showSearch, setShowSearch] = useState(false);
@@ -137,10 +122,7 @@ export const Members = ({
               >
                 <div className="relative">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      alt={member.name}
-                      src={member.avatar || undefined}
-                    />
+                    <AvatarImage alt={member.name} />
                     <AvatarFallback className="text-xs">
                       {getInitials(member.name)}
                     </AvatarFallback>
@@ -157,25 +139,12 @@ export const Members = ({
                     <p className="truncate font-medium text-foreground text-sm">
                       {member.name}
                     </p>
-                    {member.role === "admin" && (
-                      <Badge className="px-1.5 py-0 text-xs" variant="default">
-                        Admin
-                      </Badge>
-                    )}
-                    {member.role === "moderator" && (
-                      <Badge
-                        className="px-1.5 py-0 text-xs"
-                        variant="secondary"
-                      >
-                        Mod
-                      </Badge>
-                    )}
                   </div>
-                  <p className="truncate text-muted-foreground text-xs">
-                    {member.isOnline
-                      ? "Active now"
-                      : `Last seen ${formatRelativeTime(member.lastSeen)}`}
-                  </p>
+                  {member.isOnline && (
+                    <p className="truncate text-muted-foreground text-xs">
+                      Active now
+                    </p>
+                  )}
                 </div>
               </div>
             ))}

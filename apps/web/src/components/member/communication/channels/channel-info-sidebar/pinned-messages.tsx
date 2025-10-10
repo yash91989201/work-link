@@ -10,9 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
-import { queryClient, queryUtils } from "@/utils/orpc";
-import { user } from "../../../../../../../server/src/db/schema";
+import { orpcClient, queryClient, queryUtils } from "@/utils/orpc";
 
 const getInitials = (name: string) => {
   return name
@@ -35,13 +35,7 @@ const formatRelativeTime = (date: Date) => {
   return date.toLocaleDateString();
 };
 
-export const PinnedMessages = ({
-  channelId,
-  onUnpin,
-}: {
-  channelId: string;
-  onUnpin?: (id: string) => void;
-}) => {
+export const PinnedMessages = ({ channelId }: { channelId: string }) => {
   const [showSearch, setShowSearch] = useState(false);
   const [query, setQuery] = useState("");
   const [accordionValue, setAccordionValue] =
@@ -49,50 +43,19 @@ export const PinnedMessages = ({
   const [_isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    data: { messages = [] },
-  } = useSuspenseQuery(
-    queryUtils.communication.messages.getChannelMessages.queryOptions({
+  const { data: pinnedMessages } = useSuspenseQuery(
+    queryUtils.communication.messages.getPinnedMessages.queryOptions({
       input: {
         channelId,
-        pinned: true,
       },
     })
   );
 
-  const { mutateAsync: unPinMessage, isPending: isUnPinningMessage } =
-    useMutation(
-      queryUtils.communication.messages.unPin.mutationOptions({
-        onSuccess: (_data, { messageId }) => {
-          queryClient.setQueryData(
-            queryUtils.communication.messages.getChannelMessages.queryKey({
-              input: {
-                channelId,
-                pinned: true,
-              },
-            }),
-            (old) => {
-              if (!old) return;
-
-              const updatedMessages = old.messages.map((message) => {
-                if (message.id !== messageId) return message;
-
-                return {
-                  ...message,
-                  pin: false,
-                  pinnedBy: null,
-                };
-              });
-
-              return {
-                ...old,
-                messages: updatedMessages,
-              };
-            }
-          );
-        },
-      })
-    );
+  const {
+    mutateAsync: unPinMessage,
+    isPending: isUnPinningMessage,
+    variables,
+  } = useMutation(queryUtils.communication.messages.unPin.mutationOptions({}));
 
   useEffect(() => {
     if (showSearch) {
@@ -106,6 +69,77 @@ export const PinnedMessages = ({
       setShowSearch(false);
     }
   }, [accordionValue, showSearch]);
+
+  useEffect(() => {
+    const channel = supabase.channel(`org:channel:${channelId}`);
+
+    channel.on("broadcast", { event: "message-pinned" }, async (payload) => {
+      const { messageId } = payload.payload as unknown as {
+        messageId: string;
+      };
+
+      const message = await orpcClient.communication.messages.get({
+        messageId,
+      });
+
+      if (!message) return;
+
+      queryClient.setQueryData(
+        queryUtils.communication.messages.getPinnedMessages.queryKey({
+          input: { channelId },
+        }),
+        (old) => {
+          if (!old) return old;
+
+          return [...old, message];
+        }
+      );
+    });
+
+    channel.on("broadcast", { event: "message-unpinned" }, (payload) => {
+      const { messageId } = payload.payload as unknown as {
+        messageId: string;
+      };
+
+      queryClient.setQueryData(
+        queryUtils.communication.messages.getChannelMessages.queryKey({
+          input: { channelId },
+        }),
+        (old) => {
+          if (!old) return;
+
+          const updatedMessages = old.messages.map((message) => {
+            if (message.id !== messageId) return message;
+            return { ...message, isPinned: false, pinnedAt: null };
+          });
+
+          return {
+            messages: updatedMessages,
+          };
+        }
+      );
+
+      queryClient.setQueryData(
+        queryUtils.communication.messages.getPinnedMessages.queryKey({
+          input: { channelId },
+        }),
+        (old) => {
+          if (!old) return;
+          const updatedMessages = old.filter(
+            (message) => message.id !== messageId
+          );
+
+          return updatedMessages;
+        }
+      );
+    });
+
+    channel.subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  });
 
   const handleSearchClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -124,14 +158,13 @@ export const PinnedMessages = ({
     }
   };
 
-  // Filter pinned messages based on search query
   const filteredMessages = query.trim()
-    ? messages.filter(
+    ? pinnedMessages.filter(
         (message) =>
           message.content?.toLowerCase().includes(query.toLowerCase()) ||
           message.sender.name.toLowerCase().includes(query.toLowerCase())
       )
-    : messages;
+    : pinnedMessages;
 
   return (
     <Accordion
@@ -209,13 +242,17 @@ export const PinnedMessages = ({
                       <Button
                         aria-label="Unpin message"
                         className="ml-auto h-7 w-7 text-muted-foreground"
-                        disabled={isUnPinningMessage}
+                        disabled={
+                          isUnPinningMessage &&
+                          variables.messageId === message.id
+                        }
                         onClick={() => unPinMessage({ messageId: message.id })}
                         size="icon"
                         title="Unpin"
                         variant="ghost"
                       >
-                        {isUnPinningMessage ? (
+                        {isUnPinningMessage &&
+                        variables.messageId === message.id ? (
                           <Loader className="animate-spin" />
                         ) : (
                           <PinOff className="size-4" />
