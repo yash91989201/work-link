@@ -10,26 +10,8 @@ export const MemberPunchInInput = MemberPunchBaseInput;
 
 export const MemberPunchOutInput = MemberPunchBaseInput;
 
-const MemberPunchResponse = AttendanceSchema.pick({
-  id: true,
-  userId: true,
-  organizationId: true,
-  teamId: true,
-  date: true,
-  status: true,
-  checkInTime: true,
-  checkOutTime: true,
-  clockInMethod: true,
-  clockOutMethod: true,
-  location: true,
-  coordinates: true,
-  notes: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const MemberPunchInOutput = AttendanceSchema;
 
-export const MemberPunchInOutput = MemberPunchResponse;
+export const MemberPunchOutOutput = AttendanceSchema;
 
-export const MemberPunchOutOutput = MemberPunchResponse;
-
-export const MemberAttendanceStatusOutput = MemberPunchResponse;
+export const MemberAttendanceStatusOutput = AttendanceSchema;

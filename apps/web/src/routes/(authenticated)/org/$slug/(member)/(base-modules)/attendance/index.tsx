@@ -8,13 +8,13 @@ import {
   Users,
 } from "lucide-react";
 import { useState } from "react";
-// Import attendance components
-import { AttendanceGreeting } from "@/components/member/attendance/attendance-greeting";
 import { DataVisualization } from "@/components/member/attendance/data-visualization";
 import { AnalyticsView } from "@/components/member/attendance/detailed-views/analytics-view";
 import { AttendanceCalendarView } from "@/components/member/attendance/detailed-views/attendance-calendar-view";
 import { AttendanceHistoryView } from "@/components/member/attendance/detailed-views/attendance-history-view";
 import { LeaveBalanceView } from "@/components/member/attendance/detailed-views/leave-balance-view";
+import { Greeting } from "@/components/member/attendance/greeting";
+import { MarkAttendance } from "@/components/member/attendance/mark-attendance";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,7 +41,9 @@ function RouteComponent() {
       </div>
 
       {/* Greeting and Punch In Section */}
-      <AttendanceGreeting />
+      <Greeting />
+
+      <MarkAttendance />
 
       {/* Data Visualization Section */}
       <DataVisualization />
