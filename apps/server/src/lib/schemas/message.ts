@@ -3,13 +3,7 @@ import { SuccessOutput } from "./channel";
 import { MessageSchema, UserSchema } from "./db-tables";
 
 // Message types enum
-export const MessageTypeSchema = z.enum([
-  "text",
-  "file",
-  "image",
-  "system",
-  "reply",
-]);
+export const MessageTypeSchema = z.enum(["text", "file", "image", "reply"]);
 
 // Create message input
 export const CreateMessageInput = z
@@ -26,6 +20,8 @@ export const CreateMessageInput = z
     path: ["channelId"],
   });
 
+export const CreateMessageOutput = MessageSchema;
+
 // Update message input
 export const UpdateMessageInput = z.object({
   messageId: z.string(),
@@ -33,14 +29,16 @@ export const UpdateMessageInput = z.object({
   mentions: z.array(z.string()).optional(),
 });
 
+export const UpdateMessageOutput = MessageSchema.extend({
+  sender: z.object({
+    name: z.string(),
+    email: z.string(),
+    image: z.string().optional().nullable(),
+  }),
+});
 // Get channel messages input
 export const GetChannelMessagesInput = z.object({
   channelId: z.string(),
-  limit: z.number().min(1).max(100).default(50),
-  offset: z.number().min(0).default(0),
-  beforeMessageId: z.string().optional(),
-  afterMessageId: z.string().optional(),
-  pinned: z.boolean().optional(),
 });
 
 export const GetChannelMessagesOutput = z.object({
@@ -108,6 +106,14 @@ export const SearchMessagesInput = z.object({
 export const GetMessageInput = z.object({
   messageId: z.string(),
 });
+
+export const GetMessageOutput = MessageSchema.extend({
+  sender: UserSchema.pick({
+    name: true,
+    email: true,
+    image: true,
+  }),
+}).optional();
 
 // Search users for mentions input
 export const SearchUsersInput = z.object({
@@ -187,17 +193,18 @@ export const ThreadMessageOutput = z.object({
   attachments: z.array(MessageAttachmentOutput).optional(),
 });
 
-// Search result output schema
 export const SearchMessageOutput = z.object({
-  id: z.string(),
-  content: z.string().nullable(),
-  type: MessageTypeSchema,
-  createdAt: z.date(),
-  senderId: z.string(),
-  senderName: z.string().nullable(),
-  senderImage: z.string().nullable(),
-  mentions: z.array(z.string()).nullable(),
-  attachments: z.array(MessageAttachmentOutput).optional(),
+  messages: z.array(
+    MessageSchema.extend({
+      sender: z.object({
+        name: z.string(),
+        email: z.string(),
+        image: z.string().optional().nullable(),
+      }),
+    })
+  ),
+  total: z.number(),
+  hasMore: z.boolean(),
 });
 
 // Messages list output
@@ -234,3 +241,17 @@ export const UnPinMessageInput = z.object({
 });
 
 export const UnPinMessageOutput = SuccessOutput;
+
+export const GetPinnedMessagesInput = z.object({
+  channelId: z.string(),
+});
+
+export const GetPinnedMessagesOutput = z.array(
+  MessageSchema.extend({
+    sender: UserSchema.pick({
+      name: true,
+      email: true,
+      image: true,
+    }),
+  })
+);

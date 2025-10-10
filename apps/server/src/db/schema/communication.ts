@@ -12,40 +12,33 @@ import {
 } from "drizzle-orm/pg-core";
 import { organization, team, user } from "./auth";
 
-// Channel types for different communication contexts
 export const channelTypeEnum = pgEnum("channel_type", [
-  "team", // Team-wide channels
-  "group", // Group DMs
-  "direct", // Direct messages between users
+  "team",
+  "group",
+  "direct",
 ]);
 
-// Message types for different content
 export const messageTypeEnum = pgEnum("message_type", [
   "text",
   "file",
   "image",
-  "system", // System-generated messages
+  "video",
   "reply",
 ]);
 
-// Notification types
 export const notificationTypeEnum = pgEnum("notification_type", [
-  "message", // New message
-  "mention", // User mentioned
-  "channel_invite", // Invited to channel
-  "direct_message", // New DM
-  "announcement", // Organization announcement
-  "system", // System notifications
+  "message",
+  "mention",
+  "channel_invite",
+  "direct_message",
 ]);
 
-// Notification status
 export const notificationStatusEnum = pgEnum("notification_status", [
   "unread",
   "read",
   "dismissed",
 ]);
 
-// File attachment types
 export const attachmentTypeEnum = pgEnum("attachment_type", [
   "image",
   "document",
@@ -79,7 +72,6 @@ export const channelTable = pgTable("channel", {
   isArchived: boolean("is_archived").default(false).notNull(),
   lastMessageAt: timestamp("last_message_at", { withTimezone: true }),
   messageCount: integer("message_count").default(0).notNull(),
-  metadata: json("metadata"), // For extensibility (e.g., channel settings)
   createdAt: timestamp("created_at", { withTimezone: true })
     .$defaultFn(() => new Date())
     .notNull(),
@@ -165,9 +157,8 @@ export const messageTable = pgTable("message", {
     onDelete: "set null",
   }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  mentions: json("mentions").$type<string[]>(), // Array of user IDs mentioned in the message
-  reactions: json("reactions").$type<{ reaction: string; count: number }[]>(), // Emoji reactions with user counts
-  metadata: json("metadata"), // For extensibility (formatting, links, etc.)
+  mentions: json("mentions").$type<string[]>(),
+  reactions: json("reactions").$type<{ reaction: string; count: number }[]>(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .$defaultFn(() => new Date())
     .notNull(),
@@ -185,19 +176,21 @@ export const attachmentTable = pgTable("attachment", {
     .references(() => messageTable.id, { onDelete: "cascade" }),
   fileName: text("file_name").notNull(),
   originalName: text("original_name").notNull(),
-  fileSize: integer("file_size").notNull(), // Size in bytes
+  fileSize: integer("file_size").notNull(),
   mimeType: text("mime_type").notNull(),
   type: attachmentTypeEnum("type").notNull(),
-  supabaseStoragePath: text("supabase_storage_path").notNull(), // Path in Supabase storage
-  supabaseBucket: text("supabase_bucket").notNull(),
-  thumbnailPath: text("thumbnail_path"), // For images/videos
+  url: text("url"),
+  thumbnailUrl: text("thumbnail_url"),
   uploadedBy: text("uploaded_by")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   isPublic: boolean("is_public").default(false).notNull(),
-  metadata: json("metadata"), // Additional file metadata
   createdAt: timestamp("created_at", { withTimezone: true })
     .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
     .notNull(),
 });
 
@@ -278,7 +271,7 @@ export const channelTableRelations = relations(
       fields: [channelTable.teamId],
       references: [team.id],
     }),
-    createdBy: one(user, {
+    creator: one(user, {
       fields: [channelTable.createdBy],
       references: [user.id],
     }),

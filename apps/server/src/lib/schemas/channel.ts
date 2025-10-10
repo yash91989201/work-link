@@ -30,6 +30,10 @@ export const GetChannelInput = z.object({
   channelId: z.string(),
 });
 
+export const GetChannelOutput = ChannelSchema.extend({
+  creator: UserSchema,
+});
+
 // Get channels input
 export const GetChannelsInput = z.object({
   type: ChannelTypeSchema.optional(),
@@ -46,7 +50,11 @@ export const ListChannelsInput = z.object({
 });
 
 export const ListChannelsOutput = z.object({
-  channels: z.array(ChannelSchema),
+  channels: z.array(
+    ChannelSchema.extend({
+      creator: UserSchema,
+    })
+  ),
 });
 
 // Add channel member input
