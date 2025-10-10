@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import type { SQL } from "drizzle-orm";
-import { and, eq } from "drizzle-orm";
+import { and, eq, getTableColumns } from "drizzle-orm";
 import { member, user as userTable } from "@/db/schema/auth";
 import {
   channelJoinRequestTable,
@@ -12,12 +12,12 @@ import {
   AddChannelMembersInput,
   ChannelJoinRequestInput,
   ChannelJoinRequestOutput,
-  ChannelWithCreatorOutput,
   CreateChannelInput,
   CreateChannelOutput,
   GetChannelInput,
   GetChannelMembersInput,
   GetChannelMembersOutput,
+  GetChannelOutput,
   IsChannelMemberInput,
   IsChannelMemberOutput,
   ListChannelsInput,
@@ -26,13 +26,6 @@ import {
   UpdateChannelInput,
 } from "@/lib/schemas/channel";
 import { ChannelSchema } from "@/lib/schemas/db-tables";
-
-const toMetadata = (value: unknown) => {
-  if (value == null || typeof value !== "object") {
-    return null;
-  }
-  return value as Record<string, unknown>;
-};
 
 export const channelRouter = {
   create: protectedProcedure
@@ -93,43 +86,24 @@ export const channelRouter = {
       return updatedChannel;
     }),
 
-  // Get a single channel
   get: protectedProcedure
     .input(GetChannelInput)
-    .output(ChannelWithCreatorOutput.nullable())
+    .output(GetChannelOutput)
     .handler(async ({ context, input }) => {
-      const [channel] = await context.db
-        .select({
-          id: channelTable.id,
-          name: channelTable.name,
-          description: channelTable.description,
-          type: channelTable.type,
-          organizationId: channelTable.organizationId,
-          teamId: channelTable.teamId,
-          createdBy: channelTable.createdBy,
-          isPrivate: channelTable.isPrivate,
-          isArchived: channelTable.isArchived,
-          lastMessageAt: channelTable.lastMessageAt,
-          messageCount: channelTable.messageCount,
-          metadata: channelTable.metadata,
-          createdAt: channelTable.createdAt,
-          updatedAt: channelTable.updatedAt,
-          creatorName: userTable.name,
-          creatorImage: userTable.image,
-        })
-        .from(channelTable)
-        .leftJoin(userTable, eq(userTable.id, channelTable.createdBy))
-        .where(eq(channelTable.id, input.channelId))
-        .limit(1);
+      const channel = await context.db.query.channelTable.findFirst({
+        where: eq(channelTable.id, input.channelId),
+        with: {
+          creator: true,
+        },
+      });
 
       if (!channel) {
-        return null;
+        throw new Error(
+          "This channel does not exist or you do not have access to it."
+        );
       }
 
-      return {
-        ...channel,
-        metadata: toMetadata(channel.metadata),
-      };
+      return channel;
     }),
 
   list: protectedProcedure
@@ -156,8 +130,12 @@ export const channelRouter = {
       const baseConditions = and(...filters);
 
       const channels = await context.db
-        .select()
+        .select({
+          ...getTableColumns(channelTable),
+          creator: getTableColumns(userTable),
+        })
         .from(channelTable)
+        .innerJoin(userTable, eq(channelTable.createdBy, userTable.id))
         .where(baseConditions);
 
       return {
