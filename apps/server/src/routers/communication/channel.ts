@@ -15,13 +15,15 @@ import {
   CreateChannelInput,
   CreateChannelOutput,
   GetChannelInput,
-  GetChannelMembersInput,
-  GetChannelMembersOutput,
   GetChannelOutput,
   IsChannelMemberInput,
   IsChannelMemberOutput,
+  ListChannelMembersInput,
+  ListChannelMembersOutput,
   ListChannelsInput,
   ListChannelsOutput,
+  ListJoinRequestInput,
+  ListJoinRequestOutput,
   SuccessOutput,
   UpdateChannelInput,
 } from "@/lib/schemas/channel";
@@ -143,9 +145,9 @@ export const channelRouter = {
       };
     }),
 
-  getMembers: protectedProcedure
-    .input(GetChannelMembersInput)
-    .output(GetChannelMembersOutput)
+  listMembers: protectedProcedure
+    .input(ListChannelMembersInput)
+    .output(ListChannelMembersOutput)
     .handler(async ({ input, context }) => {
       const members = await context.db
         .select({
@@ -160,7 +162,7 @@ export const channelRouter = {
         .innerJoin(userTable, eq(channelMemberTable.userId, userTable.id))
         .where(eq(channelMemberTable.channelId, input.channelId));
 
-      return { members };
+      return members;
     }),
   isMember: protectedProcedure
     .input(IsChannelMemberInput)
@@ -207,5 +209,18 @@ export const channelRouter = {
         .returning();
 
       return newRequest;
+    }),
+  listJoinRequests: protectedProcedure
+    .input(ListJoinRequestInput)
+    .output(ListJoinRequestOutput)
+    .handler(async ({ context: { db }, input }) => {
+      const joinRequests = await db.query.channelJoinRequestTable.findMany({
+        where: eq(channelJoinRequestTable.channelId, input.channelId),
+        with: {
+          user: true,
+        },
+      });
+
+      return joinRequests;
     }),
 };

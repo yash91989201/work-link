@@ -109,7 +109,7 @@ export const ChannelInfoSidebar = () => {
 
           <Separator />
 
-          <JoinRequests />
+          <JoinRequests channelId={channelId} />
 
           <Separator />
 

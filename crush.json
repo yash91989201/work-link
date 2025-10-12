@@ -34,10 +34,10 @@
       },
       "command": "npx"
     },
-    "browsermcp": {
+    "chrome-devtools": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@browsermcp/mcp@latest"]
+      "args": ["-y", "chrome-devtools-mcp@latest"]
     }
   }
 }

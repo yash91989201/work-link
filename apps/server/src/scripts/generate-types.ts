@@ -7,7 +7,6 @@ const TS_EXTENSION_REGEX = /\.ts$/;
 const SCHEMA_EXPORT_REGEX =
   /export\s+(?:const|var|let)\s+(\w+(?:Schema|Input|Output))\s*=/g;
 const SIMPLE_SCHEMA_REGEX = /Schema$/;
-const NON_DB_SCHEMA_PATTERNS = /(Create|Update|Delete|Form|Insert|Select)$/;
 
 const schemasDir = path.resolve("src/lib/schemas");
 const outputFile = path.resolve("src/lib/types.ts");

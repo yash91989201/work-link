@@ -1,12 +1,14 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { queryUtils } from "@/utils/orpc";
 
 const getInitials = (name: string) => {
   return name
@@ -29,49 +31,27 @@ const formatRelativeTime = (date: Date) => {
   return date.toLocaleDateString();
 };
 
-export const JoinRequests = () => {
+export const JoinRequests = ({ channelId }: { channelId: string }) => {
+  const { data: joinRequests } = useSuspenseQuery(
+    queryUtils.communication.channel.listJoinRequests.queryOptions({
+      input: { channelId },
+    })
+  );
+
   return (
-    <Accordion type="single" collapsible defaultValue="join-requests">
+    <Accordion collapsible defaultValue="join-requests" type="single">
       <AccordionItem value="join-requests">
         <AccordionTrigger className="px-0 hover:no-underline">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
             <h4 className="font-medium text-foreground text-sm">
-              Join Requests (3)
+              Join Requests ({joinRequests.length})
             </h4>
           </div>
         </AccordionTrigger>
         <AccordionContent className="pt-0">
           <div className="space-y-2">
-            {[
-              {
-                id: "req-1",
-                name: "David Wilson",
-                email: "david@example.com",
-                avatar: "/avatars/david.jpg",
-                requestedAt: new Date("2025-01-09T14:30:00"),
-                message:
-                  "Hi! I'd like to join this channel to stay updated on product development discussions.",
-              },
-              {
-                id: "req-2",
-                name: "Lisa Anderson",
-                email: "lisa@example.com",
-                avatar: null,
-                requestedAt: new Date("2025-01-10T09:15:00"),
-                message:
-                  "Working on the UI team and would love to collaborate with you all.",
-              },
-              {
-                id: "req-3",
-                name: "James Martinez",
-                email: "james@example.com",
-                avatar: "/avatars/james.jpg",
-                requestedAt: new Date("2025-01-10T16:45:00"),
-                message:
-                  "Interested in contributing to the product roadmap discussions.",
-              },
-            ].map((request) => (
+            {joinRequests.map((request) => (
               <div
                 className="rounded-lg border border-border/50 bg-muted/20 p-3"
                 key={request.id}
@@ -79,27 +59,27 @@ export const JoinRequests = () => {
                 <div className="mb-2 flex items-start gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      alt={request.name}
-                      src={request.avatar || undefined}
+                      alt={request.user.name}
+                      src={request.user.image || undefined}
                     />
                     <AvatarFallback className="text-xs">
-                      {getInitials(request.name)}
+                      {getInitials(request.user.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex items-center gap-2">
                       <p className="font-medium text-foreground text-sm">
-                        {request.name}
+                        {request.user.name}
                       </p>
                       <span className="text-muted-foreground text-xs">
                         {formatRelativeTime(request.requestedAt)}
                       </span>
                     </div>
                     <p className="mb-2 text-muted-foreground text-xs">
-                      {request.email}
+                      {request.user.email}
                     </p>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      {request.message}
+                      {request.note}
                     </p>
                   </div>
                 </div>

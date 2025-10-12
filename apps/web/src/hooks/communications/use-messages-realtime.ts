@@ -1,4 +1,7 @@
-import type { GetChannelMessagesOutputType } from "@server/lib/types";
+import type {
+  GetChannelMessagesOutputType,
+  MessageWithSenderType,
+} from "@server/lib/types";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -9,25 +12,6 @@ interface UseMessagesRealtimeOptions {
   onNewMessage: () => void;
 }
 
-const getParentMessageInfo = async (parentMessageId: string) => {
-  const { data: parentMessage } = await supabase
-    .from("message")
-    .select(`
-      id,
-      content,
-      senderId,
-      sender:senderId (
-        name,
-        email,
-        image
-      )
-    `)
-    .eq("id", parentMessageId)
-    .single();
-
-  return parentMessage;
-};
-
 export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
   const { channelId, onNewMessage } = options;
 
@@ -37,10 +21,9 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
   useEffect(() => {
     const channel = supabase.channel(`org:channel:${channelId}`);
 
-    channel.on("broadcast", { event: "new-message" }, async (payload) => {
-      console.log(payload);
+    channel.on("broadcast", { event: "new-message" }, (payload) => {
       const payloadMessage = payload.payload
-        .message as unknown as GetChannelMessagesOutputType["messages"][number];
+        .message as unknown as MessageWithSenderType;
 
       const newMessage = {
         ...payloadMessage,
@@ -54,14 +37,6 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
         }),
       };
 
-      // Get parent message info if this is a reply
-      const messageWithParent = {
-        ...newMessage,
-        parentMessage: newMessage.parentMessageId
-          ? await getParentMessageInfo(newMessage.parentMessageId)
-          : undefined,
-      };
-
       queryClient.setQueryData(
         queryUtils.communication.messages.getChannelMessages.queryKey({
           input: {
@@ -72,7 +47,7 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
           if (!old) return;
 
           const messageExists = old.messages.some(
-            (msg) => msg.id === messageWithParent.id
+            (msg) => msg.id === newMessage.id
           );
 
           if (messageExists) {
@@ -81,7 +56,7 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
 
           return {
             ...old,
-            messages: [...(old.messages || []), messageWithParent],
+            messages: [...(old.messages || []), newMessage],
           };
         }
       );

@@ -480,6 +480,26 @@ export const messagesRouter = {
       return message;
     }),
 
+  getParent: protectedProcedure
+    .input(GetMessageInput)
+    .output(GetMessageOutput)
+    .handler(async ({ input, context: { db } }) => {
+      const parentMessage = await db.query.messageTable.findFirst({
+        where: eq(messageTable.parentMessageId, input.messageId),
+        with: {
+          sender: {
+            columns: {
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+      });
+
+      return parentMessage;
+    }),
+
   pin: protectedProcedure
     .input(PinMessageInput)
     .output(PinMessageOutput)

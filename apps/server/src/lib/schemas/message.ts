@@ -36,21 +36,21 @@ export const UpdateMessageOutput = MessageSchema.extend({
     image: z.string().optional().nullable(),
   }),
 });
-// Get channel messages input
+
+export const MessageWithSenderSchema = MessageSchema.extend({
+  sender: UserSchema.pick({
+    name: true,
+    email: true,
+    image: true,
+  }),
+});
+
 export const GetChannelMessagesInput = z.object({
   channelId: z.string(),
 });
 
 export const GetChannelMessagesOutput = z.object({
-  messages: z.array(
-    MessageSchema.extend({
-      sender: UserSchema.pick({
-        name: true,
-        email: true,
-        image: true,
-      }),
-    })
-  ),
+  messages: z.array(MessageWithSenderSchema),
 });
 
 // Get direct messages input
@@ -169,14 +169,6 @@ export const MessageOutput = z.object({
   updatedAt: z.date(),
 });
 
-// Message with sender info output schema
-export const MessageWithSenderOutput = MessageOutput.extend({
-  senderName: z.string().nullable(),
-  senderEmail: z.string().nullable(),
-  senderImage: z.string().nullable(),
-  attachments: z.array(MessageAttachmentOutput).optional(),
-});
-
 // Thread message output (simplified for thread display)
 export const ThreadMessageOutput = z.object({
   id: z.string(),
@@ -210,12 +202,6 @@ export const SearchMessageOutput = z.object({
 // Messages list output
 export const MessagesListOutput = z.object({
   messages: z.array(MessageSchema),
-});
-
-// Thread messages list output
-export const ThreadMessagesListOutput = z.object({
-  messages: z.array(ThreadMessageOutput),
-  parentMessage: MessageWithSenderOutput.optional(),
 });
 
 // Search messages list output

@@ -30,8 +30,8 @@ export function ChannelProvider({ channelId, children }: ChannelProviderProps) {
     queryUtils.communication.channel.get.queryOptions({ input: { channelId } })
   );
 
-  const { data: membersData, isLoading } = useQuery(
-    queryUtils.communication.channel.getMembers.queryOptions({
+  const { data: membersList = [], isLoading } = useQuery(
+    queryUtils.communication.channel.listMembers.queryOptions({
       input: {
         channelId,
       },
@@ -40,15 +40,13 @@ export function ChannelProvider({ channelId, children }: ChannelProviderProps) {
 
   const { onlineUserIds } = useChannelPresence(channelId);
 
-  const members = membersData?.members || [];
-
   const membersWithActiveStatus = useMemo(
     () =>
-      members.map((member) => ({
+      membersList.map((member) => ({
         ...member,
         isOnline: onlineUserIds.includes(member.id),
       })),
-    [members, onlineUserIds]
+    [membersList, onlineUserIds]
   );
 
   const value = useMemo(

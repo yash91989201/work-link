@@ -78,26 +78,23 @@ export const UpdateChannelMemberInput = z.object({
 });
 
 // Get channel members input
-export const GetChannelMembersInput = z.object({
+export const ListChannelMembersInput = z.object({
   channelId: z.string(),
   limit: z.number().min(1).max(100).default(50),
   offset: z.number().min(0).default(0),
 });
 
-export const GetChannelMembersOutput = z.object({
-  members: z.array(
-    UserSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-    }).extend({
-      role: z.string(),
-      joinedAt: z.date(),
-    })
-  ),
-});
-
+export const ListChannelMembersOutput = z.array(
+  UserSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+  }).extend({
+    role: z.string(),
+    joinedAt: z.date(),
+  })
+);
 // Join channel input
 export const JoinChannelInput = z.object({
   channelId: z.string(),
@@ -193,3 +190,13 @@ export const ChannelJoinRequestInput = z.object({
 });
 
 export const ChannelJoinRequestOutput = ChannelJoinRequestSchema;
+
+export const ListJoinRequestInput = z.object({
+  channelId: z.string(),
+});
+
+export const ListJoinRequestOutput = z.array(
+  ChannelJoinRequestSchema.extend({
+    user: UserSchema,
+  })
+);
