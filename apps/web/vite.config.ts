@@ -24,7 +24,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          react: ["react", "react-dom", "scheduler", "react/jsx-runtime"],
+          react: ["react", "react-dom"],
           tanstack: [
             "@tanstack/react-query",
             "@tanstack/react-router",
