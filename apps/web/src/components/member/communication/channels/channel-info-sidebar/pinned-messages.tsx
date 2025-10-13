@@ -10,7 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/lib/supabase";
+import { getRealtimeChannel } from "@/hooks/communications/use-messages-realtime";
+import { usePinnedMessagesRealtime } from "@/hooks/communications/use-pinned-messages";
 import { cn } from "@/lib/utils";
 import { orpcClient, queryClient, queryUtils } from "@/utils/orpc";
 
@@ -43,6 +44,7 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
   const [_isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const channel = getRealtimeChannel(channelId);
   const { data: pinnedMessages } = useSuspenseQuery(
     queryUtils.communication.messages.getPinnedMessages.queryOptions({
       input: {
@@ -51,11 +53,25 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
     })
   );
 
+  usePinnedMessagesRealtime({ channelId });
+
   const {
     mutateAsync: unPinMessage,
     isPending: isUnPinningMessage,
     variables,
-  } = useMutation(queryUtils.communication.messages.unPin.mutationOptions({}));
+  } = useMutation(
+    queryUtils.communication.messages.unPin.mutationOptions({
+      onSuccess: async (_, variableData) => {
+        await channel.send({
+          type: "broadcast",
+          event: "message-unpinned",
+          payload: {
+            messageId: variableData.messageId,
+          },
+        });
+      },
+    })
+  );
 
   useEffect(() => {
     if (showSearch) {
@@ -71,8 +87,6 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
   }, [accordionValue, showSearch]);
 
   useEffect(() => {
-    const channel = supabase.channel(`org:channel:${channelId}`);
-
     channel.on("broadcast", { event: "message-pinned" }, async (payload) => {
       const { messageId } = payload.payload as unknown as {
         messageId: string;
