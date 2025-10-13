@@ -16,7 +16,7 @@
     "supabase:start": "bunx supabase start",
     "supabase:stop": "bunx supabase stop",
     "watch:types": "bun run ./src/scripts/generate-types.ts --watch",
-    "generate:supabase-types": "bunx supabase gen types typescript --project-id 'efwcqjpambjkeoirvwai' --schema public > ./src/lib/supabase/types.ts"
+    "generate:supabase-types": "bunx supabase gen types typescript --project-id 'uvdthcpmeostpydxrpza' --schema public > ./src/lib/supabase/types.ts"
   },
   "dependencies": {
     "@better-auth/expo": "^1.3.27",
