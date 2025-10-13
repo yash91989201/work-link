@@ -78,14 +78,13 @@ export type Database = {
           id: string
           is_public: boolean
           message_id: string
-          metadata: Json | null
           mime_type: string
           original_name: string
-          supabase_bucket: string
-          supabase_storage_path: string
-          thumbnail_path: string | null
+          thumbnail_url: string | null
           type: Database["public"]["Enums"]["attachment_type"]
+          updated_at: string
           uploaded_by: string
+          url: string | null
         }
         Insert: {
           created_at: string
@@ -94,14 +93,13 @@ export type Database = {
           id: string
           is_public?: boolean
           message_id: string
-          metadata?: Json | null
           mime_type: string
           original_name: string
-          supabase_bucket: string
-          supabase_storage_path: string
-          thumbnail_path?: string | null
+          thumbnail_url?: string | null
           type: Database["public"]["Enums"]["attachment_type"]
+          updated_at: string
           uploaded_by: string
+          url?: string | null
         }
         Update: {
           created_at?: string
@@ -110,14 +108,13 @@ export type Database = {
           id?: string
           is_public?: boolean
           message_id?: string
-          metadata?: Json | null
           mime_type?: string
           original_name?: string
-          supabase_bucket?: string
-          supabase_storage_path?: string
-          thumbnail_path?: string | null
+          thumbnail_url?: string | null
           type?: Database["public"]["Enums"]["attachment_type"]
+          updated_at?: string
           uploaded_by?: string
+          url?: string | null
         }
         Relationships: [
           {
@@ -285,7 +282,6 @@ export type Database = {
           is_private: boolean
           last_message_at: string | null
           message_count: number
-          metadata: Json | null
           name: string
           organization_id: string
           team_id: string | null
@@ -301,7 +297,6 @@ export type Database = {
           is_private?: boolean
           last_message_at?: string | null
           message_count?: number
-          metadata?: Json | null
           name: string
           organization_id: string
           team_id?: string | null
@@ -317,7 +312,6 @@ export type Database = {
           is_private?: boolean
           last_message_at?: string | null
           message_count?: number
-          metadata?: Json | null
           name?: string
           organization_id?: string
           team_id?: string | null
@@ -344,6 +338,67 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "team"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channel_join_request: {
+        Row: {
+          channel_id: string
+          created_at: string
+          id: string
+          note: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["join_request_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at: string
+          id: string
+          note?: string | null
+          requested_at: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["join_request_status"]
+          updated_at: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["join_request_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_join_request_channel_id_channel_id_fk"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_join_request_reviewed_by_user_id_fk"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_join_request_user_id_user_id_fk"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
             referencedColumns: ["id"]
           },
         ]
@@ -503,9 +558,11 @@ export type Database = {
           id: string
           is_deleted: boolean
           is_edited: boolean
+          is_pinned: boolean
           mentions: Json | null
-          metadata: Json | null
           parent_message_id: string | null
+          pinned_at: string | null
+          pinned_by: string | null
           reactions: Json | null
           receiver_id: string | null
           sender_id: string
@@ -522,9 +579,11 @@ export type Database = {
           id: string
           is_deleted?: boolean
           is_edited?: boolean
+          is_pinned?: boolean
           mentions?: Json | null
-          metadata?: Json | null
           parent_message_id?: string | null
+          pinned_at?: string | null
+          pinned_by?: string | null
           reactions?: Json | null
           receiver_id?: string | null
           sender_id: string
@@ -541,9 +600,11 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           is_edited?: boolean
+          is_pinned?: boolean
           mentions?: Json | null
-          metadata?: Json | null
           parent_message_id?: string | null
+          pinned_at?: string | null
+          pinned_by?: string | null
           reactions?: Json | null
           receiver_id?: string | null
           sender_id?: string
@@ -557,6 +618,13 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "channel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_pinned_by_user_id_fk"
+            columns: ["pinned_by"]
+            isOneToOne: false
+            referencedRelation: "user"
             referencedColumns: ["id"]
           },
           {
@@ -842,51 +910,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_presence: {
-        Row: {
-          current_channel_id: string | null
-          custom_status: string | null
-          last_seen: string
-          status: string
-          status_emoji: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          current_channel_id?: string | null
-          custom_status?: string | null
-          last_seen: string
-          status?: string
-          status_emoji?: string | null
-          updated_at: string
-          user_id: string
-        }
-        Update: {
-          current_channel_id?: string | null
-          custom_status?: string | null
-          last_seen?: string
-          status?: string
-          status_emoji?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_presence_current_channel_id_channel_id_fk"
-            columns: ["current_channel_id"]
-            isOneToOne: false
-            referencedRelation: "channel"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_presence_user_id_user_id_fk"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       verification: {
         Row: {
           created_at: string
@@ -954,15 +977,14 @@ export type Database = {
         | "biometric"
         | "rfid"
         | "auto"
-      message_type: "text" | "file" | "image" | "system" | "reply"
+      join_request_status: "pending" | "approved" | "rejected"
+      message_type: "text" | "file" | "image" | "video" | "reply"
       notification_status: "unread" | "read" | "dismissed"
       notification_type:
         | "message"
         | "mention"
         | "channel_invite"
         | "direct_message"
-        | "announcement"
-        | "system"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1126,15 +1148,14 @@ export const Constants = {
         "rfid",
         "auto",
       ],
-      message_type: ["text", "file", "image", "system", "reply"],
+      join_request_status: ["pending", "approved", "rejected"],
+      message_type: ["text", "file", "image", "video", "reply"],
       notification_status: ["unread", "read", "dismissed"],
       notification_type: [
         "message",
         "mention",
         "channel_invite",
         "direct_message",
-        "announcement",
-        "system",
       ],
     },
   },
