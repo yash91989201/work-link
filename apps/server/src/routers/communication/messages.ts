@@ -8,7 +8,6 @@ import {
 import { protectedProcedure } from "@/lib/orpc";
 import { SuccessOutput } from "@/lib/schemas/channel";
 import {
-  AddReactionInput,
   CreateMessageInput,
   CreateMessageOutput,
   DeleteMessageInput,
@@ -21,7 +20,6 @@ import {
   GetUnreadCountInput,
   PinMessageInput,
   PinMessageOutput,
-  RemoveReactionInput,
   SearchMessageOutput,
   SearchMessagesInput,
   SearchUsersInput,
@@ -32,7 +30,6 @@ import {
   UpdateMessageInput,
   UpdateMessageOutput,
 } from "@/lib/schemas/message";
-import { supabase } from "@/lib/supabase";
 
 export const messagesRouter = {
   searchUsers: protectedProcedure
@@ -98,25 +95,6 @@ export const messagesRouter = {
           await db.insert(notificationTable).values(mentionNotifications);
         }
 
-        const channel = supabase.channel(`org:channel:${input.channelId}`);
-
-        channel.subscribe(async (status) => {
-          if (status === "SUBSCRIBED") {
-            await channel.send({
-              type: "broadcast",
-              event: "new-message",
-              payload: {
-                message: {
-                  ...newMessage,
-                  sender: user,
-                },
-              },
-            });
-
-            supabase.removeChannel(channel);
-          }
-        });
-
         return newMessage;
       }
     ),
@@ -141,23 +119,6 @@ export const messagesRouter = {
       }
 
       const updatedMessage = updatedMessages[0];
-
-      const channelName = `org:channel:${updatedMessage.channelId}`;
-      const channel = supabase.channel(channelName);
-
-      channel.subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.send({
-            type: "broadcast",
-            event: "message-updated",
-            payload: {
-              message: updatedMessage,
-            },
-          });
-
-          supabase.removeChannel(channel);
-        }
-      });
 
       return {
         ...updatedMessage,
@@ -209,7 +170,7 @@ export const messagesRouter = {
     .input(DeleteMessageInput)
     .output(SuccessOutput)
     .handler(async ({ input, context }) => {
-      const [deletedMessage] = await context.db
+      await context.db
         .update(messageTable)
         .set({
           isDeleted: true,
@@ -218,170 +179,9 @@ export const messagesRouter = {
         .where(eq(messageTable.id, input.messageId))
         .returning();
 
-      const channelName = `org:channel:${deletedMessage.channelId}`;
-      const channel = supabase.channel(channelName);
-
-      channel.subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.send({
-            type: "broadcast",
-            event: "message-deleted",
-            payload: {
-              messageId: input.messageId,
-            },
-          });
-
-          supabase.removeChannel(channel);
-        }
-      });
-
       return {
         success: true,
         message: "Message deleted successfully.",
-      };
-    }),
-
-  addReaction: protectedProcedure
-    .input(AddReactionInput)
-    .output(SuccessOutput)
-    .handler(async ({ input, context }) => {
-      const existingMessage = await context.db.query.messageTable.findFirst({
-        where: eq(messageTable.id, input.messageId),
-        columns: {
-          reactions: true,
-        },
-      });
-
-      if (!existingMessage) {
-        return {
-          success: false,
-          message: "Message not found.",
-        };
-      }
-
-      const existingReactions =
-        (existingMessage.reactions as { reaction: string; count: number }[]) ??
-        [];
-
-      const updatedReactions = [...existingReactions];
-      const existingReactionIndex = updatedReactions.findIndex(
-        (r) => r.reaction === input.emoji
-      );
-
-      if (existingReactionIndex >= 0) {
-        updatedReactions[existingReactionIndex] = {
-          ...updatedReactions[existingReactionIndex],
-          count: updatedReactions[existingReactionIndex].count + 1,
-        };
-      } else {
-        updatedReactions.push({
-          reaction: input.emoji,
-          count: 1,
-        });
-      }
-
-      const [updatedMessage] = await context.db
-        .update(messageTable)
-        .set({
-          reactions: updatedReactions,
-        })
-        .where(eq(messageTable.id, input.messageId))
-        .returning();
-
-      // Broadcast to realtime channel
-      const channel = supabase.channel(
-        `org:channel:${updatedMessage.channelId}`
-      );
-
-      channel.subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.send({
-            type: "broadcast",
-            event: "message-reaction-added",
-            payload: {
-              messageId: input.messageId,
-              reactions: updatedReactions,
-            },
-          });
-
-          supabase.removeChannel(channel);
-        }
-      });
-
-      return {
-        success: true,
-        message: "Reaction added successfully.",
-      };
-    }),
-
-  removeReaction: protectedProcedure
-    .input(RemoveReactionInput)
-    .output(SuccessOutput)
-    .handler(async ({ input, context }) => {
-      const existingMessage = await context.db.query.messageTable.findFirst({
-        where: eq(messageTable.id, input.messageId),
-        columns: {
-          reactions: true,
-        },
-      });
-
-      if (!existingMessage) {
-        return {
-          success: false,
-          message: "Message not found.",
-        };
-      }
-
-      const existingReactions =
-        (existingMessage.reactions as { reaction: string; count: number }[]) ??
-        [];
-
-      const updatedReactions = [...existingReactions];
-      const existingReactionIndex = updatedReactions.findIndex(
-        (r) => r.reaction === input.emoji
-      );
-
-      if (existingReactionIndex >= 0) {
-        if (updatedReactions[existingReactionIndex].count > 1) {
-          updatedReactions[existingReactionIndex] = {
-            ...updatedReactions[existingReactionIndex],
-            count: updatedReactions[existingReactionIndex].count - 1,
-          };
-        } else {
-          updatedReactions.splice(existingReactionIndex, 1);
-        }
-      }
-
-      const [updatedMessage] = await context.db
-        .update(messageTable)
-        .set({
-          reactions: updatedReactions,
-        })
-        .where(eq(messageTable.id, input.messageId))
-        .returning();
-
-      // Broadcast to realtime channel
-      const channelName = `org:channel:${updatedMessage.channelId}`;
-      const channel = supabase.channel(channelName);
-
-      channel.subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.send({
-            type: "broadcast",
-            event: "message-reaction-removed",
-            payload: {
-              messageId: input.messageId,
-              reactions: updatedReactions,
-            },
-          });
-
-          supabase.removeChannel(channel);
-        }
-      });
-
-      return {
-        success: true,
-        message: "Reaction removed successfully.",
       };
     }),
 
@@ -504,7 +304,7 @@ export const messagesRouter = {
     .input(PinMessageInput)
     .output(PinMessageOutput)
     .handler(async ({ context, input }) => {
-      const [updatedMessage] = await context.db
+      await context.db
         .update(messageTable)
         .set({
           isPinned: true,
@@ -513,26 +313,6 @@ export const messagesRouter = {
         })
         .where(eq(messageTable.id, input.messageId))
         .returning();
-
-      // Broadcast to realtime channel
-      const channelName = `org:channel:${updatedMessage.channelId}`;
-      const channel = supabase.channel(channelName);
-
-      channel.subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.send({
-            type: "broadcast",
-            event: "message-pinned",
-            payload: {
-              messageId: input.messageId,
-              isPinned: true,
-              pinnedAt: new Date(),
-            },
-          });
-
-          supabase.removeChannel(channel);
-        }
-      });
 
       return {
         success: true,
@@ -543,9 +323,7 @@ export const messagesRouter = {
     .input(UnPinMessageInput)
     .output(UnPinMessageOutput)
     .handler(async ({ context, input }) => {
-      // Get the message to get channel info for broadcasting
-
-      const [updatedMessage] = await context.db
+      await context.db
         .update(messageTable)
         .set({
           isPinned: false,
@@ -554,26 +332,6 @@ export const messagesRouter = {
         })
         .where(eq(messageTable.id, input.messageId))
         .returning();
-
-      // Broadcast to realtime channel
-      const channelName = `org:channel:${updatedMessage.channelId}`;
-      const channel = supabase.channel(channelName);
-
-      channel.subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.send({
-            type: "broadcast",
-            event: "message-unpinned",
-            payload: {
-              messageId: input.messageId,
-              isPinned: false,
-              pinnedAt: null,
-            },
-          });
-
-          supabase.removeChannel(channel);
-        }
-      });
 
       return {
         success: true,

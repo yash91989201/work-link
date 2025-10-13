@@ -24,7 +24,7 @@ export function useMessages(channelId: string) {
     channelId,
   });
 
-  const { isConnected } = useMessagesRealtime({
+  useMessagesRealtime({
     channelId,
     onNewMessage: useCallback(() => {
       setTimeout(() => scrollToBottom(), 50);
@@ -35,7 +35,6 @@ export function useMessages(channelId: string) {
     messages,
     refetch,
     isFetchingChannelMessage,
-    isConnected,
     messagesEndRef,
     scrollToBottom,
     ...mutations,

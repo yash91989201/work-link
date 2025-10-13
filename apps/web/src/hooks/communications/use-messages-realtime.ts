@@ -3,7 +3,7 @@ import type {
   MessageWithSenderType,
 } from "@server/lib/types";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { queryClient, queryUtils } from "@/utils/orpc";
 
@@ -12,14 +12,34 @@ interface UseMessagesRealtimeOptions {
   onNewMessage: () => void;
 }
 
+export const channelInstances = new Map<string, RealtimeChannel>();
+
+export function getRealtimeChannel(channelId: string): RealtimeChannel {
+  const existingChannel = channelInstances.get(channelId);
+  if (existingChannel) {
+    return existingChannel;
+  }
+
+  const channel = supabase.channel(`org:channel:${channelId}`, {
+    config: {
+      broadcast: {
+        ack: false,
+        self: false,
+      },
+    },
+  });
+
+  channelInstances.set(channelId, channel);
+
+  return channel;
+}
+
 export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
   const { channelId, onNewMessage } = options;
-
-  const [isConnected, setIsConnected] = useState(false);
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  const subscribedRef = useRef(false);
 
   useEffect(() => {
-    const channel = supabase.channel(`org:channel:${channelId}`);
+    const channel = getRealtimeChannel(channelId);
 
     channel.on("broadcast", { event: "new-message" }, (payload) => {
       const payloadMessage = payload.payload
@@ -64,7 +84,6 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
       onNewMessage?.();
     });
 
-    // Handle message updates
     channel.on("broadcast", { event: "message-updated" }, (payload) => {
       const payloadMessage = payload.payload
         .message as unknown as GetChannelMessagesOutputType["messages"][number];
@@ -129,10 +148,8 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
     });
 
     channel.on("broadcast", { event: "message-pinned" }, (payload) => {
-      const { messageId, isPinned, pinnedAt } = payload.payload as {
+      const { messageId } = payload.payload as {
         messageId: string;
-        isPinned: boolean;
-        pinnedAt: string;
       };
 
       queryClient.setQueryData(
@@ -143,18 +160,15 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
         }),
         (old) => {
           if (!old) return;
-
-          const updatedMessages = old.messages.map((message) => {
-            if (message.id === messageId) {
-              return {
-                ...message,
-                isPinned,
-                pinnedAt: new Date(pinnedAt),
-              };
-            }
-            return message;
-          });
-
+          const updatedMessages = old.messages.map((message) =>
+            message.id === messageId
+              ? {
+                  ...message,
+                  isPinned: true,
+                  pinnedAt: new Date(),
+                }
+              : message
+          );
           return {
             ...old,
             messages: updatedMessages,
@@ -164,10 +178,8 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
     });
 
     channel.on("broadcast", { event: "message-unpinned" }, (payload) => {
-      const { messageId, isPinned, pinnedAt } = payload.payload as {
+      const { messageId } = payload.payload as {
         messageId: string;
-        isPinned: boolean;
-        pinnedAt: null;
       };
 
       queryClient.setQueryData(
@@ -178,18 +190,15 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
         }),
         (old) => {
           if (!old) return;
-
-          const updatedMessages = old.messages.map((message) => {
-            if (message.id === messageId) {
-              return {
-                ...message,
-                isPinned,
-                pinnedAt,
-              };
-            }
-            return message;
-          });
-
+          const updatedMessages = old.messages.map((message) =>
+            message.id === messageId
+              ? {
+                  ...message,
+                  isPinned: false,
+                  pinnedAt: null,
+                }
+              : message
+          );
           return {
             ...old,
             messages: updatedMessages,
@@ -198,91 +207,68 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
       );
     });
 
-    channel.on("broadcast", { event: "message-reaction-added" }, (payload) => {
-      const { messageId, reactions } = payload.payload as {
-        messageId: string;
-        reactions: { reaction: string; count: number }[];
-      };
-
-      queryClient.setQueryData(
-        queryUtils.communication.messages.getChannelMessages.queryKey({
-          input: {
-            channelId,
-          },
-        }),
-        (old) => {
-          if (!old) return;
-
-          const updatedMessages = old.messages.map((message) => {
-            if (message.id === messageId) {
-              // Only update if reactions are different
-              if (
-                JSON.stringify(message.reactions) !== JSON.stringify(reactions)
-              ) {
-                return { ...message, reactions };
-              }
-              return message;
-            }
-            return message;
-          });
-
-          return {
-            ...old,
-            messages: updatedMessages,
-          };
-        }
-      );
-    });
-
-    channel.on(
-      "broadcast",
-      { event: "message-reaction-removed" },
-      (payload) => {
-        const { messageId, reactions } = payload.payload as {
-          messageId: string;
-          reactions: { reaction: string; count: number }[];
-        };
-
-        queryClient.setQueryData(
-          queryUtils.communication.messages.getChannelMessages.queryKey({
-            input: {
-              channelId,
-            },
-          }),
-          (old) => {
-            if (!old) return;
-
-            const updatedMessages = old.messages.map((message) =>
-              message.id === messageId ? { ...message, reactions } : message
-            );
-
-            return {
-              ...old,
-              messages: updatedMessages,
-            };
-          }
-        );
-      }
-    );
-
-    channel.subscribe((status) => {
-      console.log(status);
-      setIsConnected(status === "SUBSCRIBED");
-    });
-
-    channelRef.current = channel;
+    // Only subscribe if not already subscribed
+    if (!subscribedRef.current) {
+      channel.subscribe();
+      subscribedRef.current = true;
+    }
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-      setIsConnected(false);
+      // Don't unsubscribe - keep channel alive for broadcasts
+      // Channel will be cleaned up when component unmounts permanently
     };
   }, [channelId, onNewMessage]);
 
-  return {
-    isConnected,
-    channel: channelRef.current,
-  };
+  useEffect(() => {
+    const channel = supabase.channel(
+      `org:channel:${channelId}:pinned-messages`
+    );
+
+    channel
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "message",
+          filter: `channel_id=eq.${channelId}`,
+        },
+        (payload) => {
+          if (
+            payload.eventType === "UPDATE" &&
+            payload.new.is_pinned !== payload.old.is_pinned
+          ) {
+            queryClient.setQueryData(
+              queryUtils.communication.messages.getChannelMessages.queryKey({
+                input: {
+                  channelId,
+                },
+              }),
+              (old) => {
+                if (!old) return old;
+
+                const updatedmessages = old.messages.map((message) => {
+                  if (message.id === payload.new.id) {
+                    return {
+                      ...message,
+                      isPinned: payload.new.is_pinned,
+                    };
+                  }
+                  return message;
+                });
+
+                return {
+                  messages: updatedmessages,
+                };
+              }
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [channelId]);
 }
