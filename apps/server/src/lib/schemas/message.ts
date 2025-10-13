@@ -8,7 +8,7 @@ export const MessageTypeSchema = z.enum(["text", "file", "image", "reply"]);
 // Create message input
 export const CreateMessageInput = z
   .object({
-    channelId: z.string().optional(),
+    channelId: z.string(),
     receiverId: z.string().optional(),
     content: z.string().max(10_000).optional(),
     type: MessageTypeSchema.default("text"),
