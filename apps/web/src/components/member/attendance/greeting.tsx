@@ -6,16 +6,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuthedSession } from "@/hooks/use-authed-session";
 import { useCurrentTime } from "@/hooks/use-current-time";
 
 export function Greeting() {
+  const { user } = useAuthedSession();
   const { formattedTime, timeOfDay, formattedDate } = useCurrentTime();
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-3xl">
-          {timeOfDay.greeting}, Alex! 👋
+          {timeOfDay.greeting}, {user.name}! 👋
         </CardTitle>
         <CardDescription>Welcome back to work</CardDescription>
       </CardHeader>

@@ -1,8 +1,7 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { CheckCircle, Clock, Loader2, LogOut } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { Clock, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,13 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { queryUtils } from "@/utils/orpc";
 
 const formatDateTime = (value: Date | string | null | undefined) => {
-  if (!value) return null;
+  if (!value) return "N/A";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
+  if (Number.isNaN(date.getTime())) return "N/A";
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
@@ -28,7 +28,7 @@ const calculateWorkDuration = (
   checkIn: Date | string | null | undefined,
   checkOut: Date | string | null | undefined
 ) => {
-  if (!checkIn) return null;
+  if (!checkIn) return "N/A";
   const start = new Date(checkIn);
   const end = checkOut ? new Date(checkOut) : new Date();
   const diff = end.getTime() - start.getTime();
@@ -38,11 +38,9 @@ const calculateWorkDuration = (
 };
 
 export const MarkAttendance = () => {
-  const {
-    data: attendance,
-    isPending: isAttendanceLoading,
-    refetch,
-  } = useQuery(queryUtils.member.getStatus.queryOptions({}));
+  const { data: attendance, refetch } = useSuspenseQuery(
+    queryUtils.member.getStatus.queryOptions({})
+  );
 
   const { mutateAsync: punchIn, isPending: isPunchingIn } = useMutation(
     queryUtils.member.punchIn.mutationOptions({
@@ -64,6 +62,18 @@ export const MarkAttendance = () => {
     })
   );
 
+  const [_, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000 * 60);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
   const hasCheckedIn = !!attendance?.checkInTime;
   const hasCheckedOut = !!attendance?.checkOutTime;
   const isActionPending = isPunchingIn || isPunchingOut;
@@ -81,177 +91,104 @@ export const MarkAttendance = () => {
         <CardTitle className="font-semibold text-lg">
           Today's Attendance
         </CardTitle>
-        <CardDescription>
-          Mark your check-in and check-out for the day
-        </CardDescription>
+        <CardDescription>Mark your attendance for the day.</CardDescription>
       </CardHeader>
 
       <CardContent>
-        <AnimatePresence mode="popLayout">
-          {isAttendanceLoading ? (
-            <motion.div
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col"
-              exit={{ opacity: 0, y: -10 }}
-              initial={{ opacity: 0, y: 10 }}
-              key="loading"
-              transition={{ duration: 0.25 }}
-            >
-              <Spinner className="size-6" />
-              <p className="mt-2 text-muted-foreground text-sm">
-                Fetching your attendance status…
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              animate={{ opacity: 1 }}
-              className="space-y-6"
-              exit={{ opacity: 0 }}
-              initial={{ opacity: 0 }}
-              key="attendance"
-              layout
-              transition={{ duration: 0.3 }}
-            >
-              {/* Not Checked In */}
-              {!hasCheckedIn && (
-                <motion.div
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-3"
-                  exit={{ opacity: 0, y: -20 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  key="punchIn"
-                  layout
-                  transition={{ duration: 0.3 }}
-                >
-                  <Button
-                    className="h-12 min-w-44 bg-green-600 hover:bg-green-700"
-                    disabled={isActionPending}
-                    onClick={() => punchIn({})}
-                    size="lg"
-                  >
-                    {isPunchingIn ? (
-                      <>
-                        <Spinner className="mr-2" />
-                        <span>Marking attendance…</span>
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="mr-2 h-4 w-4" />
-                        Punch In
-                      </>
-                    )}
-                  </Button>
-                  <p className="text-muted-foreground text-sm">
-                    Click “Punch In” to start your workday.
-                  </p>
-                </motion.div>
-              )}
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-muted-foreground text-sm">Check In</p>
+              <p className="font-semibold">{formattedCheckIn}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-sm">Check Out</p>
+              <p className="font-semibold">{formattedCheckOut}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-sm">Work Hours</p>
+              <p className="font-semibold">{totalWorkHours}</p>
+            </div>
+          </div>
 
-              {/* Checked In */}
-              {hasCheckedIn && !hasCheckedOut && (
-                <motion.div
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
-                  exit={{ opacity: 0, y: -10 }}
-                  initial={{ opacity: 0, y: 10 }}
-                  key="punchOut"
-                  layout
-                >
-                  <div className="flex flex-col items-start gap-2">
-                    <Badge
-                      className="flex items-center gap-1 bg-green-100 text-green-700"
-                      variant="secondary"
-                    >
-                      <CheckCircle className="h-3.5 w-3.5" />
-                      Checked In
-                    </Badge>
-                    <p className="font-medium text-green-700 text-sm">
-                      {formattedCheckIn}
-                    </p>
-                    {totalWorkHours && (
-                      <p className="text-muted-foreground text-xs">
-                        Working for {totalWorkHours}
-                      </p>
-                    )}
-                  </div>
+          <div className="flex justify-start gap-4">
+            {!hasCheckedIn && (
+              <Button
+                className="bg-green-600 hover:bg-green-700"
+                disabled={isActionPending}
+                onClick={() => punchIn({})}
+                size="lg"
+              >
+                {isPunchingIn ? (
+                  <>
+                    <Spinner className="mr-2" />
+                    <span>Punching In…</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Punch In
+                  </>
+                )}
+              </Button>
+            )}
 
-                  <div className="flex justify-start">
-                    <Button
-                      className="bg-red-600 hover:bg-red-700"
-                      disabled={isActionPending}
-                      onClick={() => punchOut({})}
-                      size="lg"
-                    >
-                      {isPunchingOut ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Punching Out…
-                        </>
-                      ) : (
-                        <>
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Punch Out
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
+            {hasCheckedIn && !hasCheckedOut && (
+              <Button
+                className="bg-red-600 hover:bg-red-700"
+                disabled={isActionPending}
+                onClick={() => punchOut({})}
+                size="lg"
+              >
+                {isPunchingOut ? (
+                  <>
+                    <Spinner className="mr-2 h-4 w-4 animate-spin" />
+                    Punching Out…
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Punch Out
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
-              {/* Checked Out Summary */}
-              {hasCheckedIn && hasCheckedOut && (
-                <motion.div
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="space-y-4"
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  key="summary"
-                  layout
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div className="flex items-center gap-3 rounded-lg border bg-green-50 p-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-200">
-                        <CheckCircle className="h-4 w-4 text-green-700" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-green-900">Check In</p>
-                        <p className="text-green-700 text-sm">
-                          {formattedCheckIn}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-lg border bg-blue-50 p-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-200">
-                        <LogOut className="h-4 w-4 text-blue-700" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-blue-900">Check Out</p>
-                        <p className="text-blue-700 text-sm">
-                          {formattedCheckOut}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <motion.div
-                    className="flex items-center gap-3 rounded-lg border bg-muted/40 p-3"
-                    layout
-                  >
-                    <CheckCircle className="h-5 w-5 text-gray-600" />
-                    <div>
-                      <p className="font-medium">Attendance complete</p>
-                      <p className="text-muted-foreground text-sm">
-                        Total work hours: {totalWorkHours}
-                      </p>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+export const MarkAttendanceSkeleton = () => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-semibold text-lg">
+          Today's Attendance
+        </CardTitle>
+        <CardDescription>Mark your attendance for the day.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-muted-foreground text-sm">Check In</p>
+              <Skeleton className="mx-auto h-6 w-24" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-sm">Check Out</p>
+              <Skeleton className="mx-auto h-6 w-24" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-sm">Work Hours</p>
+              <Skeleton className="mx-auto h-6 w-24" />
+            </div>
+          </div>
+          <div className="flex justify-start">
+            <Skeleton className="h-12 w-44" />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
