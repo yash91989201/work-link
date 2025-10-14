@@ -1,4 +1,8 @@
-import { type Icon, IconCirclePlus } from "@tabler/icons-react";
+import {
+  IconBuildingBroadcastTower,
+  IconCalendarEvent,
+  IconCirclePlus,
+} from "@tabler/icons-react";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   SidebarGroup,
@@ -8,15 +12,20 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon?: Icon;
-  }[];
-}) {
+const navItems = [
+  {
+    title: "Communication",
+    url: "/org/$slug/communication/channels",
+    icon: IconBuildingBroadcastTower,
+  },
+  {
+    title: "Attendance",
+    url: "/org/$slug/attendance",
+    icon: IconCalendarEvent,
+  },
+];
+
+export function NavMain() {
   const navigate = useNavigate();
 
   const { slug } = useParams({
@@ -38,7 +47,7 @@ export function NavMain({
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
-          {items.map((item) => (
+          {navItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 onClick={() => {

@@ -1,10 +1,16 @@
+import { Filter, MailPlus, Search } from "lucide-react";
 import { useState } from "react";
-import { InvitationTable } from "./invitation-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Filter, MailPlus } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { InvitationTable } from "./invitation-table";
 
 interface Invitation {
   id: string;
@@ -58,7 +64,9 @@ export const InvitationManagement = () => {
       invitation.inviterName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const pendingCount = invitations.filter(inv => inv.status === "pending").length;
+  const pendingCount = invitations.filter(
+    (inv) => inv.status === "pending"
+  ).length;
 
   return (
     <div className="space-y-4">
@@ -72,7 +80,9 @@ export const InvitationManagement = () => {
                   <Badge variant="secondary">{pendingCount} pending</Badge>
                 )}
               </CardTitle>
-              <CardDescription>Manage organization invitations and track their status</CardDescription>
+              <CardDescription>
+                Manage organization invitations and track their status
+              </CardDescription>
             </div>
             <Button>
               <MailPlus className="mr-2 h-4 w-4" />
@@ -81,17 +91,17 @@ export const InvitationManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
               <Input
+                className="pl-8"
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search invitations..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
               />
             </div>
-            <Button variant="outline" size="icon">
+            <Button size="icon" variant="outline">
               <Filter className="h-4 w-4" />
             </Button>
           </div>
@@ -102,3 +112,4 @@ export const InvitationManagement = () => {
     </div>
   );
 };
+

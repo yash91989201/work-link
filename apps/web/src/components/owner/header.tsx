@@ -1,13 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-  Building2,
-  ChevronDown,
-  Home,
-  MailOpen,
-  Menu,
-  Settings,
-  Users,
-} from "lucide-react";
+import { Building2, Home, MailOpen, Menu, Settings, Users } from "lucide-react";
 import { Suspense } from "react";
 import { Image } from "@/components/shared/image";
 import { ModeToggle } from "@/components/shared/mode-toggle";
@@ -169,27 +161,6 @@ export function OwnerHeader({
           </div>
 
           <nav className="flex items-center space-x-2">
-            {/* Quick Actions - Desktop */}
-            <div className="hidden items-center space-x-1 md:flex">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="outline">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Quick Actions
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {quickActions.map(({ label, icon: Icon, action }) => (
-                    <DropdownMenuItem key={label} onClick={action}>
-                      <Icon className="mr-2 h-4 w-4" />
-                      {label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
             {/* Organization Button */}
             <Suspense fallback={<MyOrgButtonSkeleton />}>
               <MyOrgButton />

@@ -11,7 +11,6 @@ import {
   Mail,
   MessageSquare,
   MoreHorizontal,
-  Plus,
   RefreshCw,
   Search,
   Settings,
@@ -23,7 +22,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
-import { CreateTeamDialog } from "@/components/admin/create-team-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
