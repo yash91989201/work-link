@@ -3,6 +3,7 @@ import {
   createSelectSchema,
   createUpdateSchema,
 } from "drizzle-zod";
+import z from "zod";
 import { attendanceTable } from "@/db/schema";
 import {
   account,
@@ -26,7 +27,9 @@ import {
 } from "@/db/schema/communication";
 
 export const AccountSchema = createSelectSchema(account);
-export const UserSchema = createSelectSchema(user);
+export const UserSchema = createSelectSchema(user, {
+  image: z.url().nullable().optional(),
+});
 export const SessionSchema = createSelectSchema(session);
 export const InvitationSchema = createSelectSchema(invitation);
 export const MemberSchema = createSelectSchema(member);
@@ -80,6 +83,12 @@ export const NotificationInsertSchema = createInsertSchema(notificationTable);
 export const MessageReadInsertSchema = createInsertSchema(messageReadTable);
 
 export const ChannelTypeSchema = ChannelSchema.shape.type;
-export const ChannelJoinRequestSchema = createSelectSchema(channelJoinRequestTable);
-export const ChannelJoinRequestUpdateSchema = createUpdateSchema(channelJoinRequestTable);
-export const ChannelJoinRequestInsertSchema = createInsertSchema(channelJoinRequestTable);
+export const ChannelJoinRequestSchema = createSelectSchema(
+  channelJoinRequestTable
+);
+export const ChannelJoinRequestUpdateSchema = createUpdateSchema(
+  channelJoinRequestTable
+);
+export const ChannelJoinRequestInsertSchema = createInsertSchema(
+  channelJoinRequestTable
+);

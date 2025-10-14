@@ -6,7 +6,7 @@ interface MessageHeaderProps {
   sender: {
     name: string;
     email: string;
-    image: string | null;
+    image?: string | null | undefined;
   };
   createdAt: Date;
   isEdited?: boolean;

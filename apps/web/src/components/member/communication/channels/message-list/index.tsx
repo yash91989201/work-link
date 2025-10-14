@@ -26,18 +26,19 @@ const MessageSkeleton = () => (
   </div>
 );
 
-const LoadingSkeleton = () => (
-  <div className="space-y-1 py-4">
-    {Array.from({ length: 8 }).map((_, index) => (
-      <MessageSkeleton key={index.toString()} />
-    ))}
+export const MessageListSkeleton = () => (
+  <div className="flex-1 overflow-hidden bg-background">
+    <div className="space-y-1 py-4">
+      {Array.from({ length: 8 }).map((_, index) => (
+        <MessageSkeleton key={index.toString()} />
+      ))}
+    </div>
   </div>
 );
 
 export function MessageList({ channelId, className }: MessageListProps) {
   const {
     messages,
-    isFetchingChannelMessage,
     deletingMessageId,
     updatingMessageId,
     pinningMessageId,
@@ -127,16 +128,6 @@ export function MessageList({ channelId, className }: MessageListProps) {
   );
 
   const hasMessages = orderedMessages.length > 0;
-
-  if (isFetchingChannelMessage) {
-    return (
-      <div className={cn("flex-1 overflow-hidden bg-background", className)}>
-        <ScrollArea className="h-full">
-          <LoadingSkeleton />
-        </ScrollArea>
-      </div>
-    );
-  }
 
   if (!hasMessages) {
     return (

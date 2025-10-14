@@ -1,14 +1,36 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { JoinRequestForm } from "@/components/member/communication/channels/join-request-form";
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
-import { MessageList } from "@/components/member/communication/channels/message-list";
+import {
+  MessageList,
+  MessageListSkeleton,
+} from "@/components/member/communication/channels/message-list";
 import { PendingSkeleton } from "@/components/member/communication/channels/pending-skeleton";
-import { orpcClient } from "@/utils/orpc";
+import { Suspense } from "react";
 
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/"
 )({
-  loader: async ({ params }) => {
+  beforeLoad: ({ context: { queryClient, queryUtils }, params }) => {
+    queryClient.prefetchQuery(
+      queryUtils.communication.messages.getChannelMessages.queryOptions({
+        input: {
+          channelId: params.id,
+        },
+      })
+    );
+
+    queryClient.prefetchQuery(
+      queryUtils.communication.messages.searchUsers.queryOptions({
+        input: {
+          channelId: params.id,
+          query: "",
+          limit: 10,
+        },
+      })
+    );
+  },
+  loader: async ({ context: { orpcClient }, params }) => {
     const isMember = await orpcClient.communication.channel.isMember({
       channelId: params.id,
     });
@@ -34,7 +56,9 @@ function RouteComponent() {
     <div className="flex min-h-0 flex-1 flex-col border-r">
       {isMember ? (
         <>
-          <MessageList channelId={id} />
+          <Suspense fallback={<MessageListSkeleton />}>
+            <MessageList channelId={id} />
+          </Suspense>
           <MessageComposer channelId={id} />
         </>
       ) : (

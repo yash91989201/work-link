@@ -9,7 +9,6 @@ export function useMessages(channelId: string) {
   const {
     data: { messages = [] },
     refetch,
-    isPending: isFetchingChannelMessage,
   } = useSuspenseQuery(
     queryUtils.communication.messages.getChannelMessages.queryOptions({
       input: {
@@ -34,7 +33,6 @@ export function useMessages(channelId: string) {
   return {
     messages,
     refetch,
-    isFetchingChannelMessage,
     messagesEndRef,
     scrollToBottom,
     ...mutations,

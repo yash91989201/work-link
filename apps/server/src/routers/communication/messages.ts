@@ -1,4 +1,13 @@
-import { and, desc, eq, getTableColumns, ilike, or, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  ilike,
+  inArray,
+  or,
+  sql,
+} from "drizzle-orm";
 import { user as userTable } from "@/db/schema/auth";
 import {
   channelMemberTable,
@@ -13,6 +22,8 @@ import {
   DeleteMessageInput,
   GetChannelMessagesInput,
   GetChannelMessagesOutput,
+  GetMenionUsersInput,
+  GetMenionUsersOutput,
   GetMessageInput,
   GetMessageOutput,
   GetPinnedMessagesInput,
@@ -360,5 +371,15 @@ export const messagesRouter = {
       });
 
       return pinnedMessages;
+    }),
+  getMentionUsers: protectedProcedure
+    .input(GetMenionUsersInput)
+    .output(GetMenionUsersOutput)
+    .handler(async ({ context: { db }, input }) => {
+      const users = await db.query.user.findMany({
+        where: inArray(userTable.id, input.userIds),
+      });
+
+      return users;
     }),
 };

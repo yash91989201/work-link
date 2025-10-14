@@ -1,18 +1,12 @@
-import type { MessageType } from "@server/lib/types";
-import { useMentionUsersDetails } from "@/hooks/communications/use-mention-users-details";
+import type { MessageType, UserType } from "@server/lib/types";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-
-interface Mention {
-  id: string;
-  name: string | null;
-  email: string;
-  image: string | null;
-}
+import { queryUtils } from "@/utils/orpc";
 
 interface MessageContentProps {
   content: string;
   mentions: string[] | null;
-  mentionUsers?: Mention[] | null;
+  mentionUsers?: UserType[] | null;
 }
 
 // Parse and render message content with mentions
@@ -23,7 +17,7 @@ export const MessageContent = ({
   if (!content) return null;
 
   // Create a map of user names to user objects for quick lookup
-  const userMap = new Map<string, Mention>();
+  const userMap = new Map<string, UserType>();
   if (mentionUsers) {
     for (const user of mentionUsers) {
       if (user.name) {
@@ -38,7 +32,7 @@ export const MessageContent = ({
     type: "text" | "mention";
     content: string;
     value?: string;
-    user?: Mention;
+    user?: UserType;
   }> = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null = mentionRegex.exec(content);
@@ -101,18 +95,23 @@ export const MessageContent = ({
   );
 };
 
-// Enhanced message content with real user data for mentions
 interface EnhancedMessageContentProps {
   message: MessageType & {
-    sender: { name: string; email: string; image: string | null };
-    mentionedUsers?: Mention[] | null;
+    sender: UserType;
+    mentionedUsers?: UserType[];
   };
 }
 
 export const EnhancedMessageContent = ({
   message,
 }: EnhancedMessageContentProps) => {
-  const { data: mentionUsers } = useMentionUsersDetails(message.mentions);
+  const { data: mentionUsers } = useSuspenseQuery(
+    queryUtils.communication.messages.getMentionUsers.queryOptions({
+      input: {
+        userIds: message.mentions || [],
+      },
+    })
+  );
 
   return (
     <MessageContent

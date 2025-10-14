@@ -10,7 +10,7 @@ import { MessageThreadPreview } from "./message-thread-preview";
 
 interface MessageItemProps {
   message: MessageType & {
-    sender: { name: string; email: string; image: string | null };
+    sender: { name: string; email: string; image?: string | null | undefined };
     parentMessage?: MessageType & {
       sender: { name: string; email: string; image: string | null };
     };

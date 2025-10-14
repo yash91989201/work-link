@@ -65,6 +65,8 @@ import type { GetChannelMessagesOutput } from "@/lib/schemas/message";
 import type { GetChannelOutput } from "@/lib/schemas/channel";
 import type { GetChannelsInput } from "@/lib/schemas/channel";
 import type { GetDirectMessagesInput } from "@/lib/schemas/message";
+import type { GetMenionUsersInput } from "@/lib/schemas/message";
+import type { GetMenionUsersOutput } from "@/lib/schemas/message";
 import type { GetMessageAttachmentsInput } from "@/lib/schemas/attachment";
 import type { GetMessageInput } from "@/lib/schemas/message";
 import type { GetMessageOutput } from "@/lib/schemas/message";
@@ -226,6 +228,8 @@ export type GetChannelMessagesOutputType = z.infer<typeof GetChannelMessagesOutp
 export type GetChannelOutputType = z.infer<typeof GetChannelOutput>;
 export type GetChannelsInputType = z.infer<typeof GetChannelsInput>;
 export type GetDirectMessagesInputType = z.infer<typeof GetDirectMessagesInput>;
+export type GetMenionUsersInputType = z.infer<typeof GetMenionUsersInput>;
+export type GetMenionUsersOutputType = z.infer<typeof GetMenionUsersOutput>;
 export type GetMessageAttachmentsInputType = z.infer<typeof GetMessageAttachmentsInput>;
 export type GetMessageInputType = z.infer<typeof GetMessageInput>;
 export type GetMessageOutputType = z.infer<typeof GetMessageOutput>;

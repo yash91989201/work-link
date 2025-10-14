@@ -241,3 +241,9 @@ export const GetPinnedMessagesOutput = z.array(
     }),
   })
 );
+
+export const GetMenionUsersInput = z.object({
+  userIds: z.array(z.string()),
+});
+
+export const GetMenionUsersOutput = z.array(UserSchema);

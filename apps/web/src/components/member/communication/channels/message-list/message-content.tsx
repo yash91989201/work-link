@@ -1,15 +1,10 @@
-import type { MessageType } from "@server/lib/types";
+import type { MessageType, UserType } from "@server/lib/types";
 import { EnhancedMessageContent } from "@/components/shared/message-content";
 
 interface MessageContentProps {
   message: MessageType & {
     sender: { name: string; email: string; image: string | null };
-    mentionedUsers?: Array<{
-      id: string;
-      name: string | null;
-      email: string;
-      image: string | null;
-    }> | null;
+    mentionedUsers?: UserType[] | null;
   };
 }
 
