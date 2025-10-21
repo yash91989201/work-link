@@ -28,28 +28,28 @@ export const useChannelPresence = (channelId: string | null) => {
       .channel(`org:channels:${channelId}:presence`)
       .on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState<PresencePayload>();
-        const ids: string[] = [];
+        const idsSet = new Set<string>();
 
         for (const presences of Object.values(state)) {
           for (const p of presences) {
-            if (p.user_id) ids.push(p.user_id);
+            if (p.user_id) idsSet.add(p.user_id);
           }
         }
 
-        setOnlineUserIds(ids);
+        setOnlineUserIds(Array.from(idsSet));
       })
       .on(
         "presence",
         { event: "join" },
         ({ currentPresences }: { currentPresences: PresencePayload[] }) => {
           setOnlineUserIds((prev) => {
-            const newIds = [...prev];
+            const idsSet = new Set(prev);
             for (const p of currentPresences) {
-              if (p.user_id && !newIds.includes(p.user_id)) {
-                newIds.push(p.user_id);
+              if (p.user_id) {
+                idsSet.add(p.user_id);
               }
             }
-            return newIds;
+            return Array.from(idsSet);
           });
         }
       )
