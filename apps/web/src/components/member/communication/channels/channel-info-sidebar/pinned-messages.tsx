@@ -13,16 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getRealtimeChannel } from "@/hooks/communications/use-messages-realtime";
 import { usePinnedMessagesRealtime } from "@/hooks/communications/use-pinned-messages";
 import { cn } from "@/lib/utils";
+import { getNameInitials } from "@/utils";
 import { orpcClient, queryClient, queryUtils } from "@/utils/orpc";
-
-const getInitials = (name: string) => {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-};
 
 const formatRelativeTime = (date: Date) => {
   const now = new Date();
@@ -62,6 +54,30 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
   } = useMutation(
     queryUtils.communication.messages.unPin.mutationOptions({
       onSuccess: async (_, variableData) => {
+        queryClient.setQueryData(
+          queryUtils.communication.messages.getChannelMessages.queryKey({
+            input: {
+              channelId,
+            },
+          }),
+          (old) => {
+            if (!old) return;
+            const updatedMessages = old.messages.map((message) =>
+              message.id === variableData.messageId
+                ? {
+                    ...message,
+                    isPinned: false,
+                    pinnedAt: null,
+                  }
+                : message
+            );
+            return {
+              ...old,
+              messages: updatedMessages,
+            };
+          }
+        );
+
         await channel.send({
           type: "broadcast",
           event: "message-unpinned",
@@ -242,7 +258,7 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
                 <div className="mb-1 flex items-start gap-2">
                   <div className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
                     <span className="font-medium text-primary text-xs">
-                      {getInitials(message.sender.name)}
+                      {getNameInitials(message.sender.name)}
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
@@ -289,64 +305,62 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
   );
 };
 
-export const PinnedMessagesSkeleton = () => {
-  return (
-    <Accordion collapsible type="single" value="pinned-messages">
-      <AccordionItem value="pinned-messages">
-        <AccordionTrigger className="px-0 hover:no-underline">
-          <div className="flex flex-1 items-center gap-1.5">
-            <Pin className="h-4 w-4 text-muted-foreground" />
-            <h4 className="font-medium text-foreground text-sm">
-              Pinned Messages
-            </h4>
-          </div>
-          <Button
-            aria-label="Open search"
-            className="h-6 w-6"
-            size="icon"
-            title="Open search"
-            variant="ghost"
-          >
-            <Search className="h-3 w-3" />
-          </Button>
-        </AccordionTrigger>
-        <AccordionContent className="pt-0">
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div
-                className="rounded-lg border border-border/50 bg-muted/30 p-3"
-                key={index.toString()}
-              >
-                <div className="mb-1 flex items-start gap-2">
-                  <div className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <Skeleton className="h-3 w-3 rounded-full" />
+export const PinnedMessagesSkeleton = () => (
+  <Accordion collapsible type="single" value="pinned-messages">
+    <AccordionItem value="pinned-messages">
+      <AccordionTrigger className="px-0 hover:no-underline">
+        <div className="flex flex-1 items-center gap-1.5">
+          <Pin className="h-4 w-4 text-muted-foreground" />
+          <h4 className="font-medium text-foreground text-sm">
+            Pinned Messages
+          </h4>
+        </div>
+        <Button
+          aria-label="Open search"
+          className="h-6 w-6"
+          size="icon"
+          title="Open search"
+          variant="ghost"
+        >
+          <Search className="h-3 w-3" />
+        </Button>
+      </AccordionTrigger>
+      <AccordionContent className="pt-0">
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              className="rounded-lg border border-border/50 bg-muted/30 p-3"
+              key={index.toString()}
+            >
+              <div className="mb-1 flex items-start gap-2">
+                <div className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <Skeleton className="h-3 w-3 rounded-full" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                    <Button
+                      aria-label="Unpin message"
+                      className="ml-auto h-7 w-7 text-muted-foreground"
+                      disabled
+                      size="icon"
+                      title="Unpin"
+                      variant="ghost"
+                    >
+                      <PinOff className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-16" />
-                      <Button
-                        aria-label="Unpin message"
-                        className="ml-auto h-7 w-7 text-muted-foreground"
-                        disabled
-                        size="icon"
-                        title="Unpin"
-                        variant="ghost"
-                      >
-                        <PinOff className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-3/4" />
-                    </div>
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  );
-};
+            </div>
+          ))}
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+  </Accordion>
+);

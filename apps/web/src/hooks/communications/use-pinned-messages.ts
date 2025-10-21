@@ -21,7 +21,8 @@ export const usePinnedMessagesRealtime = ({
           table: "message",
           filter: `channel_id=eq.${channelId}`,
         },
-        () => {
+        (payload) => {
+          console.log(payload);
           queryClient.refetchQueries({
             queryKey:
               queryUtils.communication.messages.getPinnedMessages.queryKey({
@@ -32,7 +33,10 @@ export const usePinnedMessagesRealtime = ({
           });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log(status);
+        console.log(err);
+      });
 
     return () => {
       channel.unsubscribe();

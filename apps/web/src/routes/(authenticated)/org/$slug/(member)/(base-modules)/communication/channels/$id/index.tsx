@@ -1,4 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
+import { Suspense } from "react";
 import { JoinRequestForm } from "@/components/member/communication/channels/join-request-form";
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
 import {
@@ -6,7 +7,6 @@ import {
   MessageListSkeleton,
 } from "@/components/member/communication/channels/message-list";
 import { PendingSkeleton } from "@/components/member/communication/channels/pending-skeleton";
-import { Suspense } from "react";
 
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/"

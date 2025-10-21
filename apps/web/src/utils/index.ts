@@ -12,3 +12,11 @@ export const generateSlug = (value: string) => {
       .replace(/^-|-$/g, "")
   );
 };
+
+export const getNameInitials = (name: string) =>
+  name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);

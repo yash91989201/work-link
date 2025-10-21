@@ -3,7 +3,7 @@ import { SuccessOutput } from "./channel";
 import { MessageSchema, UserSchema } from "./db-tables";
 
 // Message types enum
-export const MessageTypeSchema = z.enum(["text", "file", "image", "reply"]);
+export const MessageTypeSchema = MessageSchema.shape.type;
 
 // Create message input
 export const CreateMessageInput = z

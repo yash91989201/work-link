@@ -285,10 +285,10 @@ const authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof publicIndexRoute
   '/login': typeof authLoginRoute
   '/signup': typeof authSignupRoute
-  '/org/$slug': typeof authenticatedOrgSlugRouteRouteWithChildren
+  '/': typeof publicIndexRoute
+  '/org/$slug': typeof authenticatedOrgSlugownerRouteRouteWithChildren
   '/accept-invitation/$id': typeof authAcceptInvitationIdRoute
   '/org/new': typeof authenticatedOrgNewRoute
   '/org/$slug/': typeof authenticatedOrgSlugIndexRoute
@@ -322,9 +322,9 @@ export interface FileRoutesByFullPath {
   '/org/$slug/team/$id/module/$slug/feature/$slug': typeof authenticatedOrgSlugmemberTeamIdModuleSlugFeatureSlugIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof publicIndexRoute
   '/login': typeof authLoginRoute
   '/signup': typeof authSignupRoute
+  '/': typeof publicIndexRoute
   '/accept-invitation/$id': typeof authAcceptInvitationIdRoute
   '/org/new': typeof authenticatedOrgNewRoute
   '/org/$slug': typeof authenticatedOrgSlugIndexRoute
@@ -398,9 +398,9 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/login'
     | '/signup'
+    | '/'
     | '/org/$slug'
     | '/accept-invitation/$id'
     | '/org/new'
@@ -435,9 +435,9 @@ export interface FileRouteTypes {
     | '/org/$slug/team/$id/module/$slug/feature/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/login'
     | '/signup'
+    | '/'
     | '/accept-invitation/$id'
     | '/org/new'
     | '/org/$slug'
@@ -520,15 +520,15 @@ declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/(public)': {
       id: '/(public)'
-      path: '/'
-      fullPath: '/'
+      path: ''
+      fullPath: ''
       preLoaderRoute: typeof publicRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(authenticated)': {
       id: '/(authenticated)'
-      path: '/'
-      fullPath: '/'
+      path: ''
+      fullPath: ''
       preLoaderRoute: typeof authenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -583,15 +583,15 @@ declare module '@tanstack/react-router' {
     }
     '/(authenticated)/org/$slug/(owner)': {
       id: '/(authenticated)/org/$slug/(owner)'
-      path: '/'
-      fullPath: '/org/$slug/'
+      path: ''
+      fullPath: '/org/$slug'
       preLoaderRoute: typeof authenticatedOrgSlugownerRouteRouteImport
       parentRoute: typeof authenticatedOrgSlugRouteRoute
     }
     '/(authenticated)/org/$slug/(member)': {
       id: '/(authenticated)/org/$slug/(member)'
-      path: '/'
-      fullPath: '/org/$slug/'
+      path: ''
+      fullPath: '/org/$slug'
       preLoaderRoute: typeof authenticatedOrgSlugmemberRouteRouteImport
       parentRoute: typeof authenticatedOrgSlugRouteRoute
     }

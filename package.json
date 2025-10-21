@@ -27,11 +27,11 @@
     "supabase:generate-types": "bun run --filter=web --filter=server generate:supabase-types"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.2",
-    "oxlint": "^1.18.0",
+    "@biomejs/biome": "2.2.6",
+    "oxlint": "^1.23.0",
     "turbo": "^2.5.8",
-    "typescript": "^5.9.2",
-    "ultracite": "5.3.3"
+    "typescript": "^5.9.3",
+    "ultracite": "5.6.4"
   },
   "packageManager": "bun@1.2.22"
 }

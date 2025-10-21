@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 
 export function useMessageScroll() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -8,7 +8,10 @@ export function useMessageScroll() {
   }, []);
 
   const scrollToTop = useCallback(() => {
-    messagesEndRef.current?.parentElement?.scrollTo({ top: 0, behavior: "smooth" });
+    messagesEndRef.current?.parentElement?.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }, []);
 
   return {
