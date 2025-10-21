@@ -1,16 +1,9 @@
-import { useCallback, useMemo } from "react";
-import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMessages } from "@/hooks/communications/use-messages";
+import { useMessageListContext } from "@/contexts/message-list-context";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "./empty-state";
 import { MessageItem } from "./message-item";
-
-interface MessageListProps {
-  channelId: string;
-  className?: string;
-}
 
 const MessageSkeleton = () => (
   <div className="flex gap-3 px-4 py-3">
@@ -36,96 +29,8 @@ export const MessageListSkeleton = () => (
   </div>
 );
 
-export function MessageList({ channelId, className }: MessageListProps) {
-  const {
-    messages,
-    deletingMessageId,
-    updatingMessageId,
-    pinningMessageId,
-    isPinningMessage,
-    isDeletingMessage,
-    isUpdatingMessage,
-    createMessage,
-    deleteMessage,
-    updateMessage,
-    messagesEndRef,
-    pinMessage,
-    unpinMessage,
-  } = useMessages(channelId);
-
-  const handleDelete = useCallback(
-    async (messageId: string) => {
-      try {
-        await deleteMessage({ messageId });
-        toast("Message deleted successfully");
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to delete message";
-        toast(message);
-      }
-    },
-    [deleteMessage]
-  );
-
-  const handleReply = useCallback(
-    async (content: string, parentMessageId: string, mentions?: string[]) => {
-      try {
-        await createMessage({
-          channelId,
-          content,
-          parentMessageId,
-          mentions,
-        });
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to send reply";
-        toast(message);
-        throw error;
-      }
-    },
-    [channelId, createMessage]
-  );
-
-  const handleEdit = useCallback(
-    async (messageId: string, content: string, mentions?: string[]) => {
-      try {
-        await updateMessage({ messageId, content, mentions });
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to update message";
-        toast(message);
-        throw error;
-      }
-    },
-    [updateMessage]
-  );
-
-  const handlePin = useCallback(
-    async (messageId: string, isPinned: boolean) => {
-      try {
-        if (isPinned) {
-          await unpinMessage({ messageId });
-        } else {
-          await pinMessage({ messageId });
-        }
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to pin message";
-        toast(message);
-        throw error;
-      }
-    },
-    [pinMessage, unpinMessage]
-  );
-
-  // Memoize sorted messages
-  const orderedMessages = useMemo(
-    () =>
-      [...messages].sort(
-        (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
-      ),
-    [messages]
-  );
+export function MessageList({ className }: { className?: string }) {
+  const { orderedMessages, messagesEndRef } = useMessageListContext();
 
   const hasMessages = orderedMessages.length > 0;
 
@@ -142,18 +47,7 @@ export function MessageList({ channelId, className }: MessageListProps) {
       <ScrollArea className="h-full">
         <div className="flex flex-col pt-3 sm:px-4">
           {orderedMessages.map((message) => (
-            <MessageItem
-              channelId={channelId}
-              isDeleting={isDeletingMessage && deletingMessageId === message.id}
-              isPinning={isPinningMessage && pinningMessageId === message.id}
-              isUpdating={isUpdatingMessage && updatingMessageId === message.id}
-              key={message.id}
-              message={message}
-              onDelete={handleDelete}
-              onEdit={handleEdit}
-              onPin={handlePin}
-              onReply={handleReply}
-            />
+            <MessageItem key={message.id} message={message} />
           ))}
           <div ref={messagesEndRef} />
         </div>

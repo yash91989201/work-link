@@ -2,9 +2,8 @@ import type {
   GetChannelMessagesOutputType,
   MessageWithSenderType,
 } from "@server/lib/types";
-import type { RealtimeChannel } from "@supabase/supabase-js";
-import { useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabase";
+import { useEffect, useEffectEvent, useRef } from "react";
+import { getRealtimeChannel } from "@/utils/channel";
 import { queryClient, queryUtils } from "@/utils/orpc";
 
 interface UseMessagesRealtimeOptions {
@@ -12,31 +11,13 @@ interface UseMessagesRealtimeOptions {
   onNewMessage: () => void;
 }
 
-export const channelInstances = new Map<string, RealtimeChannel>();
-
-export function getRealtimeChannel(channelId: string): RealtimeChannel {
-  const existingChannel = channelInstances.get(channelId);
-  if (existingChannel) {
-    return existingChannel;
-  }
-
-  const channel = supabase.channel(`org:channel:${channelId}`, {
-    config: {
-      broadcast: {
-        ack: false,
-        self: false,
-      },
-    },
-  });
-
-  channelInstances.set(channelId, channel);
-
-  return channel;
-}
-
 export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
   const { channelId, onNewMessage } = options;
   const subscribedRef = useRef(false);
+
+  const handleNewMessage = useEffectEvent(() => {
+    onNewMessage();
+  });
 
   useEffect(() => {
     const channel = getRealtimeChannel(channelId);
@@ -81,7 +62,7 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
         }
       );
 
-      onNewMessage?.();
+      handleNewMessage();
     });
 
     channel.on("broadcast", { event: "message-updated" }, (payload) => {
@@ -207,68 +188,50 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
       );
     });
 
-    // Only subscribe if not already subscribed
+    channel.on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "message",
+        filter: `channel_id=eq.${channelId}`,
+      },
+      (payload) => {
+        if (
+          payload.eventType === "UPDATE" &&
+          payload.new.is_pinned !== payload.old.is_pinned
+        ) {
+          queryClient.setQueryData(
+            queryUtils.communication.messages.getChannelMessages.queryKey({
+              input: {
+                channelId,
+              },
+            }),
+            (old) => {
+              if (!old) return old;
+
+              const updatedmessages = old.messages.map((message) => {
+                if (message.id === payload.new.id) {
+                  return {
+                    ...message,
+                    isPinned: payload.new.is_pinned,
+                  };
+                }
+                return message;
+              });
+
+              return {
+                messages: updatedmessages,
+              };
+            }
+          );
+        }
+      }
+    );
+
     if (!subscribedRef.current) {
       channel.subscribe();
       subscribedRef.current = true;
     }
-
-    return () => {
-      // Don't unsubscribe - keep channel alive for broadcasts
-      // Channel will be cleaned up when component unmounts permanently
-    };
-  }, [channelId, onNewMessage]);
-
-  useEffect(() => {
-    const channel = supabase.channel(
-      `org:channel:${channelId}:pinned-messages`
-    );
-
-    channel
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "message",
-          filter: `channel_id=eq.${channelId}`,
-        },
-        (payload) => {
-          if (
-            payload.eventType === "UPDATE" &&
-            payload.new.is_pinned !== payload.old.is_pinned
-          ) {
-            queryClient.setQueryData(
-              queryUtils.communication.messages.getChannelMessages.queryKey({
-                input: {
-                  channelId,
-                },
-              }),
-              (old) => {
-                if (!old) return old;
-
-                const updatedmessages = old.messages.map((message) => {
-                  if (message.id === payload.new.id) {
-                    return {
-                      ...message,
-                      isPinned: payload.new.is_pinned,
-                    };
-                  }
-                  return message;
-                });
-
-                return {
-                  messages: updatedmessages,
-                };
-              }
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
   }, [channelId]);
 }

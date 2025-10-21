@@ -7,6 +7,7 @@ import {
   MessageListSkeleton,
 } from "@/components/member/communication/channels/message-list";
 import { PendingSkeleton } from "@/components/member/communication/channels/pending-skeleton";
+import { MessageListProvider } from "@/contexts/message-list-context";
 
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/"
@@ -57,7 +58,9 @@ function RouteComponent() {
       {isMember ? (
         <>
           <Suspense fallback={<MessageListSkeleton />}>
-            <MessageList channelId={id} />
+            <MessageListProvider channelId={id}>
+              <MessageList />
+            </MessageListProvider>
           </Suspense>
           <MessageComposer channelId={id} />
         </>

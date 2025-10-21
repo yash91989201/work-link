@@ -1,8 +1,8 @@
 import type { MessageTypeType, MessageWithSenderType } from "@server/lib/types";
 import { useMutation } from "@tanstack/react-query";
 import { useAuthedSession } from "@/hooks/use-authed-session";
+import { getRealtimeChannel } from "@/utils/channel";
 import { queryClient, queryUtils } from "@/utils/orpc";
-import { getRealtimeChannel } from "./use-messages-realtime";
 
 export function useMessageMutations({ channelId }: { channelId: string }) {
   const { user } = useAuthedSession();

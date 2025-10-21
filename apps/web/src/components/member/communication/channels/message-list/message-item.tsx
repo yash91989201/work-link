@@ -1,5 +1,5 @@
-import type { MessageType } from "@server/lib/types";
-import { useCallback, useReducer } from "react";
+import type { MessageWithSenderType } from "@server/lib/types";
+import { useMessageItem } from "@/hooks/communications/use-message-item";
 import { cn } from "@/lib/utils";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
@@ -8,92 +8,31 @@ import { MessageHeader } from "./message-header";
 import { MessageReplyForm } from "./message-reply-form";
 import { MessageThreadPreview } from "./message-thread-preview";
 
+type MessageWithParent = MessageWithSenderType & {
+  parentMessage?: MessageWithSenderType | null;
+};
+
 interface MessageItemProps {
-  message: MessageType & {
-    sender: { name: string; email: string; image?: string | null | undefined };
-    parentMessage?: MessageType & {
-      sender: { name: string; email: string; image: string | null };
-    };
-  };
-  channelId: string;
-  onDelete: (messageId: string) => Promise<void>;
-  onEdit: (
-    messageId: string,
-    content: string,
-    mentions?: string[]
-  ) => Promise<void>;
-  onReply: (
-    content: string,
-    parentMessageId: string,
-    mentions?: string[]
-  ) => Promise<void>;
-  onPin: (messageId: string, isPinned: boolean) => Promise<void>;
-  isDeleting?: boolean;
-  isUpdating?: boolean;
-  isPinning?: boolean;
+  message: MessageWithParent;
 }
 
-type MessageState =
-  | { mode: "view" }
-  | { mode: "editing" }
-  | { mode: "replying" };
-
-type MessageAction =
-  | { type: "START_EDIT" }
-  | { type: "START_REPLY" }
-  | { type: "CANCEL" };
-
-function messageReducer(
-  state: MessageState,
-  action: MessageAction
-): MessageState {
-  switch (action.type) {
-    case "START_EDIT":
-      return { mode: "editing" };
-    case "START_REPLY":
-      return { mode: "replying" };
-    case "CANCEL":
-      return { mode: "view" };
-    default:
-      return state;
-  }
-}
-
-export function MessageItem({
-  message,
-  channelId,
-  onDelete,
-  onEdit,
-  onReply,
-  onPin,
-  isDeleting,
-  isPinning,
-}: MessageItemProps) {
-  const [state, dispatch] = useReducer(messageReducer, { mode: "view" });
-
-  const handleDelete = useCallback(async () => {
-    await onDelete(message.id);
-  }, [message.id, onDelete]);
-
-  const handleEdit = useCallback(
-    async (messageId: string, content: string, mentions?: string[]) => {
-      await onEdit(messageId, content, mentions);
-      dispatch({ type: "CANCEL" });
-    },
-    [onEdit]
-  );
-
-  const handleReply = useCallback(
-    async (content: string, parentMessageId: string, mentions?: string[]) => {
-      await onReply(content, parentMessageId, mentions);
-      dispatch({ type: "CANCEL" });
-    },
-    [onReply]
-  );
-
-  const handlePin = useCallback(async () => {
-    await onPin(message.id, message.isPinned);
-  }, [message.id, message.isPinned, onPin]);
+export function MessageItem({ message }: MessageItemProps) {
+  const {
+    channelId,
+    state,
+    isDeleting,
+    isPinning,
+    handleDelete,
+    handleEdit,
+    handleReply,
+    handlePin,
+    startEditing,
+    startReplying,
+    cancel,
+  } = useMessageItem({
+    messageId: message.id,
+    isPinned: message.isPinned,
+  });
 
   return (
     <div
@@ -122,7 +61,7 @@ export function MessageItem({
           channelId={channelId}
           initialContent={message.content || ""}
           messageId={message.id}
-          onCancel={() => dispatch({ type: "CANCEL" })}
+          onCancel={cancel}
           onSave={handleEdit}
         />
       ) : (
@@ -136,9 +75,9 @@ export function MessageItem({
             isPinning={isPinning}
             messageId={message.id}
             onDelete={handleDelete}
-            onEdit={() => dispatch({ type: "START_EDIT" })}
+            onEdit={startEditing}
             onPin={handlePin}
-            onReply={() => dispatch({ type: "START_REPLY" })}
+            onReply={startReplying}
             senderId={message.senderId}
           />
         </>
@@ -148,7 +87,7 @@ export function MessageItem({
       {state.mode === "replying" && (
         <MessageReplyForm
           channelId={channelId}
-          onCancel={() => dispatch({ type: "CANCEL" })}
+          onCancel={cancel}
           onSubmit={handleReply}
           parentMessage={{
             id: message.id,

@@ -10,10 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getRealtimeChannel } from "@/hooks/communications/use-messages-realtime";
 import { usePinnedMessagesRealtime } from "@/hooks/communications/use-pinned-messages";
 import { cn } from "@/lib/utils";
 import { getNameInitials } from "@/utils";
+import { getRealtimeChannel } from "@/utils/channel";
 import { orpcClient, queryClient, queryUtils } from "@/utils/orpc";
 
 const formatRelativeTime = (date: Date) => {
