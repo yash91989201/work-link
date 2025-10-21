@@ -10,15 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-
-const getInitials = (name: string) => {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-};
+import { getNameInitials } from "@/utils";
 
 export const Members = ({
   members,
@@ -27,7 +19,7 @@ export const Members = ({
     id: string;
     name: string;
     email: string;
-    image: string | null;
+    image?: string | null;
     isOnline: boolean;
   }[];
 }) => {
@@ -124,7 +116,7 @@ export const Members = ({
                   <Avatar className="h-8 w-8">
                     <AvatarImage alt={member.name} />
                     <AvatarFallback className="text-xs">
-                      {getInitials(member.name)}
+                      {getNameInitials(member.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div
