@@ -20,10 +20,8 @@ export const channelTypeEnum = pgEnum("channel_type", [
 
 export const messageTypeEnum = pgEnum("message_type", [
   "text",
-  "file",
-  "image",
-  "video",
-  "reply",
+  "attachment",
+  "audio",
 ]);
 
 export const notificationTypeEnum = pgEnum("notification_type", [
@@ -45,7 +43,6 @@ export const attachmentTypeEnum = pgEnum("attachment_type", [
   "video",
   "audio",
   "archive",
-  "other",
 ]);
 
 // Join request status
