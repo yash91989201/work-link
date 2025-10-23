@@ -230,17 +230,10 @@ export const UnPinMessageOutput = SuccessOutput;
 
 export const GetPinnedMessagesInput = z.object({
   channelId: z.string(),
+  query: z.string().optional(),
 });
 
-export const GetPinnedMessagesOutput = z.array(
-  MessageSchema.extend({
-    sender: UserSchema.pick({
-      name: true,
-      email: true,
-      image: true,
-    }),
-  })
-);
+export const GetPinnedMessagesOutput = z.array(MessageWithSenderSchema);
 
 export const GetMenionUsersInput = z.object({
   userIds: z.array(z.string()),

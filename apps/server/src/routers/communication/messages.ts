@@ -353,12 +353,22 @@ export const messagesRouter = {
     .input(GetPinnedMessagesInput)
     .output(GetPinnedMessagesOutput)
     .handler(async ({ context, input }) => {
+      const baseConditions = [
+        eq(messageTable.isPinned, true),
+        eq(messageTable.channelId, input.channelId),
+        eq(messageTable.isDeleted, false),
+      ];
+
+      if (input.query?.trim()) {
+        const searchCondition = ilike(messageTable.content, `%${input.query}%`);
+
+        if (searchCondition) {
+          baseConditions.push(searchCondition);
+        }
+      }
+
       const pinnedMessages = await context.db.query.messageTable.findMany({
-        where: and(
-          eq(messageTable.isPinned, true),
-          eq(messageTable.channelId, input.channelId),
-          eq(messageTable.isDeleted, false)
-        ),
+        where: and(...baseConditions),
         with: {
           sender: {
             columns: {

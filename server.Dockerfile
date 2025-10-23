@@ -1,4 +1,4 @@
-FROM oven/bun:1.3 AS builder
+FROM oven/bun:1.3.1 AS builder
 WORKDIR /app
 
 COPY package.json bun.lock ./
@@ -46,7 +46,7 @@ ENV RESEND_API_KEY=${RESEND_API_KEY}
 WORKDIR /app/apps/server
 RUN bun run build
 
-FROM oven/bun:1.3-slim AS production
+FROM oven/bun:1.3.1-slim AS production
 WORKDIR /app
 
 COPY --from=builder /app/package.json ./package.json

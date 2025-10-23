@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { getRealtimeChannel } from "@/utils/channel";
 import { queryClient, queryUtils } from "@/utils/orpc";
 
 export const usePinnedMessagesRealtime = ({
@@ -8,10 +8,7 @@ export const usePinnedMessagesRealtime = ({
   channelId: string;
 }) => {
   useEffect(() => {
-    const channel = supabase.channel(
-      `org:channel:${channelId}:pinned-messages`
-    );
-
+    const channel = getRealtimeChannel(channelId);
     channel
       .on(
         "postgres_changes",
@@ -33,13 +30,6 @@ export const usePinnedMessagesRealtime = ({
           });
         }
       )
-      .subscribe((status, err) => {
-        console.log(status);
-        console.log(err);
-      });
-
-    return () => {
-      channel.unsubscribe();
-    };
+      .subscribe();
   }, [channelId]);
 };

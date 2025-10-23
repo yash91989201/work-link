@@ -1,5 +1,6 @@
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { Loader, Pin, PinOff, Search, X } from "lucide-react";
+import { useDebounce } from "@uidotdev/usehooks";
+import { Loader, Pin, PinOff, Search, SearchX, X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import {
   Accordion,
@@ -36,11 +37,14 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
   const [_isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const debouncedQuery = useDebounce(query, 300);
+
   const channel = getRealtimeChannel(channelId);
   const { data: pinnedMessages } = useSuspenseQuery(
     queryUtils.communication.messages.getPinnedMessages.queryOptions({
       input: {
         channelId,
+        query: debouncedQuery,
       },
     })
   );
@@ -53,7 +57,20 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
     variables,
   } = useMutation(
     queryUtils.communication.messages.unPin.mutationOptions({
-      onSuccess: async (_, variableData) => {
+      onMutate: (variableData) => {
+        const previousChannelMessages = queryClient.getQueryData(
+          queryUtils.communication.messages.getChannelMessages.queryKey({
+            input: {
+              channelId,
+            },
+          })
+        );
+        const previousPinnedMessages = queryClient.getQueryData(
+          queryUtils.communication.messages.getPinnedMessages.queryKey({
+            input: { channelId },
+          })
+        );
+
         queryClient.setQueryData(
           queryUtils.communication.messages.getChannelMessages.queryKey({
             input: {
@@ -78,6 +95,39 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
           }
         );
 
+        queryClient.setQueryData(
+          queryUtils.communication.messages.getPinnedMessages.queryKey({
+            input: { channelId },
+          }),
+          (old) => {
+            if (!old) return old;
+            return old.filter((m) => m.id !== variableData.messageId);
+          }
+        );
+
+        return { previousChannelMessages, previousPinnedMessages };
+      },
+      onError: (_err, _variableData, context) => {
+        if (context?.previousChannelMessages) {
+          queryClient.setQueryData(
+            queryUtils.communication.messages.getChannelMessages.queryKey({
+              input: {
+                channelId,
+              },
+            }),
+            context.previousChannelMessages
+          );
+        }
+        if (context?.previousPinnedMessages) {
+          queryClient.setQueryData(
+            queryUtils.communication.messages.getPinnedMessages.queryKey({
+              input: { channelId },
+            }),
+            context.previousPinnedMessages
+          );
+        }
+      },
+      onSuccess: async (_, variableData) => {
         await channel.send({
           type: "broadcast",
           event: "message-unpinned",
@@ -120,7 +170,8 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
         }),
         (old) => {
           if (!old) return old;
-
+          // Prevent duplicate entries in the pinned messages cache
+          if (old.some((m) => m.id === message.id)) return old;
           return [...old, message];
         }
       );
@@ -188,14 +239,6 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
     }
   };
 
-  const filteredMessages = query.trim()
-    ? pinnedMessages.filter(
-        (message) =>
-          message.content?.toLowerCase().includes(query.toLowerCase()) ||
-          message.sender.name.toLowerCase().includes(query.toLowerCase())
-      )
-    : pinnedMessages;
-
   return (
     <Accordion
       collapsible
@@ -219,7 +262,7 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
             variant="ghost"
           >
             {showSearch ? (
-              <X className="h-3 w-3" />
+              <SearchX className="h-3 w-3" />
             ) : (
               <Search className="h-3 w-3" />
             )}
@@ -234,23 +277,35 @@ export const PinnedMessages = ({ channelId }: { channelId: string }) => {
                 : "-translate-y-1 max-h-0 opacity-0"
             )}
           >
-            <div className="p-3">
+            <div className="relative p-3">
               <Input
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search pinned messages..."
                 ref={inputRef}
                 value={query}
               />
+              {query && (
+                <Button
+                  aria-label="Clear search"
+                  className="-translate-y-1/2 absolute top-1/2 right-4 h-5 w-5"
+                  onClick={() => setQuery("")}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           </div>
 
           <div className="space-y-3">
-            {filteredMessages.length === 0 && query.trim() && (
+            {pinnedMessages.length === 0 && query.trim() && (
               <p className="py-4 text-center text-muted-foreground text-sm">
                 No messages found matching "{query}"
               </p>
             )}
-            {filteredMessages.map((message) => (
+            {pinnedMessages.map((message) => (
               <div
                 className="rounded-lg border border-border/50 bg-muted/30 p-3"
                 key={message.id}

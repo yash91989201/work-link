@@ -207,6 +207,9 @@ export function useMessageMutations({ channelId }: { channelId: string }) {
       onMutate: async ({ messageId }) => {
         await queryClient.cancelQueries({ queryKey });
         const previousMessages = queryClient.getQueryData(queryKey);
+        const pinnedMessage = previousMessages?.messages.find(
+          (message) => message.id === messageId
+        );
 
         queryClient.setQueryData(queryKey, (old) => {
           if (!old) return old;
@@ -224,6 +227,23 @@ export function useMessageMutations({ channelId }: { channelId: string }) {
             ),
           };
         });
+
+        if (pinnedMessage === undefined) {
+          return;
+        }
+
+        queryClient.setQueryData(
+          queryUtils.communication.messages.getPinnedMessages.queryKey({
+            input: {
+              channelId,
+            },
+          }),
+          (old) => {
+            if (!old) return old;
+
+            return [...old, pinnedMessage];
+          }
+        );
 
         const channel = getRealtimeChannel(channelId);
 
@@ -268,6 +288,16 @@ export function useMessageMutations({ channelId }: { channelId: string }) {
             ),
           };
         });
+
+        queryClient.setQueryData(
+          queryUtils.communication.messages.getPinnedMessages.queryKey({
+            input: { channelId },
+          }),
+          (old) => {
+            if (!old) return old;
+            return old.filter((m) => m.id !== messageId);
+          }
+        );
 
         const channel = getRealtimeChannel(channelId);
 
