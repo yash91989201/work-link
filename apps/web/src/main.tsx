@@ -10,11 +10,9 @@ const router = createRouter({
   defaultPreload: "intent",
   defaultPendingComponent: () => <FullScreenLoader />,
   context: { queryUtils, queryClient, orpcClient },
-  Wrap: ({ children }: { children: React.ReactNode }) => {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
-  },
+  Wrap: ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  ),
 });
 
 declare module "@tanstack/react-router" {

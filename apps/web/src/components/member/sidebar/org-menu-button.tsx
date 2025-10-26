@@ -54,13 +54,11 @@ export const OrgMenuButton = () => {
   );
 };
 
-export const OrgMenuButtonSkeleton = () => {
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton disabled>
-        <Skeleton className="size-8" />
-        <Skeleton className="h-8 w-full" />
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
-};
+export const OrgMenuButtonSkeleton = () => (
+  <SidebarMenuItem>
+    <SidebarMenuButton disabled>
+      <Skeleton className="size-8" />
+      <Skeleton className="h-8 w-full" />
+    </SidebarMenuButton>
+  </SidebarMenuItem>
+);
