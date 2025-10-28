@@ -65,6 +65,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InviteMemberForm } from "./invite-member-form";
 import { MembersAnalytics } from "./members-analytics";
 
 // Mock data for members dashboard
@@ -306,68 +307,60 @@ const MemberStatsCard = ({
 };
 
 // Department Breakdown Component
-const DepartmentBreakdown = () => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Department Breakdown</CardTitle>
-        <CardDescription>
-          Members distribution across departments
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {membersStats.departmentBreakdown.map((dept) => (
-            <div className="flex items-center justify-between" key={dept.name}>
-              <span className="font-medium text-sm">{dept.name}</span>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-20 rounded-full bg-secondary">
-                  <div
-                    className="h-2 rounded-full bg-primary"
-                    style={{ width: `${(dept.percentage / 20) * 100}%` }}
-                  />
-                </div>
-                <span className="w-12 text-right text-muted-foreground text-sm">
-                  {dept.count}
-                </span>
-                <span className="w-8 text-right text-muted-foreground text-xs">
-                  {dept.percentage}%
-                </span>
+const DepartmentBreakdown = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Department Breakdown</CardTitle>
+      <CardDescription>Members distribution across departments</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-3">
+        {membersStats.departmentBreakdown.map((dept) => (
+          <div className="flex items-center justify-between" key={dept.name}>
+            <span className="font-medium text-sm">{dept.name}</span>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-20 rounded-full bg-secondary">
+                <div
+                  className="h-2 rounded-full bg-primary"
+                  style={{ width: `${(dept.percentage / 20) * 100}%` }}
+                />
               </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Role Distribution Component
-const RoleDistribution = () => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Role Distribution</CardTitle>
-        <CardDescription>Members by role type</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {membersStats.roleDistribution.map((role) => (
-            <div className="flex items-center justify-between" key={role.role}>
-              <div className="flex items-center gap-2">
-                <div className={`h-3 w-3 rounded-full ${role.color}`} />
-                <span className="font-medium text-sm">{role.role}</span>
-              </div>
-              <span className="text-muted-foreground text-sm">
-                {role.count}
+              <span className="w-12 text-right text-muted-foreground text-sm">
+                {dept.count}
+              </span>
+              <span className="w-8 text-right text-muted-foreground text-xs">
+                {dept.percentage}%
               </span>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+          </div>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// Role Distribution Component
+const RoleDistribution = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Role Distribution</CardTitle>
+      <CardDescription>Members by role type</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-3">
+        {membersStats.roleDistribution.map((role) => (
+          <div className="flex items-center justify-between" key={role.role}>
+            <div className="flex items-center gap-2">
+              <div className={`h-3 w-3 rounded-full ${role.color}`} />
+              <span className="font-medium text-sm">{role.role}</span>
+            </div>
+            <span className="text-muted-foreground text-sm">{role.count}</span>
+          </div>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+);
 
 // Member Activity Component
 const MemberActivity = ({ activity }: { activity: any }) => {
@@ -410,43 +403,41 @@ const MemberActivity = ({ activity }: { activity: any }) => {
 };
 
 // Top Performer Card
-const TopPerformerCard = ({ performer }: { performer: any }) => {
-  return (
-    <Card className="transition-shadow hover:shadow-md">
-      <CardContent className="p-4">
-        <div className="mb-3 flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src={performer.avatar} />
-            <AvatarFallback>
-              {performer.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p className="font-medium text-sm">{performer.name}</p>
-            <p className="text-muted-foreground text-xs">{performer.role}</p>
-          </div>
-          <Badge className="text-xs" variant="outline">
-            {performer.performance}%
-          </Badge>
+const TopPerformerCard = ({ performer }: { performer: any }) => (
+  <Card className="transition-shadow hover:shadow-md">
+    <CardContent className="p-4">
+      <div className="mb-3 flex items-center gap-3">
+        <Avatar>
+          <AvatarImage src={performer.avatar} />
+          <AvatarFallback>
+            {performer.name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <p className="font-medium text-sm">{performer.name}</p>
+          <p className="text-muted-foreground text-xs">{performer.role}</p>
         </div>
-        <div className="space-y-2">
-          <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Performance</span>
-            <span className="font-medium">{performer.performance}%</span>
-          </div>
-          <Progress className="h-1" value={performer.performance} />
-          <div className="flex justify-between text-muted-foreground text-xs">
-            <span>{performer.team}</span>
-            <span>{performer.projects} projects</span>
-          </div>
+        <Badge className="text-xs" variant="outline">
+          {performer.performance}%
+        </Badge>
+      </div>
+      <div className="space-y-2">
+        <div className="flex justify-between text-xs">
+          <span className="text-muted-foreground">Performance</span>
+          <span className="font-medium">{performer.performance}%</span>
         </div>
-      </CardContent>
-    </Card>
-  );
-};
+        <Progress className="h-1" value={performer.performance} />
+        <div className="flex justify-between text-muted-foreground text-xs">
+          <span>{performer.team}</span>
+          <span>{performer.projects} projects</span>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
 
 // Main Members Dashboard Component
 export const MembersDashboard = () => {
@@ -783,6 +774,7 @@ export const MembersDashboard = () => {
                   <CardDescription>
                     Manage member invitations and track status
                   </CardDescription>
+                  <InviteMemberForm />
                 </CardHeader>
                 <CardContent>
                   <InvitationListTable />
