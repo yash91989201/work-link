@@ -13,6 +13,7 @@
     "@orpc/openapi": "^1.10.3",
     "@orpc/server": "^1.10.3",
     "@orpc/zod": "^1.10.3",
+    "@t3-oss/env-core": "^0.13.8",
     "@work-link/api": "workspace:*",
     "@work-link/auth": "workspace:*",
     "@work-link/db": "workspace:*",
