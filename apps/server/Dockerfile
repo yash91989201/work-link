@@ -39,11 +39,11 @@ COPY apps/server/src apps/server/src
 COPY apps/server/tsdown.config.ts apps/server/
 
 # Build in parallel
-RUN cd packages/db && bun run build & \
-  cd packages/auth && bun run build & \
-  cd packages/api && bun run build & \
+RUN bun run --cwd packages/db build & \
+  bun run --cwd packages/auth build & \
+  bun run --cwd packages/api build & \
   wait && \
-  cd apps/server && bun run build
+  bun run --cwd apps/server build
 
 FROM oven/bun:1.3.1-slim AS runtime
 WORKDIR /app
@@ -69,4 +69,5 @@ ENV PORT=$PORT
 EXPOSE $PORT
 
 WORKDIR /app/apps/server
+
 CMD ["bun", "run", "start"]
