@@ -17,13 +17,26 @@
       "!**/.expo",
       "!**/.wrangler",
       "!**/.alchemy",
-      "!**/.svelte-kit",
       "!**/wrangler.jsonc",
       "!**/.source"
     ]
   },
-  "extends": [
-    "ultracite/core",
-    "ultracite/react"
-  ]
+
+  "extends": ["ultracite/core", "ultracite/react"],
+  "linter": {
+    "rules": {
+      "style": {
+        "noMagicNumbers": "off",
+        "useBlockStatements": "off",
+        "useConsistentTypeDefinitions": "off"
+      },
+      "suspicious": {
+        "noConsole": "off"
+      },
+      "performance": {
+        "noNamespaceImport": "off",
+        "noBarrelFile": "off"
+      }
+    }
+  }
 }

@@ -1,8 +1,14 @@
-import type { auth } from "@work-link/auth";
+import { organizationClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
-import { inferAdditionalFields } from "better-auth/client/plugins";
+import { env } from "@/env";
 
 export const authClient = createAuthClient({
-	baseURL: import.meta.env.VITE_SERVER_URL,
-	plugins: [inferAdditionalFields<typeof auth>()],
+  baseURL: env.VITE_SERVER_URL,
+  plugins: [
+    organizationClient({
+      teams: {
+        enabled: true,
+      },
+    }),
+  ],
 });

@@ -65,3 +65,19 @@ temp
 /CRUSH.md
 /CRUSH.md.bak
 # END Ruler Generated Files
+
+dev-debug.log
+# Dependency directories
+node_modules/
+# Editor directories and files
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files
+# tasks.json
+# tasks/ 
