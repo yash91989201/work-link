@@ -10,7 +10,11 @@ export function MyOrgButton() {
   const session = useSession();
   const role = useActiveMemberRole();
 
-  if (!(slug && session && role)) {
+  if (!(session && role)) {
+    return null;
+  }
+
+  if (!slug) {
     return (
       <Link className={buttonVariants({ variant: "outline" })} to="/org/new">
         Create Org
