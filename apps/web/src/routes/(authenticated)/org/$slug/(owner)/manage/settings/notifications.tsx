@@ -13,9 +13,7 @@ function NotificationsSettings() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1.5">
-        <h2 className="font-semibold text-xl tracking-tight">
-          Notifications
-        </h2>
+        <h2 className="font-semibold text-xl tracking-tight">Notifications</h2>
         <p className="text-muted-foreground">
           Email and in-app notification preferences
         </p>

@@ -1,113 +1,124 @@
 // AUTO-GENERATED FILE. DO NOT EDIT.
 // Run `bun run generate:types` to refresh
 import type { z } from "zod";
-
-import type { AddChannelMembersInput } from "@/lib/schemas/channel";
-import type { AddReactionInput } from "@/lib/schemas/message";
-import type { ArchiveChannelInput } from "@/lib/schemas/channel";
-import type { AttachmentOutput } from "@/lib/schemas/attachment";
-import type { AttachmentTypeSchema } from "@/lib/schemas/attachment";
-import type { AttachmentWithChannelOutput } from "@/lib/schemas/attachment";
-import type { AttachmentWithMessageOutput } from "@/lib/schemas/attachment";
-import type { AttachmentsListOutput } from "@/lib/schemas/attachment";
-import type { AttachmentsWithChannelListOutput } from "@/lib/schemas/attachment";
-import type { AttachmentsWithMessageListOutput } from "@/lib/schemas/attachment";
-import type { ChannelJoinRequestOutput } from "@/lib/schemas/channel";
-import type { ChannelOutput } from "@/lib/schemas/channel";
-import type { ChannelWithCreatorOutput } from "@/lib/schemas/channel";
-import type { ChannelWithStatsOutput } from "@/lib/schemas/channel";
-import type { ChannelsListOutput } from "@/lib/schemas/channel";
-import type { CreateAnnouncementNotificationInput } from "@/lib/schemas/notification";
-import type { CreateAttachmentInput } from "@/lib/schemas/attachment";
-import type { CreateBulkAttachmentsInput } from "@/lib/schemas/attachment";
-import type { CreateBulkNotificationsInput } from "@/lib/schemas/notification";
-import type { CreateChannelInput } from "@/lib/schemas/channel";
-import type { CreateChannelInviteNotificationInput } from "@/lib/schemas/notification";
-import type { CreateChannelOutput } from "@/lib/schemas/channel";
-import type { CreateMessageInput } from "@/lib/schemas/message";
-import type { CreateMessageOutput } from "@/lib/schemas/message";
-import type { CreateNotificationInput } from "@/lib/schemas/notification";
-import type { CreateSystemNotificationInput } from "@/lib/schemas/notification";
-import type { DeleteAttachmentInput } from "@/lib/schemas/attachment";
-import type { DeleteAttachmentOutput } from "@/lib/schemas/attachment";
-import type { DeleteChannelInput } from "@/lib/schemas/channel";
-import type { DeleteMessageInput } from "@/lib/schemas/message";
-import type { DeleteNotificationInput } from "@/lib/schemas/notification";
-import type { DismissNotificationInput } from "@/lib/schemas/notification";
-import type { FeatureSchema } from "@/lib/schemas/module";
-import type { GetAttachmentInput } from "@/lib/schemas/attachment";
-import type { GetChannelAttachmentsInput } from "@/lib/schemas/attachment";
-import type { GetChannelInput } from "@/lib/schemas/channel";
-import type { GetChannelMessagesInput } from "@/lib/schemas/message";
-import type { GetChannelMessagesOutput } from "@/lib/schemas/message";
-import type { GetChannelOutput } from "@/lib/schemas/channel";
-import type { GetChannelsInput } from "@/lib/schemas/channel";
-import type { GetDirectMessagesInput } from "@/lib/schemas/message";
-import type { GetMenionUsersInput } from "@/lib/schemas/message";
-import type { GetMenionUsersOutput } from "@/lib/schemas/message";
-import type { GetMessageAttachmentsInput } from "@/lib/schemas/attachment";
-import type { GetMessageInput } from "@/lib/schemas/message";
-import type { GetMessageOutput } from "@/lib/schemas/message";
-import type { GetMultipleMessageAttachmentsInput } from "@/lib/schemas/attachment";
-import type { GetNotificationsInput } from "@/lib/schemas/notification";
-import type { GetPinnedMessagesInput } from "@/lib/schemas/message";
-import type { GetPinnedMessagesOutput } from "@/lib/schemas/message";
-import type { GetRecentAttachmentsInput } from "@/lib/schemas/attachment";
-import type { GetStorageStatsInput } from "@/lib/schemas/attachment";
-import type { GetThreadMessagesInput } from "@/lib/schemas/message";
-import type { GetUnreadCountInput } from "@/lib/schemas/message";
-import type { GetUserAttachmentsInput } from "@/lib/schemas/attachment";
-import type { IsChannelMemberInput } from "@/lib/schemas/channel";
-import type { IsChannelMemberOutput } from "@/lib/schemas/channel";
-import type { JoinChannelInput } from "@/lib/schemas/channel";
-import type { LeaveChannelInput } from "@/lib/schemas/channel";
-import type { ListChannelMembersInput } from "@/lib/schemas/channel";
-import type { ListChannelMembersOutput } from "@/lib/schemas/channel";
-import type { ListChannelsInput } from "@/lib/schemas/channel";
-import type { ListChannelsOutput } from "@/lib/schemas/channel";
-import type { ListJoinRequestInput } from "@/lib/schemas/channel";
-import type { ListJoinRequestOutput } from "@/lib/schemas/channel";
-import type { MarkMessageAsReadInput } from "@/lib/schemas/message";
-import type { MarkMultipleAsReadInput } from "@/lib/schemas/notification";
-import type { MarkNotificationAsReadInput } from "@/lib/schemas/notification";
-import type { MemberAttendanceStatusOutput } from "@/lib/schemas/attendance";
-import type { MemberPunchInInput } from "@/lib/schemas/attendance";
-import type { MemberPunchInOutput } from "@/lib/schemas/attendance";
-import type { MemberPunchOutInput } from "@/lib/schemas/attendance";
-import type { MemberPunchOutOutput } from "@/lib/schemas/attendance";
-import type { MessageAttachmentOutput } from "@/lib/schemas/message";
-import type { MessageOutput } from "@/lib/schemas/message";
-import type { MessageTypeSchema } from "@/lib/schemas/message";
-import type { MessageWithSenderSchema } from "@/lib/schemas/message";
-import type { MessagesListOutput } from "@/lib/schemas/message";
-import type { ModuleSchema } from "@/lib/schemas/module";
-import type { NotificationOutput } from "@/lib/schemas/notification";
-import type { NotificationStatusSchema } from "@/lib/schemas/notification";
-import type { NotificationTypeSchema } from "@/lib/schemas/notification";
-import type { PinMessageInput } from "@/lib/schemas/message";
-import type { PinMessageOutput } from "@/lib/schemas/message";
-import type { RecentAttachmentOutput } from "@/lib/schemas/attachment";
-import type { RecentAttachmentsListOutput } from "@/lib/schemas/attachment";
-import type { RemoveChannelMemberInput } from "@/lib/schemas/channel";
-import type { RemoveReactionInput } from "@/lib/schemas/message";
-import type { RoleSchema } from "@/lib/schemas/module";
-import type { SearchAttachmentsInput } from "@/lib/schemas/attachment";
-import type { SearchMessageOutput } from "@/lib/schemas/message";
-import type { SearchMessagesInput } from "@/lib/schemas/message";
-import type { SearchMessagesListOutput } from "@/lib/schemas/message";
-import type { SearchUsersInput } from "@/lib/schemas/message";
-import type { SearchUsersOutput } from "@/lib/schemas/message";
-import type { StorageStatsOutput } from "@/lib/schemas/attachment";
-import type { SuccessOutput } from "@/lib/schemas/channel";
-import type { ThreadMessageOutput } from "@/lib/schemas/message";
-import type { UnPinMessageInput } from "@/lib/schemas/message";
-import type { UnPinMessageOutput } from "@/lib/schemas/message";
-import type { UnreadCountOutput } from "@/lib/schemas/message";
-import type { UpdateAttachmentInput } from "@/lib/schemas/attachment";
-import type { UpdateChannelInput } from "@/lib/schemas/channel";
-import type { UpdateChannelMemberInput } from "@/lib/schemas/channel";
-import type { UpdateMessageInput } from "@/lib/schemas/message";
-import type { UpdateMessageOutput } from "@/lib/schemas/message";
+import type {
+  AttachmentOutput,
+  AttachmentsListOutput,
+  AttachmentsWithChannelListOutput,
+  AttachmentsWithMessageListOutput,
+  AttachmentTypeSchema,
+  AttachmentWithChannelOutput,
+  AttachmentWithMessageOutput,
+  CreateAttachmentInput,
+  CreateBulkAttachmentsInput,
+  DeleteAttachmentInput,
+  DeleteAttachmentOutput,
+  GetAttachmentInput,
+  GetChannelAttachmentsInput,
+  GetMessageAttachmentsInput,
+  GetMultipleMessageAttachmentsInput,
+  GetRecentAttachmentsInput,
+  GetStorageStatsInput,
+  GetUserAttachmentsInput,
+  RecentAttachmentOutput,
+  RecentAttachmentsListOutput,
+  SearchAttachmentsInput,
+  StorageStatsOutput,
+  UpdateAttachmentInput,
+} from "@/lib/schemas/attachment";
+import type {
+  MemberAttendanceStatusOutput,
+  MemberPunchInInput,
+  MemberPunchInOutput,
+  MemberPunchOutInput,
+  MemberPunchOutOutput,
+} from "@/lib/schemas/attendance";
+import type {
+  AddChannelMembersInput,
+  ArchiveChannelInput,
+  ChannelJoinRequestOutput,
+  ChannelOutput,
+  ChannelsListOutput,
+  ChannelWithCreatorOutput,
+  ChannelWithStatsOutput,
+  CreateChannelInput,
+  CreateChannelOutput,
+  DeleteChannelInput,
+  GetChannelInput,
+  GetChannelOutput,
+  GetChannelsInput,
+  IsChannelMemberInput,
+  IsChannelMemberOutput,
+  JoinChannelInput,
+  LeaveChannelInput,
+  ListChannelMembersInput,
+  ListChannelMembersOutput,
+  ListChannelsInput,
+  ListChannelsOutput,
+  ListJoinRequestInput,
+  ListJoinRequestOutput,
+  RemoveChannelMemberInput,
+  SuccessOutput,
+  UpdateChannelInput,
+  UpdateChannelMemberInput,
+} from "@/lib/schemas/channel";
+import type {
+  AddReactionInput,
+  CreateMessageInput,
+  CreateMessageOutput,
+  DeleteMessageInput,
+  GetChannelMessagesInput,
+  GetChannelMessagesOutput,
+  GetDirectMessagesInput,
+  GetMenionUsersInput,
+  GetMenionUsersOutput,
+  GetMessageInput,
+  GetMessageOutput,
+  GetPinnedMessagesInput,
+  GetPinnedMessagesOutput,
+  GetThreadMessagesInput,
+  GetUnreadCountInput,
+  MarkMessageAsReadInput,
+  MessageAttachmentOutput,
+  MessageOutput,
+  MessagesListOutput,
+  MessageTypeSchema,
+  MessageWithSenderSchema,
+  PinMessageInput,
+  PinMessageOutput,
+  RemoveReactionInput,
+  SearchMessageOutput,
+  SearchMessagesInput,
+  SearchMessagesListOutput,
+  SearchUsersInput,
+  SearchUsersOutput,
+  ThreadMessageOutput,
+  UnPinMessageInput,
+  UnPinMessageOutput,
+  UnreadCountOutput,
+  UpdateMessageInput,
+  UpdateMessageOutput,
+} from "@/lib/schemas/message";
+import type {
+  FeatureSchema,
+  ModuleSchema,
+  RoleSchema,
+} from "@/lib/schemas/module";
+import type {
+  CreateAnnouncementNotificationInput,
+  CreateBulkNotificationsInput,
+  CreateChannelInviteNotificationInput,
+  CreateNotificationInput,
+  CreateSystemNotificationInput,
+  DeleteNotificationInput,
+  DismissNotificationInput,
+  GetNotificationsInput,
+  MarkMultipleAsReadInput,
+  MarkNotificationAsReadInput,
+  NotificationOutput,
+  NotificationStatusSchema,
+  NotificationTypeSchema,
+} from "@/lib/schemas/notification";
 
 export type AddChannelMembersInputType = z.infer<typeof AddChannelMembersInput>;
 export type AddReactionInputType = z.infer<typeof AddReactionInput>;

@@ -57,6 +57,7 @@ temp
 /.crush.json
 /.crush.json.bak
 /.gemini/settings.json
+/.gemini/settings.json.orig
 /.gemini/settings.json.bak
 /.vscode/mcp.json
 /.vscode/mcp.json.bak

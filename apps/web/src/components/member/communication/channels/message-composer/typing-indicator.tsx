@@ -63,4 +63,3 @@ export function TypingIndicator({ typingUsers }: TypingIndicatorProps) {
     </Popover>
   );
 }
-

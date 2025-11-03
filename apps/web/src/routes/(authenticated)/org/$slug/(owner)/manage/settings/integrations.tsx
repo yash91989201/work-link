@@ -12,12 +12,8 @@ function IntegrationsSettings() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1.5">
-        <h2 className="font-semibold text-xl tracking-tight">
-          Integrations
-        </h2>
-        <p className="text-muted-foreground">
-          Connected services and APIs
-        </p>
+        <h2 className="font-semibold text-xl tracking-tight">Integrations</h2>
+        <p className="text-muted-foreground">Connected services and APIs</p>
       </div>
 
       <div className="space-y-4">

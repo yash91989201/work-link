@@ -1,11 +1,17 @@
+import { Filter, Search, UserPlus } from "lucide-react";
 import { useState } from "react";
-import { TeamList } from "./team-list";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { CreateTeamDialog } from "./create-team-dialog";
 import { TeamDetailsDialog } from "./team-details-dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, Search, Filter } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { TeamList } from "./team-list";
 
 interface Team {
   id: string;
@@ -53,7 +59,8 @@ export const TeamManagement = () => {
   const filteredTeams = teams.filter(
     (team) =>
       team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (team.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+      (team.description?.toLowerCase().includes(searchQuery.toLowerCase()) ??
+        false)
   );
 
   const handleTeamDetails = (team: Team) => {
@@ -68,7 +75,9 @@ export const TeamManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Team Management</CardTitle>
-              <CardDescription>Create and manage organization teams</CardDescription>
+              <CardDescription>
+                Create and manage organization teams
+              </CardDescription>
             </div>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
@@ -77,37 +86,34 @@ export const TeamManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
               <Input
+                className="pl-8"
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search teams..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
               />
             </div>
-            <Button variant="outline" size="icon">
+            <Button size="icon" variant="outline">
               <Filter className="h-4 w-4" />
             </Button>
           </div>
 
-          <TeamList
-            teams={filteredTeams}
-            onTeamClick={handleTeamDetails}
-          />
+          <TeamList onTeamClick={handleTeamDetails} teams={filteredTeams} />
         </CardContent>
       </Card>
 
       <CreateTeamDialog
-        open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
+        open={isCreateDialogOpen}
       />
 
       {selectedTeam && (
         <TeamDetailsDialog
-          open={isDetailsDialogOpen}
           onOpenChange={setIsDetailsDialogOpen}
+          open={isDetailsDialogOpen}
           team={selectedTeam}
         />
       )}

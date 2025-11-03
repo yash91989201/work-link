@@ -30,7 +30,5 @@ export const AcceptInvitationFormSchema = z.object({
     .string()
     .min(8, "Password must be at least 8 characters")
     .nonempty("Password is required"),
-  invitationId: z
-    .string()
-    .min(1, "Invitation ID is required"),
+  invitationId: z.string().min(1, "Invitation ID is required"),
 });

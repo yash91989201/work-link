@@ -21,9 +21,8 @@ export function SignUpForm() {
 
   const { mutateAsync: signup, isPending } = useMutation({
     mutationKey: ["signup"],
-    mutationFn: async (values: SignUpFormType) => {
-      return await authClient.signUp.email(values);
-    },
+    mutationFn: async (values: SignUpFormType) =>
+      await authClient.signUp.email(values),
   });
 
   const form = useForm<SignUpFormType>({

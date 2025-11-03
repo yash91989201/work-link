@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Download,
-} from "lucide-react";
+import { Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -16,9 +14,7 @@ function DataSettings() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1.5">
-        <h2 className="font-semibold text-xl tracking-tight">
-          Data & Storage
-        </h2>
+        <h2 className="font-semibold text-xl tracking-tight">Data & Storage</h2>
         <p className="text-muted-foreground">
           Manage data retention and storage
         </p>

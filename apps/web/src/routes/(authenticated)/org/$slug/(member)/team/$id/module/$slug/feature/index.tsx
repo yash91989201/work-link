@@ -1,10 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-  '/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/',
+  "/(authenticated)/org/$slug/(member)/team/$id/module/$slug/feature/"
 )({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
   return (
@@ -12,5 +12,5 @@ function RouteComponent() {
       Hello
       "/(authenticated)/org/$slug/(member)/team/$slug/module/$slug/feature/"!
     </div>
-  )
+  );
 }

@@ -33,9 +33,8 @@ export function LogInForm() {
 
   const { mutateAsync: login, isPending } = useMutation({
     mutationKey: ["login"],
-    mutationFn: async (values: LogInFormType) => {
-      return await authClient.signIn.email(values);
-    },
+    mutationFn: async (values: LogInFormType) =>
+      await authClient.signIn.email(values),
   });
 
   const form = useForm<LogInFormType>({

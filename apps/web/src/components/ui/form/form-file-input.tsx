@@ -75,7 +75,7 @@ const SingleFilePreview = ({
   }, [file]);
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-border/60 bg-gradient-to-br from-background to-muted/20 shadow-sm transition-all duration-200 hover:shadow-md hover:border-border/80">
+    <div className="group relative overflow-hidden rounded-xl border border-border/60 bg-gradient-to-br from-background to-muted/20 shadow-sm transition-all duration-200 hover:border-border/80 hover:shadow-md">
       <div className="flex items-center gap-4 p-4">
         <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-muted/50 to-muted/30 shadow-inner ring-1 ring-border/20">
           {previewUrl ? (
@@ -91,21 +91,22 @@ const SingleFilePreview = ({
             <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
           )}
         </div>
-        
+
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-sm leading-tight mb-1 group-hover:text-primary transition-colors duration-200">
+          <p className="mb-1 truncate font-semibold text-sm leading-tight transition-colors duration-200 group-hover:text-primary">
             {file.name}
           </p>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 text-muted-foreground text-xs">
             <span className="font-medium">{formatBytes(file.size)}</span>
-            <span className="w-1 h-1 rounded-full bg-current opacity-30" />
+            <span className="h-1 w-1 rounded-full bg-current opacity-30" />
             <span>{file.type || "Unknown type"}</span>
           </div>
         </div>
-        
-        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200">
+
+        <div className="flex items-center gap-1.5 opacity-0 transition-all duration-200 group-hover:opacity-100">
           <Button
             aria-label="Replace file"
+            className="h-8 w-8 rounded-lg border-border/60 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:border-primary/50 hover:bg-background hover:text-primary"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -115,12 +116,12 @@ const SingleFilePreview = ({
             title="Replace"
             type="button"
             variant="outline"
-            className="h-8 w-8 rounded-lg border-border/60 bg-background/80 backdrop-blur-sm hover:bg-background hover:border-primary/50 hover:text-primary transition-all duration-200"
           >
             <ArrowLeftRight className="size-4" />
           </Button>
           <Button
             aria-label="Remove file"
+            className="h-8 w-8 rounded-lg transition-all duration-200 hover:bg-destructive/10 hover:text-destructive"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -130,13 +131,12 @@ const SingleFilePreview = ({
             title="Remove"
             type="button"
             variant="ghost"
-            className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
           >
             <Trash2 className="size-4" />
           </Button>
         </div>
       </div>
-      
+
       <div className="h-1 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </div>
   );
@@ -164,7 +164,7 @@ const MultiFilePreview = ({
   }, [file]);
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-background to-muted/10 shadow-sm transition-all duration-200 hover:shadow-md hover:border-border/70 hover:bg-muted/20">
+    <div className="group relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-background to-muted/10 shadow-sm transition-all duration-200 hover:border-border/70 hover:bg-muted/20 hover:shadow-md">
       <div className="flex items-center gap-3 p-3">
         <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-muted/40 to-muted/20 shadow-inner ring-1 ring-border/10">
           {previewUrl ? (
@@ -180,25 +180,26 @@ const MultiFilePreview = ({
             <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
           )}
         </div>
-        
+
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-sm leading-tight mb-0.5 group-hover:text-primary transition-colors duration-200">
+          <p className="mb-0.5 truncate font-medium text-sm leading-tight transition-colors duration-200 group-hover:text-primary">
             {file.name}
           </p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground text-xs">
             <span>{formatBytes(file.size)}</span>
             {file.type && (
               <>
-                <span className="w-1 h-1 rounded-full bg-current opacity-30" />
-                <span className="truncate max-w-24">{file.type}</span>
+                <span className="h-1 w-1 rounded-full bg-current opacity-30" />
+                <span className="max-w-24 truncate">{file.type}</span>
               </>
             )}
           </div>
         </div>
-        
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+
+        <div className="flex items-center gap-1 opacity-0 transition-all duration-200 group-hover:opacity-100">
           <Button
             aria-label="Replace file"
+            className="h-7 w-7 rounded-md transition-all duration-200 hover:bg-primary/10 hover:text-primary"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -208,12 +209,12 @@ const MultiFilePreview = ({
             title="Replace"
             type="button"
             variant="ghost"
-            className="h-7 w-7 rounded-md hover:bg-primary/10 hover:text-primary transition-all duration-200"
           >
             <ArrowLeftRight className="size-3.5" />
           </Button>
           <Button
             aria-label="Remove file"
+            className="h-7 w-7 rounded-md transition-all duration-200 hover:bg-destructive/10 hover:text-destructive"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -223,13 +224,12 @@ const MultiFilePreview = ({
             title="Remove"
             type="button"
             variant="ghost"
-            className="h-7 w-7 rounded-md hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
           >
             <Trash2 className="size-3.5" />
           </Button>
         </div>
       </div>
-      
+
       <div className="h-0.5 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </div>
   );
@@ -376,7 +376,7 @@ export function FormFileInput({
           className,
           "items-stretch gap-4 transition-all duration-200",
           isInvalid &&
-            "border-destructive/60 focus-visible:border-destructive focus-visible:ring-destructive/20 hover:border-destructive/70"
+            "border-destructive/60 hover:border-destructive/70 focus-visible:border-destructive focus-visible:ring-destructive/20"
         )}
         disabled={disabled}
         inputProps={{
@@ -405,7 +405,10 @@ export function FormFileInput({
                   };
 
                   return (
-                    <li key={`${file.name}-${index}`} className="animate-in fade-in-0 slide-in-from-2 duration-300">
+                    <li
+                      className="fade-in-0 slide-in-from-2 animate-in duration-300"
+                      key={`${file.name}-${index}`}
+                    >
                       {renderFile ? (
                         renderFile({
                           file,
@@ -426,7 +429,7 @@ export function FormFileInput({
               </ul>
             </div>
           ) : (
-            <div className="animate-in fade-in-0 duration-200">
+            <div className="fade-in-0 animate-in duration-200">
               {resolveEmptyState()}
             </div>
           )}
@@ -434,18 +437,18 @@ export function FormFileInput({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                <p className="text-muted-foreground text-sm font-medium">
+                <p className="font-medium text-muted-foreground text-sm">
                   {files.length} of {limit} files selected
                 </p>
               </div>
               {files.length > 0 && (
                 <Button
+                  className="h-7 px-2 text-muted-foreground text-xs transition-all duration-200 hover:bg-destructive/5 hover:text-destructive"
                   onClick={() => {
                     files.forEach((_, index) => handleRemove(index));
                   }}
                   size="sm"
                   variant="ghost"
-                  className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all duration-200"
                 >
                   Clear all
                 </Button>

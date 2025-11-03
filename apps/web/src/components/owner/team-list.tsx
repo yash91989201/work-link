@@ -1,6 +1,19 @@
+import {
+  Building2,
+  Calendar,
+  MoreHorizontal,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +21,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserPlus, Building2, MoreHorizontal, Users, Calendar } from "lucide-react";
 
 interface Team {
   id: string;
@@ -27,10 +39,10 @@ interface TeamListProps {
 export const TeamList = ({ teams, onTeamClick }: TeamListProps) => {
   if (teams.length === 0) {
     return (
-      <div className="text-center py-8">
-        <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-medium mb-2">No teams found</h3>
-        <p className="text-muted-foreground mb-4">
+      <div className="py-8 text-center">
+        <Building2 className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+        <h3 className="mb-2 font-medium text-lg">No teams found</h3>
+        <p className="mb-4 text-muted-foreground">
           Get started by creating your first team.
         </p>
         <Button onClick={() => {}}>
@@ -44,9 +56,9 @@ export const TeamList = ({ teams, onTeamClick }: TeamListProps) => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {teams.map((team) => (
-        <Card 
-          key={team.id} 
-          className="cursor-pointer hover:shadow-md transition-shadow"
+        <Card
+          className="cursor-pointer transition-shadow hover:shadow-md"
+          key={team.id}
           onClick={() => onTeamClick(team)}
         >
           <CardHeader className="pb-3">
@@ -62,25 +74,27 @@ export const TeamList = ({ teams, onTeamClick }: TeamListProps) => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    variant="ghost"
-                    size="sm"
                     onClick={(e) => e.stopPropagation()}
+                    size="sm"
+                    variant="ghost"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation();
-                    onTeamClick(team);
-                  }}>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onTeamClick(team);
+                    }}
+                  >
                     View Details
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                     Edit Team
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="text-destructive"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -102,7 +116,9 @@ export const TeamList = ({ teams, onTeamClick }: TeamListProps) => {
                   <span>{new Date(team.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
-              <Badge variant={team.status === "active" ? "default" : "secondary"}>
+              <Badge
+                variant={team.status === "active" ? "default" : "secondary"}
+              >
                 {team.status}
               </Badge>
             </div>

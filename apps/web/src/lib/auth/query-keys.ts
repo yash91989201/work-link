@@ -102,9 +102,8 @@ export const getAuthQueryKey = {
 } as const;
 
 // Helper function to check if a query key is an auth query
-export const isAuthQueryKey = (queryKey: unknown[]): boolean => {
-  return Array.isArray(queryKey) && queryKey[0] === "auth";
-};
+export const isAuthQueryKey = (queryKey: unknown[]): boolean =>
+  Array.isArray(queryKey) && queryKey[0] === "auth";
 
 // Helper to get organization-specific query keys for bulk operations
 export const getOrganizationQueryKeys = (organizationId: string) => ({

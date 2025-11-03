@@ -133,4 +133,3 @@ export const QuickActions = ({ className }: QuickActionsProps) => {
     </Card>
   );
 };
-

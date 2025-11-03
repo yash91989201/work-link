@@ -1,4 +1,8 @@
+import { Building2, Plus, Users, X } from "lucide-react";
 import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -19,9 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { X, Plus, Users, Building2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CreateTeamDialogProps {
   children: React.ReactNode;
@@ -50,7 +50,7 @@ export const CreateTeamDialog = ({ children }: CreateTeamDialogProps) => {
   };
 
   const handleRemoveMember = (memberId: string) => {
-    setMembers(members.filter(id => id !== memberId));
+    setMembers(members.filter((id) => id !== memberId));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -70,10 +70,8 @@ export const CreateTeamDialog = ({ children }: CreateTeamDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -85,17 +83,17 @@ export const CreateTeamDialog = ({ children }: CreateTeamDialogProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           {/* Basic Information */}
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="teamName">Team Name *</Label>
               <Input
                 id="teamName"
-                placeholder="Enter team name"
-                value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
+                placeholder="Enter team name"
                 required
+                value={teamName}
               />
             </div>
 
@@ -103,16 +101,16 @@ export const CreateTeamDialog = ({ children }: CreateTeamDialogProps) => {
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                placeholder="Brief description of the team's purpose and responsibilities"
-                value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                placeholder="Brief description of the team's purpose and responsibilities"
                 rows={3}
+                value={description}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="teamLead">Team Lead</Label>
-              <Select value={teamLead} onValueChange={setTeamLead}>
+              <Select onValueChange={setTeamLead} value={teamLead}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select team lead (optional)" />
                 </SelectTrigger>
@@ -138,21 +136,25 @@ export const CreateTeamDialog = ({ children }: CreateTeamDialogProps) => {
           {/* Team Members */}
           <div className="space-y-4">
             <Label>Team Members</Label>
-            
+
             {/* Selected Members */}
             {members.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {members.map((memberId) => {
-                  const member = mockMembers.find(m => m.id === memberId);
+                  const member = mockMembers.find((m) => m.id === memberId);
                   if (!member) return null;
                   return (
-                    <Badge key={memberId} variant="secondary" className="flex items-center gap-1">
+                    <Badge
+                      className="flex items-center gap-1"
+                      key={memberId}
+                      variant="secondary"
+                    >
                       <Users className="h-3 w-3" />
                       {member.name}
                       <button
-                        type="button"
+                        className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
                         onClick={() => handleRemoveMember(memberId)}
-                        className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                        type="button"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -164,30 +166,30 @@ export const CreateTeamDialog = ({ children }: CreateTeamDialogProps) => {
 
             {/* Add Members */}
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">
+              <Label className="text-muted-foreground text-sm">
                 Add team members
               </Label>
-              <div className="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
+              <div className="max-h-32 space-y-1 overflow-y-auto rounded-lg border p-2">
                 {mockMembers
-                  .filter(member => !members.includes(member.id))
+                  .filter((member) => !members.includes(member.id))
                   .map((member) => (
                     <button
+                      className="flex w-full items-center gap-2 rounded-lg p-2 transition-colors hover:bg-muted"
                       key={member.id}
-                      type="button"
                       onClick={() => handleAddMember(member.id)}
-                      className="w-full flex items-center gap-2 p-2 hover:bg-muted rounded-lg transition-colors"
+                      type="button"
                     >
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={member.avatar} />
-                        <AvatarFallback>
-                          {member.name.charAt(0)}
-                        </AvatarFallback>
+                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="text-left">
-                        <p className="text-sm font-medium">{member.name}</p>
-                        <p className="text-xs text-muted-foreground">{member.email}</p>
+                        <p className="font-medium text-sm">{member.name}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {member.email}
+                        </p>
                       </div>
-                      <Plus className="h-4 w-4 ml-auto text-muted-foreground" />
+                      <Plus className="ml-auto h-4 w-4 text-muted-foreground" />
                     </button>
                   ))}
               </div>
@@ -196,13 +198,13 @@ export const CreateTeamDialog = ({ children }: CreateTeamDialogProps) => {
 
           <DialogFooter>
             <Button
+              onClick={() => setOpen(false)}
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!teamName.trim()}>
+            <Button disabled={!teamName.trim()} type="submit">
               Create Team
             </Button>
           </DialogFooter>

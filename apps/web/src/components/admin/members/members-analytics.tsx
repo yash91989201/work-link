@@ -250,79 +250,77 @@ const MonthlyGrowthChart = () => {
 };
 
 // Department Performance Table
-const DepartmentPerformanceTable = () => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Department Performance</CardTitle>
-        <CardDescription>Key metrics by department</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {membersAnalyticsData.departmentPerformance.map((dept) => (
-            <div
-              className="grid grid-cols-6 items-center gap-4 rounded-lg border p-3"
-              key={dept.department}
-            >
-              <div>
-                <p className="font-medium text-sm">{dept.department}</p>
-                <p className="text-muted-foreground text-xs">
-                  {dept.members} members
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  {dept.growth > 0 ? (
-                    <TrendingUp className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-600" />
-                  )}
-                  <span
-                    className={`font-medium text-sm ${dept.growth > 0 ? "text-green-600" : "text-red-600"}`}
-                  >
-                    {dept.growth > 0 ? "+" : ""}
-                    {dept.growth}%
-                  </span>
-                </div>
-                <p className="text-muted-foreground text-xs">Growth</p>
-              </div>
-              <div className="text-center">
-                <p className="font-medium text-sm">{dept.engagement}%</p>
-                <Progress className="h-1" value={dept.engagement} />
-                <p className="text-muted-foreground text-xs">Engagement</p>
-              </div>
-              <div className="text-center">
-                <p className="font-medium text-sm">{dept.satisfaction}/5</p>
-                <div className="flex justify-center">
-                  {[...Array(5)].map((_, i) => (
-                    <div
-                      className={`mx-0.5 h-1 w-1 rounded-full ${
-                        i < Math.floor(dept.satisfaction)
-                          ? "bg-yellow-400"
-                          : "bg-gray-300"
-                      }`}
-                      key={i}
-                    />
-                  ))}
-                </div>
-                <p className="text-muted-foreground text-xs">Satisfaction</p>
-              </div>
-              <div className="text-center">
-                <p className="font-medium text-sm">{dept.turnover}%</p>
-                <p className="text-muted-foreground text-xs">Turnover</p>
-              </div>
-              <div>
-                <Badge variant={dept.growth > 0 ? "default" : "secondary"}>
-                  {dept.growth > 0 ? "Growing" : "Declining"}
-                </Badge>
-              </div>
+const DepartmentPerformanceTable = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Department Performance</CardTitle>
+      <CardDescription>Key metrics by department</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-4">
+        {membersAnalyticsData.departmentPerformance.map((dept) => (
+          <div
+            className="grid grid-cols-6 items-center gap-4 rounded-lg border p-3"
+            key={dept.department}
+          >
+            <div>
+              <p className="font-medium text-sm">{dept.department}</p>
+              <p className="text-muted-foreground text-xs">
+                {dept.members} members
+              </p>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1">
+                {dept.growth > 0 ? (
+                  <TrendingUp className="h-3 w-3 text-green-600" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 text-red-600" />
+                )}
+                <span
+                  className={`font-medium text-sm ${dept.growth > 0 ? "text-green-600" : "text-red-600"}`}
+                >
+                  {dept.growth > 0 ? "+" : ""}
+                  {dept.growth}%
+                </span>
+              </div>
+              <p className="text-muted-foreground text-xs">Growth</p>
+            </div>
+            <div className="text-center">
+              <p className="font-medium text-sm">{dept.engagement}%</p>
+              <Progress className="h-1" value={dept.engagement} />
+              <p className="text-muted-foreground text-xs">Engagement</p>
+            </div>
+            <div className="text-center">
+              <p className="font-medium text-sm">{dept.satisfaction}/5</p>
+              <div className="flex justify-center">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    className={`mx-0.5 h-1 w-1 rounded-full ${
+                      i < Math.floor(dept.satisfaction)
+                        ? "bg-yellow-400"
+                        : "bg-gray-300"
+                    }`}
+                    key={i}
+                  />
+                ))}
+              </div>
+              <p className="text-muted-foreground text-xs">Satisfaction</p>
+            </div>
+            <div className="text-center">
+              <p className="font-medium text-sm">{dept.turnover}%</p>
+              <p className="text-muted-foreground text-xs">Turnover</p>
+            </div>
+            <div>
+              <Badge variant={dept.growth > 0 ? "default" : "secondary"}>
+                {dept.growth > 0 ? "Growing" : "Declining"}
+              </Badge>
+            </div>
+          </div>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+);
 
 // Engagement Trends
 const EngagementTrends = () => {
@@ -381,60 +379,58 @@ const EngagementTrends = () => {
 };
 
 // At-Risk Members
-const AtRiskMembers = () => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-orange-600" />
-          At-Risk Members
-        </CardTitle>
-        <CardDescription>Members who may need attention</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {membersAnalyticsData.atRiskMembers.map((member) => (
-            <div
-              className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/50"
-              key={member.email}
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="" />
-                <AvatarFallback>
-                  {member.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="mb-1 flex items-center justify-between">
-                  <p className="font-medium text-sm">{member.name}</p>
-                  <Badge className="text-orange-600 text-xs" variant="outline">
-                    {member.engagementScore}% engagement
+const AtRiskMembers = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4 text-orange-600" />
+        At-Risk Members
+      </CardTitle>
+      <CardDescription>Members who may need attention</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-4">
+        {membersAnalyticsData.atRiskMembers.map((member) => (
+          <div
+            className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/50"
+            key={member.email}
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="" />
+              <AvatarFallback>
+                {member.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="mb-1 flex items-center justify-between">
+                <p className="font-medium text-sm">{member.name}</p>
+                <Badge className="text-orange-600 text-xs" variant="outline">
+                  {member.engagementScore}% engagement
+                </Badge>
+              </div>
+              <p className="text-muted-foreground text-xs">
+                {member.email} • {member.department}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                Last active: {member.lastActive}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {member.riskFactors.map((factor, index) => (
+                  <Badge className="text-xs" key={index} variant="secondary">
+                    {factor}
                   </Badge>
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {member.email} • {member.department}
-                </p>
-                <p className="text-muted-foreground text-xs">
-                  Last active: {member.lastActive}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {member.riskFactors.map((factor, index) => (
-                    <Badge className="text-xs" key={index} variant="secondary">
-                      {factor}
-                    </Badge>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+          </div>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+);
 
 export const MembersAnalytics = () => {
   const [timeRange, setTimeRange] = useState("30d");

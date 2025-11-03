@@ -329,4 +329,3 @@ export function AttendanceHistoryView() {
     </div>
   );
 }
-

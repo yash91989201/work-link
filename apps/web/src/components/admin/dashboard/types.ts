@@ -28,7 +28,12 @@ export interface TeamPerformance {
 
 export interface Activity {
   id: string;
-  type: "member_joined" | "member_left" | "team_created" | "project_completed" | "milestone_reached";
+  type:
+    | "member_joined"
+    | "member_left"
+    | "team_created"
+    | "project_completed"
+    | "milestone_reached";
   title: string;
   description: string;
   timestamp: Date;

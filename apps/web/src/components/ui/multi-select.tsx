@@ -369,9 +369,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
     const isGroupedOptions = React.useCallback(
       (
         opts: MultiSelectOption[] | MultiSelectGroup[]
-      ): opts is MultiSelectGroup[] => {
-        return opts.length > 0 && "heading" in opts[0];
-      },
+      ): opts is MultiSelectGroup[] => opts.length > 0 && "heading" in opts[0],
       []
     );
 

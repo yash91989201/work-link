@@ -95,10 +95,8 @@ export const Channel = ({
   );
 };
 
-export const ChannelSkeleton = () => {
-  return (
-    <div className="mb-1">
-      <Skeleton className="h-10 w-full" />
-    </div>
-  );
-};
+export const ChannelSkeleton = () => (
+  <div className="mb-1">
+    <Skeleton className="h-10 w-full" />
+  </div>
+);

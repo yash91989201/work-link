@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -51,7 +51,10 @@ type CreateTeamFormType = {
   description?: string;
 };
 
-export const CreateTeamDialog = ({ open, onOpenChange }: CreateTeamDialogProps) => {
+export const CreateTeamDialog = ({
+  open,
+  onOpenChange,
+}: CreateTeamDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<CreateTeamFormType>({
@@ -67,10 +70,10 @@ export const CreateTeamDialog = ({ open, onOpenChange }: CreateTeamDialogProps) 
     try {
       // Replace with actual API call
       console.log("Creating team:", data);
-      
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       toast.success("Team created successfully!");
       form.reset();
       onOpenChange(false);
@@ -82,17 +85,18 @@ export const CreateTeamDialog = ({ open, onOpenChange }: CreateTeamDialogProps) 
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
           <DialogDescription>
-            Create a new team to organize your members and collaborate more effectively.
+            Create a new team to organize your members and collaborate more
+            effectively.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="name"
@@ -100,10 +104,7 @@ export const CreateTeamDialog = ({ open, onOpenChange }: CreateTeamDialogProps) 
                 <FormItem>
                   <FormLabel>Team Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="e.g., Development Team"
-                      {...field}
-                    />
+                    <Input placeholder="e.g., Development Team" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -130,14 +131,14 @@ export const CreateTeamDialog = ({ open, onOpenChange }: CreateTeamDialogProps) 
 
             <DialogFooter>
               <Button
+                disabled={isLoading}
+                onClick={() => onOpenChange(false)}
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button disabled={isLoading} type="submit">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

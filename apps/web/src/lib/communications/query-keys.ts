@@ -7,8 +7,10 @@ export const communicationsKeys = {
       limit?: number;
       offset?: number;
     }) => ["communications", "channels", "list", filters ?? null] as const,
-    detail: (channelId: string) => ["communications", "channels", "detail", channelId] as const,
-    members: (channelId: string) => ["communications", "channels", "members", channelId] as const,
+    detail: (channelId: string) =>
+      ["communications", "channels", "detail", channelId] as const,
+    members: (channelId: string) =>
+      ["communications", "channels", "members", channelId] as const,
   },
   messages: {
     list: (
@@ -19,14 +21,18 @@ export const communicationsKeys = {
         limit?: number;
         offset?: number;
       }
-    ) => ["communications", "messages", "list", channelId, params ?? null] as const,
-    detail: (messageId: string) => ["communications", "messages", "detail", messageId] as const,
-    thread: (parentMessageId: string) => [
-      "communications",
-      "messages",
-      "thread",
-      parentMessageId,
-    ] as const,
+    ) =>
+      [
+        "communications",
+        "messages",
+        "list",
+        channelId,
+        params ?? null,
+      ] as const,
+    detail: (messageId: string) =>
+      ["communications", "messages", "detail", messageId] as const,
+    thread: (parentMessageId: string) =>
+      ["communications", "messages", "thread", parentMessageId] as const,
     search: (
       channelId: string,
       query: string,
@@ -34,14 +40,15 @@ export const communicationsKeys = {
         limit?: number;
         offset?: number;
       }
-    ) => [
-      "communications",
-      "messages",
-      "search",
-      channelId,
-      query,
-      params ?? null,
-    ] as const,
+    ) =>
+      [
+        "communications",
+        "messages",
+        "search",
+        channelId,
+        query,
+        params ?? null,
+      ] as const,
   },
 };
 

@@ -42,13 +42,11 @@ export const extractMentionUserIds = (
   const mentionRegex = /@([^\s@]+(?:\s+[^\s@]+)*)/g;
   const userIds: string[] = [];
   const matches = content.matchAll(mentionRegex);
-  
+
   for (const match of matches) {
     const displayName = match[1].toLowerCase();
     // Find user by display name (case-insensitive)
-    const user = users.find((u) => 
-      u.name?.toLowerCase() === displayName
-    );
+    const user = users.find((u) => u.name?.toLowerCase() === displayName);
     if (user) {
       userIds.push(user.id);
     }
@@ -107,9 +105,7 @@ export const getCurrentWord = (
 };
 
 // Check if current word is a mention trigger
-export const isMentionTrigger = (word: string): boolean => {
-  return word.startsWith("@");
-};
+export const isMentionTrigger = (word: string): boolean => word.startsWith("@");
 
 // Extract mention query from current word
 export const getMentionQuery = (word: string): string => {

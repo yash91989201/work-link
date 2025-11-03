@@ -11,7 +11,7 @@ function DangerZoneSettings() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1.5">
-        <h2 className="font-semibold text-xl tracking-tight text-destructive">
+        <h2 className="font-semibold text-destructive text-xl tracking-tight">
           Danger Zone
         </h2>
         <p className="text-muted-foreground">
@@ -19,7 +19,7 @@ function DangerZoneSettings() {
         </p>
       </div>
 
-      <div className="space-y-4 border border-destructive/50 rounded-lg p-6">
+      <div className="space-y-4 rounded-lg border border-destructive/50 p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-medium">Delete Organization</p>

@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -27,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 
 interface Member {
   id: string;
@@ -58,7 +58,11 @@ type RoleChangeFormType = {
   newRole: "admin" | "member";
 };
 
-export const RoleChangeDialog = ({ open, onOpenChange, member }: RoleChangeDialogProps) => {
+export const RoleChangeDialog = ({
+  open,
+  onOpenChange,
+  member,
+}: RoleChangeDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<RoleChangeFormType>({
@@ -73,10 +77,10 @@ export const RoleChangeDialog = ({ open, onOpenChange, member }: RoleChangeDialo
     try {
       // Replace with actual API call
       console.log("Changing role for", member.email, "to", data.newRole);
-      
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       toast.success(`Role updated to ${data.newRole} successfully!`);
       onOpenChange(false);
     } catch (_error) {
@@ -100,20 +104,21 @@ export const RoleChangeDialog = ({ open, onOpenChange, member }: RoleChangeDialo
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Change Member Role</DialogTitle>
           <DialogDescription>
-            Update the role for {member.name}. This will affect their permissions within the organization.
+            Update the role for {member.name}. This will affect their
+            permissions within the organization.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex items-center gap-3 p-3 rounded-lg border">
+          <div className="flex items-center gap-3 rounded-lg border p-3">
             <div className="flex-1">
               <p className="font-medium">{member.name}</p>
-              <p className="text-sm text-muted-foreground">{member.email}</p>
+              <p className="text-muted-foreground text-sm">{member.email}</p>
             </div>
             <Badge variant={getRoleBadgeVariant(member.role)}>
               {member.role}
@@ -121,14 +126,17 @@ export const RoleChangeDialog = ({ open, onOpenChange, member }: RoleChangeDialo
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
               <FormField
                 control={form.control}
                 name="newRole"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>New Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select new role" />
@@ -144,24 +152,30 @@ export const RoleChangeDialog = ({ open, onOpenChange, member }: RoleChangeDialo
                 )}
               />
 
-              <div className="p-3 rounded-lg bg-muted/50">
-                <h4 className="font-medium text-sm mb-2">Role Permissions:</h4>
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  <p><strong>Admin:</strong> Can manage members, teams, and invitations</p>
-                  <p><strong>Member:</strong> Can view and participate in assigned teams</p>
+              <div className="rounded-lg bg-muted/50 p-3">
+                <h4 className="mb-2 font-medium text-sm">Role Permissions:</h4>
+                <div className="space-y-1 text-muted-foreground text-xs">
+                  <p>
+                    <strong>Admin:</strong> Can manage members, teams, and
+                    invitations
+                  </p>
+                  <p>
+                    <strong>Member:</strong> Can view and participate in
+                    assigned teams
+                  </p>
                 </div>
               </div>
 
               <DialogFooter>
                 <Button
+                  disabled={isLoading}
+                  onClick={() => onOpenChange(false)}
                   type="button"
                   variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  disabled={isLoading}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading}>
+                <Button disabled={isLoading} type="submit">
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

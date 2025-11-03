@@ -118,39 +118,37 @@ export const CreateTeamForm = () => {
                           control={form.control}
                           key={module.id}
                           name="modules"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                                key={module.id}
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={(field.value || []).includes(
-                                      module.id
-                                    )}
-                                    disabled
-                                    onCheckedChange={(checked) => {
-                                      const currentValues = field.value || [];
-                                      return checked
-                                        ? field.onChange([
-                                            ...currentValues,
-                                            module.id,
-                                          ])
-                                        : field.onChange(
-                                            currentValues.filter(
-                                              (value) => value !== module.id
-                                            )
-                                          );
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal text-sm">
-                                  {module.name}
-                                </FormLabel>
-                              </FormItem>
-                            );
-                          }}
+                          render={({ field }) => (
+                            <FormItem
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                              key={module.id}
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={(field.value || []).includes(
+                                    module.id
+                                  )}
+                                  disabled
+                                  onCheckedChange={(checked) => {
+                                    const currentValues = field.value || [];
+                                    return checked
+                                      ? field.onChange([
+                                          ...currentValues,
+                                          module.id,
+                                        ])
+                                      : field.onChange(
+                                          currentValues.filter(
+                                            (value) => value !== module.id
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal text-sm">
+                                {module.name}
+                              </FormLabel>
+                            </FormItem>
+                          )}
                         />
                       ))}
                     </div>

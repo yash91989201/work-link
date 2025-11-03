@@ -1,11 +1,11 @@
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Mail,
+  MoreHorizontal,
+  XCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Mail, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface Invitation {
   id: string;
@@ -76,9 +83,9 @@ const getRoleBadgeVariant = (role: Invitation["role"]) => {
 export const InvitationTable = ({ invitations }: InvitationTableProps) => {
   if (invitations.length === 0) {
     return (
-      <div className="text-center py-8">
-        <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-medium mb-2">No invitations found</h3>
+      <div className="py-8 text-center">
+        <Mail className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+        <h3 className="mb-2 font-medium text-lg">No invitations found</h3>
         <p className="text-muted-foreground">
           No invitations match your search criteria.
         </p>
@@ -96,13 +103,13 @@ export const InvitationTable = ({ invitations }: InvitationTableProps) => {
             <TableHead>Status</TableHead>
             <TableHead>Invited By</TableHead>
             <TableHead>Expires</TableHead>
-            <TableHead className="w-[70px]"></TableHead>
+            <TableHead className="w-[70px]" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {invitations.map((invitation) => {
             const StatusIcon = getStatusIcon(invitation.status);
-            
+
             return (
               <TableRow key={invitation.id}>
                 <TableCell>
@@ -111,7 +118,7 @@ export const InvitationTable = ({ invitations }: InvitationTableProps) => {
                     <div>
                       <div className="font-medium">{invitation.email}</div>
                       {invitation.teamName && (
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-muted-foreground text-sm">
                           Team: {invitation.teamName}
                         </div>
                       )}
@@ -124,7 +131,10 @@ export const InvitationTable = ({ invitations }: InvitationTableProps) => {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={getStatusBadgeVariant(invitation.status)} className="gap-1">
+                  <Badge
+                    className="gap-1"
+                    variant={getStatusBadgeVariant(invitation.status)}
+                  >
                     <StatusIcon className="h-3 w-3" />
                     {invitation.status}
                   </Badge>
@@ -141,22 +151,18 @@ export const InvitationTable = ({ invitations }: InvitationTableProps) => {
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
+                      <Button size="sm" variant="ghost">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       {invitation.status === "pending" && (
                         <>
-                          <DropdownMenuItem>
-                            Resend Invitation
-                          </DropdownMenuItem>
+                          <DropdownMenuItem>Resend Invitation</DropdownMenuItem>
                           <DropdownMenuSeparator />
                         </>
                       )}
-                      <DropdownMenuItem>
-                        View Details
-                      </DropdownMenuItem>
+                      <DropdownMenuItem>View Details</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-destructive">
                         Cancel Invitation

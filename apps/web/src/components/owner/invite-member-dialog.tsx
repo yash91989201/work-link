@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -56,7 +56,10 @@ type InviteFormType = {
   role: "admin" | "member";
 };
 
-export const InviteMemberDialog = ({ open, onOpenChange }: InviteMemberDialogProps) => {
+export const InviteMemberDialog = ({
+  open,
+  onOpenChange,
+}: InviteMemberDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<InviteFormType>({
@@ -72,10 +75,10 @@ export const InviteMemberDialog = ({ open, onOpenChange }: InviteMemberDialogPro
     try {
       // Replace with actual API call
       console.log("Inviting member:", data);
-      
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       toast.success("Invitation sent successfully!");
       form.reset();
       onOpenChange(false);
@@ -87,17 +90,18 @@ export const InviteMemberDialog = ({ open, onOpenChange }: InviteMemberDialogPro
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Invite New Member</DialogTitle>
           <DialogDescription>
-            Send an invitation to join your organization. They will receive an email with further instructions.
+            Send an invitation to join your organization. They will receive an
+            email with further instructions.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="email"
@@ -122,7 +126,10 @@ export const InviteMemberDialog = ({ open, onOpenChange }: InviteMemberDialogPro
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a role" />
@@ -140,14 +147,14 @@ export const InviteMemberDialog = ({ open, onOpenChange }: InviteMemberDialogPro
 
             <DialogFooter>
               <Button
+                disabled={isLoading}
+                onClick={() => onOpenChange(false)}
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button disabled={isLoading} type="submit">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

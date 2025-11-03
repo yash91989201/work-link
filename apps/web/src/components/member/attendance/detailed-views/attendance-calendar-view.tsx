@@ -20,13 +20,11 @@ export function AttendanceCalendarView() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  const getDaysInMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  };
+  const getDaysInMonth = (date: Date) =>
+    new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
-  const getFirstDayOfMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-  };
+  const getFirstDayOfMonth = (date: Date) =>
+    new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
   const generateCalendarDays = (): CalendarDay[] => {
     const daysInMonth = getDaysInMonth(currentDate);
@@ -250,4 +248,3 @@ export function AttendanceCalendarView() {
     </div>
   );
 }
-
