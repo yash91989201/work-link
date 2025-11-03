@@ -4,7 +4,7 @@ FROM oven/bun:alpine
 WORKDIR /app
 
 # Installing only required packages for migration
-RUN bun install drizzle-kit@latest drizzle-orm@latest postgres@latest
+RUN bun install drizzle-kit@latest drizzle-orm@latest postgres@latest dotenv@latest
 
 # Copy only necessary files for migration
 COPY ./src/migrations ./src/migrations
