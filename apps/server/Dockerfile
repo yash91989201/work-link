@@ -38,8 +38,6 @@ COPY packages/api/tsdown.config.ts packages/api/
 COPY apps/server/src apps/server/src
 COPY apps/server/tsdown.config.ts apps/server/
 
-ENV NODE_ENV=production
-
 # Build in parallel
 RUN cd packages/db && bun run build & \
   cd packages/auth && bun run build & \
@@ -65,10 +63,10 @@ COPY --from=builder /app/packages/api/package.json /app/packages/api/
 COPY --from=builder /app/apps/server/dist /app/apps/server/dist
 COPY --from=builder /app/apps/server/package.json /app/apps/server/
 
-ENV NODE_ENV=production
-ENV PORT=3000
+ARG PORT
+ENV PORT=$PORT
 
-EXPOSE 3000
+EXPOSE $PORT
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD bun --eval "fetch('http://localhost:3000/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
