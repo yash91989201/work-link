@@ -1,7 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InvitationManagement } from "./invitation-management";
 import { MemberManagement } from "./member-management";
-import { OrganizationOverview } from "./organization-overview";
 import { TeamManagement } from "./team-management";
 
 export const OwnerDashboard = () => (
@@ -15,8 +14,6 @@ export const OwnerDashboard = () => (
           Manage your organization, members, teams, and invitations
         </p>
       </div>
-
-      <OrganizationOverview />
 
       <Tabs className="space-y-4" defaultValue="members">
         <TabsList className="grid w-full grid-cols-3">

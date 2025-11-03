@@ -11,7 +11,6 @@ export { InviteMemberDialog } from "./invite-member-dialog";
 export { MemberManagement } from "./member-management";
 export { MemberTable } from "./member-table";
 // Organization overview
-export { OrganizationOverview } from "./organization-overview";
 export { OwnerDashboard } from "./owner-dashboard";
 export { RoleChangeDialog } from "./role-change-dialog";
 export { TeamDetailsDialog } from "./team-details-dialog";

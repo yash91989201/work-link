@@ -68,8 +68,8 @@ export const CreateTeamForm = () => {
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>
-        <Button className="h-11 font-medium">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button className="gap-1.5">
+          <Plus className="h-4 w-4" />
           Create Team
         </Button>
       </DialogTrigger>

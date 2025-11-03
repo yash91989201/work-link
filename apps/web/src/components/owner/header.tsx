@@ -1,12 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Building2, Home, MailOpen, Menu, Settings, Users } from "lucide-react";
+import { Building2, MailOpen, Menu, Settings, Users } from "lucide-react";
 import { Suspense } from "react";
 import { Image } from "@/components/shared/image";
 import { ModeToggle } from "@/components/shared/mode-toggle";
-import {
-  MyOrgButton,
-  MyOrgButtonSkeleton,
-} from "@/components/shared/my-org-button";
 import UserMenu from "@/components/shared/user-menu";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,31 +14,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "../ui/skeleton";
 
 interface OwnerHeaderProps {
   organizationName?: string;
   organizationSlug?: string;
 }
 
-export function OwnerHeader({
-  organizationName = "Your Organization",
-  organizationSlug,
-}: OwnerHeaderProps) {
+export function OwnerHeader({ organizationSlug }: OwnerHeaderProps) {
   const navigationLinks = [
     {
       to: "/org/$slug/manage",
       label: "Dashboard",
-      icon: Home,
-    },
-    {
-      to: "/org/$slug/manage/invitations",
-      label: "Invitations",
-      icon: MailOpen,
     },
     {
       to: "/org/$slug/manage/settings",
       label: "Settings",
-      icon: Settings,
     },
   ] as const;
 
@@ -76,7 +63,7 @@ export function OwnerHeader({
   const activeOrg = useActiveOrganization();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Link className="mr-6 flex items-center space-x-2" to="/">
@@ -92,7 +79,7 @@ export function OwnerHeader({
           </Link>
           <nav className="flex items-center space-x-6 font-medium text-sm">
             {organizationSlug &&
-              navigationLinks.map(({ to, label, icon: Icon }) => (
+              navigationLinks.map(({ to, label }) => (
                 <Link
                   activeProps={{
                     className: "text-foreground",
@@ -105,7 +92,6 @@ export function OwnerHeader({
                   params={{ slug: organizationSlug }}
                   to={to}
                 >
-                  <Icon className="h-4 w-4" />
                   {label}
                 </Link>
               ))}
@@ -132,14 +118,13 @@ export function OwnerHeader({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   {organizationSlug &&
-                    navigationLinks.map(({ to, label, icon: Icon }) => (
+                    navigationLinks.map(({ to, label }) => (
                       <DropdownMenuItem asChild key={to}>
                         <Link
                           className="flex w-full items-center gap-2"
                           params={{ slug: organizationSlug }}
                           to={to}
                         >
-                          <Icon className="h-4 w-4" />
                           {label}
                         </Link>
                       </DropdownMenuItem>
@@ -161,34 +146,12 @@ export function OwnerHeader({
           </div>
 
           <nav className="flex items-center space-x-2">
-            {/* Organization Button */}
-            <Suspense fallback={<MyOrgButtonSkeleton />}>
-              <MyOrgButton />
-            </Suspense>
-
-            {/* Theme Toggle */}
             <ModeToggle />
 
-            {/* User Menu */}
-            <UserMenu />
+            <Suspense fallback={<Skeleton className="h-9 w-40" />}>
+              <UserMenu />
+            </Suspense>
           </nav>
-        </div>
-      </div>
-
-      {/* Organization Breadcrumb */}
-      <div className="border-t bg-muted/30">
-        <div className="container mx-auto">
-          <div className="flex h-8 items-center text-muted-foreground text-sm">
-            <Link className="hover:text-foreground" to="/">
-              Dashboard
-            </Link>
-            <span className="mx-2">/</span>
-            <span className="font-medium text-foreground">
-              {organizationName}
-            </span>
-            <span className="mx-2">/</span>
-            <span className="text-foreground">Owner Panel</span>
-          </div>
         </div>
       </div>
     </header>

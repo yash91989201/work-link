@@ -12,7 +12,6 @@ import {
   Crown,
   Mail,
   MoreHorizontal,
-  RefreshCw,
   Shield,
   UserPlus,
   XCircle,
@@ -22,21 +21,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -177,260 +167,160 @@ export const InvitationListTable = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Invitations</CardTitle>
-            <CardDescription>
-              Manage member invitations and track their status
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <Input className="w-64" placeholder="Search invitations..." />
-            <Button size="sm" variant="outline">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invitationList.length === 0 ? (
-                <TableRow>
-                  <TableCell className="h-24 text-center" colSpan={5}>
-                    <div className="flex flex-col items-center gap-2">
-                      <Mail className="h-8 w-8 text-muted-foreground" />
-                      <p className="text-muted-foreground text-sm">
-                        No invitations found
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                invitationList.map((invitation) => (
-                  <TableRow className="hover:bg-muted/50" key={invitation.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src="" />
-                          <AvatarFallback>
-                            {invitation.email
-                              .split("@")[0]
-                              .charAt(0)
-                              .toUpperCase()}
-                            {invitation.email
-                              .split("@")[0]
-                              .split(".")
-                              .pop()
-                              ?.charAt(0)
-                              .toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {invitation.email
-                              .split("@")[0]
-                              .charAt(0)
-                              .toUpperCase() +
-                              invitation.email
-                                .split("@")[0]
-                                .slice(1)
-                                .replace(".", " ")}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            {invitation.email}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getRoleIcon(invitation.role)}
-                        <Badge
-                          className="capitalize"
-                          variant={getRoleBadgeVariant(invitation.role)}
-                        >
-                          {invitation.role}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(invitation.status)}
-                        <Badge
-                          className="capitalize"
-                          variant={getStatusBadgeVariant(invitation.status)}
-                        >
-                          {invitation.status}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {invitation.status === "accepted" ? (
-                          <div className="text-muted-foreground text-sm">
-                            N/A
-                          </div>
-                        ) : (
-                          <div className="text-sm">
-                            <p
-                              className={
-                                new Date(invitation.expiresAt) < new Date()
-                                  ? "text-red-600"
-                                  : ""
-                              }
-                            >
-                              {new Date(
-                                invitation.expiresAt
-                              ).toLocaleDateString()}
-                            </p>
-                            <p
-                              className={`text-xs ${
-                                new Date(invitation.expiresAt) < new Date()
-                                  ? "text-red-600"
-                                  : "text-muted-foreground"
-                              }`}
-                            >
-                              {new Date(invitation.expiresAt) < new Date()
-                                ? "Expired"
-                                : `${Math.ceil(
-                                    (new Date(invitation.expiresAt).getTime() -
-                                      new Date().getTime()) /
-                                      (1000 * 60 * 60 * 24)
-                                  )} days left`}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {invitation.status === "accepted" ? (
-                        <div className="text-muted-foreground text-sm">N/A</div>
-                      ) : (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button className="h-8 w-8 p-0" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleCopyInvitationLink(invitation)
-                              }
-                            >
-                              <Copy className="mr-2 h-4 w-4" />
-                              Copy link
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              disabled={resendInvitationMutation.isPending}
-                              onClick={() => handleResendInvitation(invitation)}
-                            >
-                              <Mail className="mr-2 h-4 w-4" />
-                              Resend email
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              disabled={cancelInvitationMutation.isPending}
-                              onClick={() =>
-                                handleCancelInvitation(invitation.id)
-                              }
-                            >
-                              Cancel invitation
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-export const InvitationListTableSkeleton = () => (
-  <Card>
-    <CardHeader>
-      <div className="flex items-center justify-between">
-        <div>
-          <Skeleton className="mb-2 h-6 w-24" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-10 w-24" />
-        </div>
-      </div>
-    </CardHeader>
-    <CardContent>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Member</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Expires</TableHead>
+            <TableHead className="w-[100px]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {invitationList.length === 0 ? (
             <TableRow>
-              <TableHead>Member</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Expires</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableCell className="h-24 text-center" colSpan={5}>
+                <div className="flex flex-col items-center gap-2">
+                  <Mail className="h-8 w-8 text-muted-foreground" />
+                  <p className="text-muted-foreground text-sm">
+                    No invitations found
+                  </p>
+                </div>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <TableRow key={index.toString()}>
+          ) : (
+            invitationList.map((invitation) => (
+              <TableRow className="hover:bg-muted/50" key={invitation.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-48" />
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="" />
+                      <AvatarFallback>
+                        {invitation.email.split("@")[0].charAt(0).toUpperCase()}
+                        {invitation.email
+                          .split("@")[0]
+                          .split(".")
+                          .pop()
+                          ?.charAt(0)
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium text-sm">
+                        {invitation.email
+                          .split("@")[0]
+                          .charAt(0)
+                          .toUpperCase() +
+                          invitation.email
+                            .split("@")[0]
+                            .slice(1)
+                            .replace(".", " ")}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {invitation.email}
+                      </p>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Skeleton className="h-3 w-3" />
-                    <Skeleton className="h-6 w-16 rounded-full" />
+                    {getRoleIcon(invitation.role)}
+                    <Badge
+                      className="capitalize"
+                      variant={getRoleBadgeVariant(invitation.role)}
+                    >
+                      {invitation.role}
+                    </Badge>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Skeleton className="h-3 w-3" />
-                    <Skeleton className="h-6 w-20 rounded-full" />
+                    {getStatusIcon(invitation.status)}
+                    <Badge
+                      className="capitalize"
+                      variant={getStatusBadgeVariant(invitation.status)}
+                    >
+                      {invitation.status}
+                    </Badge>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="space-y-1">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-16" />
+                  <div className="text-sm">
+                    {invitation.status === "accepted" ? (
+                      <div className="text-muted-foreground text-sm">N/A</div>
+                    ) : (
+                      <div className="text-sm">
+                        <p
+                          className={
+                            new Date(invitation.expiresAt) < new Date()
+                              ? "text-red-600"
+                              : ""
+                          }
+                        >
+                          {new Date(invitation.expiresAt).toLocaleDateString()}
+                        </p>
+                        <p
+                          className={`text-xs ${
+                            new Date(invitation.expiresAt) < new Date()
+                              ? "text-red-600"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {new Date(invitation.expiresAt) < new Date()
+                            ? "Expired"
+                            : `${Math.ceil(
+                                (new Date(invitation.expiresAt).getTime() -
+                                  new Date().getTime()) /
+                                  (1000 * 60 * 60 * 24)
+                              )} days left`}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Skeleton className="h-8 w-8" />
+                  {invitation.status === "accepted" ? (
+                    <div className="text-muted-foreground text-sm">N/A</div>
+                  ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button className="h-8 w-8 p-0" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem
+                          onClick={() => handleCopyInvitationLink(invitation)}
+                        >
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy link
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={resendInvitationMutation.isPending}
+                          onClick={() => handleResendInvitation(invitation)}
+                        >
+                          <Mail className="mr-2 h-4 w-4" />
+                          Resend email
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          disabled={cancelInvitationMutation.isPending}
+                          onClick={() => handleCancelInvitation(invitation.id)}
+                        >
+                          Cancel invitation
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </CardContent>
-  </Card>
-);
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};

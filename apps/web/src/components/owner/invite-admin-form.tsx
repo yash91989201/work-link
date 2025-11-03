@@ -1,15 +1,18 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -27,6 +30,7 @@ import type { InviteAdminFormType } from "@/lib/types";
 import { queryClient } from "@/utils/orpc";
 
 export const InviteAdminForm = () => {
+  const [open, onOpenChange] = useState(false);
   const { session } = useAuthedSession();
   const orgId = session.activeOrganizationId ?? "";
 
@@ -54,6 +58,7 @@ export const InviteAdminForm = () => {
 
       toast.success("Admin invitation sent successfully");
       form.reset();
+      onOpenChange(false); // Close dialog after successful invitation
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong"
@@ -62,14 +67,17 @@ export const InviteAdminForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Invite Admin</CardTitle>
-        <CardDescription>
-          Send an invitation to a new admin member
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogTrigger asChild>
+        <Button>Invite Admin</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Invite Admin</DialogTitle>
+          <DialogDescription>
+            Send an invitation to a new admin member
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
@@ -89,19 +97,28 @@ export const InviteAdminForm = () => {
                 </FormItem>
               )}
             />
-            <Button className="w-full">
-              {form.formState.isSubmitting ? (
-                <>
-                  <Loader2 />
-                  <span>Sending Invitation ...</span>
-                </>
-              ) : (
-                <span>Send Invitation</span>
-              )}
-            </Button>
+            <DialogFooter>
+              <Button
+                onClick={() => onOpenChange(false)}
+                type="button"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button disabled={form.formState.isSubmitting} type="submit">
+                {form.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending Invitation...
+                  </>
+                ) : (
+                  <span>Send Invitation</span>
+                )}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 };

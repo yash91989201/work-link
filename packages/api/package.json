@@ -12,7 +12,9 @@
   },
   "type": "module",
   "scripts": {
-    "build": "tsdown"
+    "build": "tsdown",
+    "generate:types:watch": "bun src/scripts/generate-types.ts --watch",
+    "dev": "bun run generate:types:watch"
   },
   "devDependencies": {
     "tsdown": "^0.15.12"
@@ -27,6 +29,7 @@
     "@orpc/zod": "^1.10.3",
     "@work-link/auth": "workspace:*",
     "@work-link/db": "workspace:*",
+    "chokidar": "^4.0.3",
     "dotenv": "^17.2.3",
     "hono": "^4.10.4",
     "zod": "^4.1.12"

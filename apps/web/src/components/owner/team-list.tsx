@@ -1,19 +1,9 @@
-import {
-  Building2,
-  Calendar,
-  MoreHorizontal,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Building2, Calendar, MoreHorizontal } from "lucide-react";
+import { CreateTeamForm } from "@/components/admin/team/create-team-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,22 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { queryUtils } from "@/utils/orpc";
 
-interface Team {
-  id: string;
-  name: string;
-  description?: string;
-  memberCount: number;
-  createdAt: string;
-  status: "active" | "inactive";
-}
+export const TeamList = () => {
+  const {
+    data: { teams },
+  } = useSuspenseQuery(queryUtils.admin.team.listTeams.queryOptions({}));
 
-interface TeamListProps {
-  teams: Team[];
-  onTeamClick: (team: Team) => void;
-}
-
-export const TeamList = ({ teams, onTeamClick }: TeamListProps) => {
   if (teams.length === 0) {
     return (
       <div className="py-8 text-center">
@@ -45,10 +26,7 @@ export const TeamList = ({ teams, onTeamClick }: TeamListProps) => {
         <p className="mb-4 text-muted-foreground">
           Get started by creating your first team.
         </p>
-        <Button onClick={() => {}}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Create Team
-        </Button>
+        <CreateTeamForm />
       </div>
     );
   }
@@ -59,17 +37,11 @@ export const TeamList = ({ teams, onTeamClick }: TeamListProps) => {
         <Card
           className="cursor-pointer transition-shadow hover:shadow-md"
           key={team.id}
-          onClick={() => onTeamClick(team)}
         >
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
                 <CardTitle className="text-lg">{team.name}</CardTitle>
-                {team.description && (
-                  <CardDescription className="line-clamp-2">
-                    {team.description}
-                  </CardDescription>
-                )}
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -85,7 +57,6 @@ export const TeamList = ({ teams, onTeamClick }: TeamListProps) => {
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
-                      onTeamClick(team);
                     }}
                   >
                     View Details
@@ -108,19 +79,11 @@ export const TeamList = ({ teams, onTeamClick }: TeamListProps) => {
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>{team.memberCount} members</span>
-                </div>
-                <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>{new Date(team.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
-              <Badge
-                variant={team.status === "active" ? "default" : "secondary"}
-              >
-                {team.status}
-              </Badge>
+              <Badge>Active</Badge>
             </div>
           </CardContent>
         </Card>
