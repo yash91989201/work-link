@@ -4,7 +4,7 @@ import {
   IconCirclePlus,
 } from "@tabler/icons-react";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { Clock, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -134,6 +134,7 @@ export function NavMain() {
           {navItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
+                asChild
                 onClick={() => {
                   navigate({
                     to: item.url,
@@ -142,8 +143,10 @@ export function NavMain() {
                 }}
                 tooltip={item.title}
               >
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
+                <Link params={{ slug }} to={item.url}>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
