@@ -38,10 +38,10 @@ export function SiteHeader() {
         </Breadcrumb>
 
         <div className="ml-auto flex items-center gap-3">
-          <ThemeToggle />
           <Button size="icon" variant="ghost">
             <Bell />
           </Button>
+          <ThemeToggle />
         </div>
       </div>
     </header>
