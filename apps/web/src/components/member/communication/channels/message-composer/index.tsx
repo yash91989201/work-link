@@ -3,9 +3,13 @@ import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MentionSuggestions } from "@/components/shared/mention-suggestions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
 import { useMentionInput } from "@/hooks/communications/use-mention-input";
 import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
 import { useTypingIndicator } from "@/hooks/communications/use-typing-indicator";
@@ -219,10 +223,10 @@ export function MessageComposer({
         <div className="space-y-3">
           <TypingIndicator typingUsers={typingUsers} />
 
-          <div className="flex items-end gap-2">
-            <div className="group relative flex-1">
-              <Textarea
-                className="max-h-40 min-h-20 resize-none rounded-lg border-muted bg-background/80 shadow-sm backdrop-blur-sm transition-all duration-200 placeholder:text-muted-foreground/60 focus:border-primary focus:bg-background focus:shadow-md"
+          <div className="relative">
+            <InputGroup className="shadow-sm backdrop-blur-sm transition-all duration-200">
+              <InputGroupTextarea
+                className="max-h-48 min-h-24"
                 disabled={isCreatingMessage}
                 onChange={handleTextareaChange}
                 onKeyDown={handleTextareaKeyDown}
@@ -231,46 +235,52 @@ export function MessageComposer({
                 value={text}
               />
 
-              <Badge
-                className="absolute right-2 bottom-2"
-                variant={text.length > 2000 ? "destructive" : "secondary"}
-              >
-                {text.length}/2000
-              </Badge>
-
-              {/* Mention suggestions */}
-              {showSuggestions && (
-                <MentionSuggestions
-                  isLoading={isFetchingUsers}
-                  isVisible={showSuggestions}
-                  onSelect={handleMentionSelect}
-                  query=""
-                  selectedIndex={selectedIndex}
-                  users={suggestions}
+              <InputGroupAddon align="block-end" className="border-t">
+                <MessageInputActions
+                  isRecording={isRecording}
+                  onEmojiSelect={handleEmojiSelect}
+                  onFileUpload={handleFileUpload}
+                  onVoiceRecord={handleVoiceRecord}
+                  text={text}
                 />
-              )}
-            </div>
 
-            <MessageInputActions
-              isRecording={isRecording}
-              onEmojiSelect={handleEmojiSelect}
-              onFileUpload={handleFileUpload}
-              onVoiceRecord={handleVoiceRecord}
-              text={text}
-            />
+                <Badge
+                  className="ml-auto"
+                  variant={text.length > 2000 ? "destructive" : "secondary"}
+                >
+                  {text.length}/2000
+                </Badge>
 
-            <Button
-              className={cn(
-                "size-10 transition-all duration-200",
-                text.trim() && "scale-105 bg-primary hover:bg-primary/90"
-              )}
-              disabled={isCreatingMessage || text.trim().length === 0}
-              onClick={handleSubmit}
-              size="icon"
-              title="Send message (Enter)"
-            >
-              {isCreatingMessage ? <Spinner /> : <Send className="h-4 w-4" />}
-            </Button>
+                <InputGroupButton
+                  className={cn(
+                    "rounded-full transition-all duration-200",
+                    text.trim() && "scale-105 bg-primary hover:bg-primary/90"
+                  )}
+                  disabled={isCreatingMessage || text.trim().length === 0}
+                  onClick={handleSubmit}
+                  size="icon-sm"
+                  title="Send message (Enter)"
+                  variant={text.trim() ? "default" : "ghost"}
+                >
+                  {isCreatingMessage ? (
+                    <Spinner />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+
+            {showSuggestions && (
+              <MentionSuggestions
+                isLoading={isFetchingUsers}
+                isVisible={showSuggestions}
+                onSelect={handleMentionSelect}
+                query=""
+                selectedIndex={selectedIndex}
+                users={suggestions}
+              />
+            )}
           </div>
 
           <HelpText />

@@ -1,5 +1,5 @@
 import { Mic, Paperclip, Smile } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { InputGroupButton } from "@/components/ui/input-group";
 import {
   EmojiPicker,
   EmojiPickerContent,
@@ -28,28 +28,28 @@ export function MessageInputActions({
   onFileUpload,
 }: MessageInputActionsProps) {
   return (
-    <div className="flex items-center gap-1.5">
-      <Button
+    <>
+      <InputGroupButton
         aria-label={isRecording ? "Stop recording" : "Start voice message"}
-        className="h-10 w-10 text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
+        className="transition-all duration-200"
         onClick={onVoiceRecord}
-        size="icon"
+        size="icon-sm"
         title={isRecording ? "Stop recording" : "Start voice message"}
         variant="ghost"
       >
-        <Mic className={cn("size-4.5", isRecording && "text-red-500")} />
-      </Button>
+        <Mic className={cn("size-4", isRecording && "text-red-500")} />
+      </InputGroupButton>
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            className="size-10 text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
-            size="icon"
+          <InputGroupButton
+            className="transition-all duration-200"
+            size="icon-sm"
             title="Add emoji (⌘+E)"
             variant="ghost"
           >
             <Smile />
-          </Button>
+          </InputGroupButton>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-80 p-0" side="top">
           <EmojiPicker onEmojiSelect={onEmojiSelect}>
@@ -60,15 +60,15 @@ export function MessageInputActions({
         </PopoverContent>
       </Popover>
 
-      <Button
-        className="size-10 text-muted-foreground transition-all duration-200 hover:bg-accent/50 hover:text-foreground"
+      <InputGroupButton
+        className="transition-all duration-200"
         onClick={onFileUpload}
-        size="icon"
+        size="icon-sm"
         title="Attach file (⌘+U)"
         variant="ghost"
       >
-        <Paperclip className="h-4 w-4" />
-      </Button>
-    </div>
+        <Paperclip className="size-4" />
+      </InputGroupButton>
+    </>
   );
 }
