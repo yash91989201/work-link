@@ -4,11 +4,11 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "default": "./src/index.js"
     },
     "./*": {
       "types": "./dist/*.d.ts",
-      "default": "./dist/*.js"
+      "default": "./src/*.js"
     }
   },
   "scripts": {
@@ -18,7 +18,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "generate:types:watch": "bun src/scripts/generate-types.ts --watch",
-    "dev": "bun run generate:types:watch"
+    "dev": "bun run generate:types:watch & bunx --bun tsdown --watch"
   },
   "devDependencies": {
     "@types/pg": "^8.15.6",

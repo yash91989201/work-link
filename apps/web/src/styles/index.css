@@ -323,3 +323,61 @@ body {
     background: light-dark(#f5f5f5, #262626);
   }
 }
+
+.ProseMirror {
+  @apply focus:outline-none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-muted-foreground;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  @apply pl-6;
+}
+
+.ProseMirror ul {
+  @apply list-disc;
+}
+
+.ProseMirror ol {
+  @apply list-decimal;
+}
+
+.ProseMirror code {
+  @apply rounded bg-muted px-1.5 py-0.5 font-mono text-sm;
+}
+
+.ProseMirror strong {
+  @apply font-bold;
+}
+
+.ProseMirror em {
+  @apply italic;
+}
+
+.ProseMirror s {
+  @apply line-through;
+}
+
+.ProseMirror u {
+  @apply underline;
+}
+
+.ProseMirror .mention {
+  @apply inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 font-medium text-primary;
+  @apply cursor-pointer transition-colors hover:bg-primary/20;
+}
+
+.tippy-box {
+  @apply bg-popover text-popover-foreground;
+}
+
+.tippy-content {
+  @apply p-0;
+}

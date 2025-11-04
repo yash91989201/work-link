@@ -1,25 +1,13 @@
-import { Send } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-import { MentionSuggestions } from "@/components/shared/mention-suggestions";
-import { Badge } from "@/components/ui/badge";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupTextarea,
-} from "@/components/ui/input-group";
-import { Spinner } from "@/components/ui/spinner";
-import { useMentionInput } from "@/hooks/communications/use-mention-input";
 import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
 import { useTypingIndicator } from "@/hooks/communications/use-typing-indicator";
 import { useAuthedSession } from "@/hooks/use-authed-session";
-import { extractMentionUserIds, type Mention } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
+import { queryUtils } from "@/utils/orpc";
 import { FileUploadOverlay } from "./file-upload-overlay";
 import { HelpText } from "./help-text";
-import { MessageInputActions } from "./message-input-actions";
-import { TypingIndicator } from "./typing-indicator";
+import { MarkdownEditor } from "./markdown-editor";
 
 interface MessageComposerProps {
   channelId: string;
@@ -31,9 +19,10 @@ export function MessageComposer({
   className,
 }: MessageComposerProps) {
   const { user } = useAuthedSession();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [text, setText] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -43,29 +32,29 @@ export function MessageComposer({
 
   const { typingUsers, broadcastTyping } = useTypingIndicator(channelId);
 
-  const {
-    text,
-    setText,
-    cursorPosition,
-    setCursorPosition,
-    showSuggestions,
-    suggestions,
-    selectedIndex,
-    isFetchingUsers,
-    handleTextChange,
-    insertMention,
-    handleKeyDown,
-  } = useMentionInput(channelId);
+  const fetchUsers = useCallback(
+    async (query: string) => {
+      try {
+        const { data } =
+          await queryUtils.communication.message.searchUsers.query({
+            channelId,
+            query,
+            limit: 10,
+          });
+        return data?.users || [];
+      } catch (error) {
+        console.error("Error fetching mention users:", error);
+        return [];
+      }
+    },
+    [channelId]
+  );
 
-  const handleTextareaChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const content = e.target.value;
-      const position = e.target.selectionStart;
+  const handleTypingBroadcast = useCallback(
+    (content: string) => {
+      if (!user?.name) return;
 
-      handleTextChange(content, position);
-
-      // Broadcast typing status
-      if (content.trim() && user?.name) {
+      if (content.trim()) {
         broadcastTyping(true, user.name);
 
         if (typingTimeoutRef.current) {
@@ -75,21 +64,37 @@ export function MessageComposer({
         typingTimeoutRef.current = setTimeout(() => {
           broadcastTyping(false, user.name);
         }, 3000);
-      } else if (user?.name) {
+      } else {
         broadcastTyping(false, user.name);
         if (typingTimeoutRef.current) {
           clearTimeout(typingTimeoutRef.current);
         }
       }
     },
-    [handleTextChange, broadcastTyping, user?.name]
+    [broadcastTyping, user?.name]
+  );
+
+  const handleMarkdownChange = useCallback(
+    (content: string) => {
+      setText(content);
+      handleTypingBroadcast(content);
+    },
+    [handleTypingBroadcast]
   );
 
   const handleSubmit = useCallback(async () => {
     if (!text.trim() || isCreatingMessage) return;
 
     try {
-      const mentionUserIds = extractMentionUserIds(text, suggestions);
+      // Extract mention user IDs from HTML content
+      const mentionRegex =
+        /<span[^>]*data-type="mention"[^>]*data-id="([^"]+)"[^>]*>/g;
+      const mentionUserIds: string[] = [];
+      let match: RegExpExecArray | null;
+
+      while ((match = mentionRegex.exec(text)) !== null) {
+        mentionUserIds.push(match[1]);
+      }
 
       await createMessage({
         channelId,
@@ -98,8 +103,10 @@ export function MessageComposer({
       });
 
       setText("");
-      setCursorPosition(0);
-      broadcastTyping(false, user.name);
+
+      if (user?.name) {
+        broadcastTyping(false, user.name);
+      }
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
@@ -113,68 +120,18 @@ export function MessageComposer({
     text,
     channelId,
     createMessage,
-    suggestions,
-    setText,
-    setCursorPosition,
     broadcastTyping,
     isCreatingMessage,
     user?.name,
   ]);
 
-  const handleTextareaKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      // Handle mention suggestions first
-      if (handleKeyDown(e)) {
-        return;
-      }
-
-      // Submit on Enter (without Shift)
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSubmit();
-      }
-    },
-    [handleKeyDown, handleSubmit]
-  );
-
   const handleEmojiSelect = useCallback(
     (emoji: { emoji: string; label: string }) => {
-      const newMessage =
-        text.slice(0, cursorPosition) +
-        emoji.emoji +
-        text.slice(cursorPosition);
+      // Insert emoji at the end for now (can be enhanced later)
+      const newMessage = text + emoji.emoji;
       setText(newMessage);
-
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.focus();
-          const newCursorPosition = cursorPosition + emoji.emoji.length;
-          textareaRef.current.setSelectionRange(
-            newCursorPosition,
-            newCursorPosition
-          );
-          setCursorPosition(newCursorPosition);
-        }
-      }, 0);
     },
-    [text, cursorPosition, setText, setCursorPosition]
-  );
-
-  const handleMentionSelect = useCallback(
-    (mention: Mention) => {
-      const { newCursorPosition } = insertMention(mention);
-
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.focus();
-          textareaRef.current.setSelectionRange(
-            newCursorPosition,
-            newCursorPosition
-          );
-        }
-      }, 0);
-    },
-    [insertMention]
+    [text]
   );
 
   const handleFileUpload = useCallback(() => {
@@ -222,69 +179,18 @@ export function MessageComposer({
 
         <div className="space-y-3">
           <div className="relative">
-            <InputGroup className="shadow-sm backdrop-blur-sm transition-all duration-200">
-              {typingUsers.length > 0 && (
-                <InputGroupAddon align="block-start" className="border-b">
-                  <TypingIndicator typingUsers={typingUsers} />
-                </InputGroupAddon>
-              )}
-
-              <InputGroupTextarea
-                className="max-h-48 min-h-24"
-                disabled={isCreatingMessage}
-                onChange={handleTextareaChange}
-                onKeyDown={handleTextareaKeyDown}
-                placeholder="Type a message..."
-                ref={textareaRef}
-                value={text}
-              />
-
-              <InputGroupAddon align="block-end" className="border-t">
-                <MessageInputActions
-                  isRecording={isRecording}
-                  onEmojiSelect={handleEmojiSelect}
-                  onFileUpload={handleFileUpload}
-                  onVoiceRecord={handleVoiceRecord}
-                  text={text}
-                />
-
-                <Badge
-                  className="ml-auto"
-                  variant={text.length > 2000 ? "destructive" : "secondary"}
-                >
-                  {text.length}/2000
-                </Badge>
-
-                <InputGroupButton
-                  className={cn(
-                    "rounded-full transition-all duration-200",
-                    text.trim() && "scale-105 bg-primary hover:bg-primary/90"
-                  )}
-                  disabled={isCreatingMessage || text.trim().length === 0}
-                  onClick={handleSubmit}
-                  size="icon-sm"
-                  title="Send message (Enter)"
-                  variant={text.trim() ? "default" : "ghost"}
-                >
-                  {isCreatingMessage ? (
-                    <Spinner />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
-
-            {showSuggestions && (
-              <MentionSuggestions
-                isLoading={isFetchingUsers}
-                isVisible={showSuggestions}
-                onSelect={handleMentionSelect}
-                query=""
-                selectedIndex={selectedIndex}
-                users={suggestions}
-              />
-            )}
+            <MarkdownEditor
+              fetchUsers={fetchUsers}
+              isCreatingMessage={isCreatingMessage}
+              isRecording={isRecording}
+              onEmojiSelect={handleEmojiSelect}
+              onFileUpload={handleFileUpload}
+              onSubmit={handleSubmit}
+              onTextChange={handleMarkdownChange}
+              onVoiceRecord={handleVoiceRecord}
+              text={text}
+              typingUsers={typingUsers}
+            />
           </div>
 
           <HelpText />

@@ -3,18 +3,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "default": "./src/index.js"
     },
     "./*": {
       "types": "./dist/*.d.ts",
-      "default": "./dist/*.js"
+      "default": "./src/*.js"
     }
   },
   "type": "module",
   "scripts": {
     "build": "tsdown",
     "generate:types:watch": "bun src/scripts/generate-types.ts --watch",
-    "dev": "bun run generate:types:watch"
+    "dev": "bun run generate:types:watch & bunx --bun tsdown --watch"
   },
   "devDependencies": {
     "tsdown": "^0.15.12"
