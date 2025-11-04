@@ -17,7 +17,7 @@ function RouteComponent() {
         } as React.CSSProperties
       }
     >
-      <MemberSidebar variant="inset" />
+      <MemberSidebar variant="sidebar" />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">

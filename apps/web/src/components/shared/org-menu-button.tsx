@@ -38,7 +38,7 @@ export const OrgMenuButton = () => {
         className={cn(
           "min-w-8 data-[slot=sidebar-menu-button]:p-1.5!",
           // Override the collapsed behavior to maintain proper spacing
-          "group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:p-2"
+          "group-data-[collapsible=icon]:p-0!"
         )}
         tooltip={activeOrganization.name}
       >
@@ -67,3 +67,4 @@ export const OrgMenuButtonSkeleton = () => (
     </SidebarMenuButton>
   </SidebarMenuItem>
 );
+

@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import {
   OrgMenuButton,
   OrgMenuButtonSkeleton,
-} from "@/components/member/sidebar/org-menu-button";
+} from "@/components/shared/org-menu-button";
 import {
   Sidebar,
   SidebarContent,
