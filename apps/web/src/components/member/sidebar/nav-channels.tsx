@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-
 import { Link } from "@tanstack/react-router";
+import { Hash } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -44,14 +44,19 @@ export function NavChannels({
         <SidebarMenu>
           {channels.map((channel) => (
             <SidebarMenuItem key={channel.id}>
-              <SidebarMenuButton tooltip={channel.name}>
-                {/* <Link */}
-                {/*   params={{ slug, id: channel.id }} */}
-                {/*   to="/org/$slug/communication/channels/$id" */}
-                {/* > */}
-                {/*   <span>{state === "collapsed" ? "#" : channel.name}</span> */}
-                {/* </Link> */}
-                <span>{state === "collapsed" ? "#" : channel.name}</span>
+              <SidebarMenuButton asChild tooltip={channel.name}>
+                <Link
+                  params={{ slug, id: channel.id }}
+                  to="/org/$slug/communication/channels/$id"
+                >
+                  <span>
+                    {state === "collapsed" ? (
+                      <Hash className="size-4.5" />
+                    ) : (
+                      channel.name
+                    )}
+                  </span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
