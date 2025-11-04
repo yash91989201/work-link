@@ -31,12 +31,15 @@ export const ChannelInfoSidebar = () => {
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
 
-  const { channel, channelMembers, onlineUsersCount } = useChannelContext();
+  const { showChannelInfoSidebar, channel, channelMembers, onlineUsersCount } =
+    useChannelContext();
+
+  if (showChannelInfoSidebar === false) return null;
 
   return (
     <div className="flex h-full w-96 flex-col overflow-hidden border-border border-l bg-background">
       {/* Fixed Header */}
-      <div className="flex-shrink-0 border-border border-b p-4">
+      <div className="shrink-0 border-border border-b p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">

@@ -1,6 +1,12 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import type { GetChannelOutputType } from "@work-link/api/lib/types";
-import { createContext, type ReactNode, useContext, useMemo } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { useChannelPresence } from "@/hooks/communications/use-channel-presence";
 import { queryUtils } from "@/utils/orpc";
 
@@ -16,6 +22,8 @@ interface ChannelContextValue {
   }[];
   onlineUsersCount: number;
   isLoading: boolean;
+  showChannelInfoSidebar: boolean;
+  setShowChannelInfoSidebar: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ChannelContext = createContext<ChannelContextValue | null>(null);
@@ -26,6 +34,7 @@ interface ChannelProviderProps {
 }
 
 export function ChannelProvider({ channelId, children }: ChannelProviderProps) {
+  const [showChannelInfoSidebar, setShowChannelInfoSidebar] = useState(false);
   const { data: channel } = useSuspenseQuery(
     queryUtils.communication.channel.get.queryOptions({ input: { channelId } })
   );
@@ -56,6 +65,8 @@ export function ChannelProvider({ channelId, children }: ChannelProviderProps) {
       onlineUsersCount: onlineUserIds.length,
       isLoading,
       channel,
+      showChannelInfoSidebar,
+      setShowChannelInfoSidebar,
     }),
     [
       channel,
@@ -63,6 +74,7 @@ export function ChannelProvider({ channelId, children }: ChannelProviderProps) {
       isLoading,
       membersWithActiveStatus,
       onlineUserIds.length,
+      showChannelInfoSidebar,
     ]
   );
 
