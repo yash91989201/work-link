@@ -39,11 +39,11 @@ const calculateWorkDuration = (
 
 export const MarkAttendance = () => {
   const { data: attendance, refetch } = useSuspenseQuery(
-    queryUtils.member.getStatus.queryOptions({})
+    queryUtils.member.attendance.getStatus.queryOptions({})
   );
 
   const { mutateAsync: punchIn, isPending: isPunchingIn } = useMutation(
-    queryUtils.member.punchIn.mutationOptions({
+    queryUtils.member.attendance.punchIn.mutationOptions({
       onSuccess: async () => {
         toast.success("Checked in successfully!");
         await refetch();
@@ -52,7 +52,7 @@ export const MarkAttendance = () => {
   );
 
   const { mutateAsync: punchOut, isPending: isPunchingOut } = useMutation(
-    queryUtils.member.punchOut.mutationOptions({
+    queryUtils.member.attendance.punchOut.mutationOptions({
       onSuccess: async () => {
         toast.success("Checked out successfully!");
         await refetch();

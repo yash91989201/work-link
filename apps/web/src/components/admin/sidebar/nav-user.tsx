@@ -1,13 +1,14 @@
-"use client"
+"use client";
 
 import {
   IconDotsVertical,
   IconLogout,
-  IconUserCircle,
   IconSettings,
-} from "@tabler/icons-react"
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+  IconUserCircle,
+} from "@tabler/icons-react";
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,18 +17,29 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { useAuthedSession } from "@/hooks/use-authed-session"
+} from "@/components/ui/sidebar";
+import { useAuthedSession } from "@/hooks/use-authed-session";
+import { authClient } from "@/lib/auth-client";
 
 export function NavUser() {
-  const { isMobile } = useSidebar()
-  const { user } = useAuthedSession()
+  const { isMobile } = useSidebar();
+  const navigate = useNavigate();
+  const { user } = useAuthedSession();
+
+  const logout = async () => {
+    const signOutRes = await authClient.signOut();
+    if (signOutRes.error) {
+      toast("Unable to logout try again");
+    }
+
+    navigate({ to: "/login" });
+  };
 
   return (
     <SidebarMenu>
@@ -35,18 +47,18 @@ export function NavUser() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              size="lg"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user.image ?? undefined} alt={user.name} />
+                <AvatarImage alt={user.name} src={user.image ?? undefined} />
                 <AvatarFallback className="rounded-lg">
                   {user.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
+                <span className="truncate text-muted-foreground text-xs">
                   {user.email}
                 </span>
               </div>
@@ -54,22 +66,22 @@ export function NavUser() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
+            align="end"
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
-            align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.image ?? undefined} alt={user.name} />
+                  <AvatarImage alt={user.name} src={user.image ?? undefined} />
                   <AvatarFallback className="rounded-lg">
                     {user.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
-                  <span className="text-muted-foreground truncate text-xs">
+                  <span className="truncate text-muted-foreground text-xs">
                     {user.email}
                   </span>
                 </div>
@@ -87,7 +99,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
@@ -95,5 +107,6 @@ export function NavUser() {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
+

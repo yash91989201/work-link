@@ -1,15 +1,17 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { Loader2 } from "lucide-react";
+import { Loader2, PlusIcon } from "lucide-react";
+import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -28,6 +30,7 @@ import { queryClient } from "@/utils/orpc";
 import { TeamsDropdown } from "./teams-dropdown";
 
 export const InviteMemberForm = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const { session } = useAuthedSession();
   const orgId = session.activeOrganizationId ?? "";
 
@@ -57,6 +60,7 @@ export const InviteMemberForm = () => {
 
       toast.success("Member invitation sent successfully");
       form.reset();
+      setIsOpen(false);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong"
@@ -65,53 +69,60 @@ export const InviteMemberForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="font-bold text-2xl">Invite Team Member</CardTitle>
-        <CardDescription className="text-muted-foreground">
-          Send an invitation email to add a new member to your organization
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-medium text-sm">
-                    Email Address
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      className="h-11"
-                      placeholder="Enter member's email address"
-                      type="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <TeamsDropdown />
-            <Button
-              className="h-11 w-full font-medium"
-              disabled={form.formState.isSubmitting}
-            >
-              {form.formState.isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  <span>Sending Invitation...</span>
-                </>
-              ) : (
-                <span>Send Invitation</span>
-              )}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+    <Dialog onOpenChange={setIsOpen} open={isOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <PlusIcon className="mr-2 h-4 w-4" />
+          Invite Member
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader className="text-center">
+          <DialogTitle className="font-bold text-2xl">
+            Invite Team Member
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Send an invitation email to add a new member to your organization
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-6">
+          <Form {...form}>
+            <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-medium text-sm">
+                      Email Address
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        className="h-11"
+                        placeholder="Enter member's email address"
+                        type="email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <TeamsDropdown />
+              <Button disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Sending Invitation...</span>
+                  </>
+                ) : (
+                  <span>Send Invitation</span>
+                )}
+              </Button>
+            </form>
+          </Form>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
