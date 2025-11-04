@@ -14,6 +14,6 @@ export function MessageContent({ message }: MessageContentProps) {
 
   const safe = DOMPurify.sanitize(message.content);
   return (
-    <div className="ProseMirror prose-sm dark:prose-invert">{parse(safe)}</div>
+    <div className="ProseMirror prose-sm dark:prose-invert break-words whitespace-pre-wrap">{parse(safe)}</div>
   );
 }

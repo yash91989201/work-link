@@ -39,7 +39,7 @@ export function MessageItem({ message }: MessageItemProps) {
   return (
     <div
       className={cn(
-        "group relative px-4 transition-colors hover:bg-muted/30",
+        "group relative px-4",
         message.parentMessage ? "py-3" : "py-2",
         isDeleting && "opacity-50"
       )}
@@ -91,7 +91,9 @@ export function MessageItem({ message }: MessageItemProps) {
         />
       ) : (
         <>
-          <MessageContent message={message} />
+          <div className="mt-1.5 rounded-xl bg-muted/30 p-3 ring-1 ring-border">
+            <MessageContent message={message} />
+          </div>
 
           {/* Action buttons */}
           <MessageActions

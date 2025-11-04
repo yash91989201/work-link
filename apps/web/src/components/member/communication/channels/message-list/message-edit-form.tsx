@@ -73,8 +73,8 @@ export function MessageEditForm({
       return;
     }
 
-    // Save on Ctrl+Enter or Cmd+Enter
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    // Save on Shift+Enter
+    if (e.shiftKey && e.key === "Enter") {
       e.preventDefault();
       handleSave();
     }
@@ -104,7 +104,7 @@ export function MessageEditForm({
     <div className="relative mt-2 space-y-3">
       <div className="relative">
         <Textarea
-          className="min-h-[80px] resize-none"
+          className="min-h-20 resize-none"
           disabled={isSaving}
           onChange={handleTextareaChange}
           onKeyDown={handleTextareaKeyDown}
@@ -133,7 +133,7 @@ export function MessageEditForm({
 
           <span>•</span>
           <p className="text-muted-foreground text-sm">
-            <Kbd>Ctrl + Enter</Kbd>&nbsp;to save
+            <Kbd>Shift + Enter</Kbd>&nbsp;to save
           </p>
         </div>
         <div className="5 flex items-center gap-1">
@@ -141,6 +141,7 @@ export function MessageEditForm({
             disabled={!text.trim() || isSaving}
             onClick={handleSave}
             size="sm"
+            type="button"
           >
             {isSaving ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -155,6 +156,7 @@ export function MessageEditForm({
             disabled={isSaving}
             onClick={onCancel}
             size="sm"
+            type="button"
             variant="outline"
           >
             <X className="mr-1 h-4 w-4" />

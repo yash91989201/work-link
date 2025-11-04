@@ -35,13 +35,15 @@ export function MessageActions({
   const isOwnMessage = user.id === senderId;
 
   return (
-    <div className="absolute top-0 right-2 hidden gap-0.5 rounded-md border bg-background p-1 shadow-sm group-hover:flex">
+    <div className="absolute -right-1 top-2 z-10 flex items-center gap-0.5 rounded-full border bg-popover/95 p-1 shadow-md opacity-0 transition-opacity backdrop-blur supports-[backdrop-filter]:bg-popover/75 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            aria-label="Reply"
             className="size-7"
             onClick={onReply}
             size="icon"
+            type="button"
             variant="ghost"
           >
             <Reply className="h-3.5 w-3.5" />
@@ -54,9 +56,11 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="h-7 w-7"
+              aria-label="Edit"
+              className="size-7"
               onClick={onEdit}
               size="icon"
+              type="button"
               variant="ghost"
             >
               <Edit3 className="h-3.5 w-3.5" />
@@ -69,10 +73,12 @@ export function MessageActions({
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            aria-label={isPinned ? "Unpin" : "Pin"}
             className={cn("size-7", isPinned && "text-primary")}
             disabled={isPinning}
             onClick={onPin}
             size="icon"
+            type="button"
             variant="ghost"
           >
             {isPinning ? (
@@ -89,10 +95,12 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="h-7 w-7 text-destructive hover:bg-destructive/10"
+              aria-label={isDeleting ? "Deleting" : "Delete"}
+              className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
               disabled={isDeleting}
               onClick={onDelete}
               size="icon"
+              type="button"
               variant="ghost"
             >
               {isDeleting ? (

@@ -45,7 +45,7 @@ export function MessageList({ className }: { className?: string }) {
   return (
     <div className={cn("flex-1 overflow-hidden bg-background", className)}>
       <ScrollArea className="h-full">
-        <div className="flex flex-col pt-3 sm:px-4">
+        <div className="flex flex-col gap-1.5 py-3 sm:px-4">
           {orderedMessages.map((message) => (
             <MessageItem key={message.id} message={message} />
           ))}
