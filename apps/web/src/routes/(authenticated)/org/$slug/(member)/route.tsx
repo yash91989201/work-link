@@ -10,6 +10,7 @@ export const Route = createFileRoute("/(authenticated)/org/$slug/(member)")({
 function RouteComponent() {
   return (
     <SidebarProvider
+      defaultOpen={false}
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
