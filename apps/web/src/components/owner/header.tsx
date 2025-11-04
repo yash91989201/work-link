@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { Image } from "@/components/shared/image";
-import { ModeToggle } from "@/components/shared/mode-toggle";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import UserMenu from "@/components/shared/user-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
@@ -42,7 +42,7 @@ export function OwnerHeader() {
           </div>
 
           <nav className="flex items-center space-x-2">
-            <ModeToggle />
+            <ThemeToggle />
 
             <Suspense fallback={<Skeleton className="h-9 w-40" />}>
               <UserMenu />
