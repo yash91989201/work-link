@@ -1,12 +1,13 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { Suspense } from "react";
+import { ChannelHeader } from "@/components/member/communication/channels/channel-header";
+import { ChannelSkeleton } from "@/components/member/communication/channels/channel-skeleton";
 import { JoinRequestForm } from "@/components/member/communication/channels/join-request-form";
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
 import {
   MessageList,
   MessageListSkeleton,
 } from "@/components/member/communication/channels/message-list";
-import { ChannelSkeleton } from "@/components/member/communication/channels/channel-skeleton";
 import { MessageListProvider } from "@/contexts/message-list-context";
 
 export const Route = createFileRoute(
@@ -57,6 +58,7 @@ function RouteComponent() {
     <div className="flex min-h-0 flex-1 flex-col border-r">
       {isMember ? (
         <>
+          <ChannelHeader />
           <Suspense fallback={<MessageListSkeleton />}>
             <MessageListProvider channelId={id}>
               <MessageList />

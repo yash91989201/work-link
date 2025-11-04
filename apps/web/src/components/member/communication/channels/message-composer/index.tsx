@@ -221,10 +221,14 @@ export function MessageComposer({
         <FileUploadOverlay isDragging={isDragging} />
 
         <div className="space-y-3">
-          <TypingIndicator typingUsers={typingUsers} />
-
           <div className="relative">
             <InputGroup className="shadow-sm backdrop-blur-sm transition-all duration-200">
+              {typingUsers.length > 0 && (
+                <InputGroupAddon align="block-start" className="border-b">
+                  <TypingIndicator typingUsers={typingUsers} />
+                </InputGroupAddon>
+              )}
+
               <InputGroupTextarea
                 className="max-h-48 min-h-24"
                 disabled={isCreatingMessage}

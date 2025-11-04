@@ -1,6 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { MemberSidebar } from "@/components/member/sidebar";
-import { SiteHeader } from "@/components/member/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export const Route = createFileRoute("/(authenticated)/org/$slug/(member)")({
@@ -20,7 +19,6 @@ function RouteComponent() {
     >
       <MemberSidebar variant="sidebar" />
       <SidebarInset>
-        <SiteHeader />
         <div className="flex flex-1 flex-col">
           <main className="@container/main flex flex-1 flex-col gap-2">
             <Outlet />
