@@ -1,3 +1,4 @@
+import { Paperclip } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
@@ -9,7 +10,6 @@ import { ComposerActions } from "./composer-actions";
 import { HelpText } from "./help-text";
 import { TiptapEditor } from "./tiptap-editor";
 import { TypingIndicator } from "./typing-indicator";
-import { Paperclip } from "lucide-react";
 
 interface MessageComposerProps {
   channelId: string;
@@ -156,10 +156,9 @@ export function MessageComposer({
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
+  const handleDrop = useCallback(() => {
+    // Let TipTap handle image drops inside the editor
     setIsDragging(false);
-    toast.info("File upload not implemented yet");
   }, []);
 
   return (
@@ -175,7 +174,7 @@ export function MessageComposer({
       {/** biome-ignore lint/a11y/noNoninteractiveElementInteractions: <required here> */}
       {/** biome-ignore lint/a11y/noStaticElementInteractions: <required here> */}
       <div
-        className={cn("border-t bg-background p-4", className)}
+        className={cn("relative border-t bg-background p-4", className)}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
