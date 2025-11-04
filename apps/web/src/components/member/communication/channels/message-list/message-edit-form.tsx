@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MentionSuggestions } from "@/components/shared/mention-suggestions";
 import { Button } from "@/components/ui/button";
@@ -147,7 +147,7 @@ export function MessageEditForm({
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             ) : (
               <>
-                <Check className="mr-1 h-4 w-4" />
+                <Save className="mr-1 h-4 w-4" />
                 Save
               </>
             )}
