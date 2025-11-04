@@ -5,9 +5,11 @@ import { useTypingIndicator } from "@/hooks/communications/use-typing-indicator"
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { cn } from "@/lib/utils";
 import { orpcClient } from "@/utils/orpc";
-import { FileUploadOverlay } from "./file-upload-overlay";
+import { ComposerActions } from "./composer-actions";
 import { HelpText } from "./help-text";
-import { MarkdownEditor } from "./markdown-editor";
+import { TiptapEditor } from "./tiptap-editor";
+import { TypingIndicator } from "./typing-indicator";
+import { Paperclip } from "lucide-react";
 
 interface MessageComposerProps {
   channelId: string;
@@ -91,9 +93,11 @@ export function MessageComposer({
       const mentionRegex =
         /<span[^>]*data-type="mention"[^>]*data-id="([^"]+)"[^>]*>/g;
       const mentionUserIds: string[] = [];
-      const match = mentionRegex.exec(text);
+      let match: RegExpExecArray | null;
 
-      while (match !== null) {
+      while (true) {
+        match = mentionRegex.exec(text);
+        if (match === null) break;
         mentionUserIds.push(match[1]);
       }
 
@@ -176,22 +180,45 @@ export function MessageComposer({
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        <FileUploadOverlay isDragging={isDragging} />
+        {isDragging && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/5">
+            <div className="text-center">
+              <Paperclip className="mx-auto h-12 w-12 text-primary" />
+              <p className="mt-2 font-medium text-primary">
+                Drop files to upload
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3">
           <div className="relative">
-            <MarkdownEditor
+            {typingUsers.length > 0 && (
+              <div className="border-b px-4 py-2">
+                <TypingIndicator typingUsers={typingUsers} />
+              </div>
+            )}
+
+            <TiptapEditor
+              content={text}
+              disabled={isCreatingMessage}
               fetchUsers={fetchUsers}
-              isCreatingMessage={isCreatingMessage}
-              isRecording={isRecording}
-              onEmojiSelect={handleEmojiSelect}
-              onFileUpload={handleFileUpload}
+              onChange={handleMarkdownChange}
               onSubmit={handleSubmit}
-              onTextChange={handleMarkdownChange}
-              onVoiceRecord={handleVoiceRecord}
-              text={text}
-              typingUsers={typingUsers}
+              placeholder="Type a message..."
             />
+
+            <div className="border-t px-3 py-1.5">
+              <ComposerActions
+                isCreatingMessage={isCreatingMessage}
+                isRecording={isRecording}
+                onEmojiSelect={handleEmojiSelect}
+                onFileUpload={handleFileUpload}
+                onSubmit={handleSubmit}
+                onVoiceRecord={handleVoiceRecord}
+                text={text}
+              />
+            </div>
           </div>
 
           <HelpText />

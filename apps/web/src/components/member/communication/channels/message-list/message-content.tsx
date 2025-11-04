@@ -1,8 +1,7 @@
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
 import type { UserType } from "@work-link/db/lib/types";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { queryUtils } from "@/utils/orpc";
-import { EnhancedMessageContent } from "@/components/shared/message-content";
+import DOMPurify from "dompurify";
+import parse from "html-react-parser";
 
 interface MessageContentProps {
   message: MessageWithSenderType & {
@@ -11,22 +10,10 @@ interface MessageContentProps {
 }
 
 export function MessageContent({ message }: MessageContentProps) {
-  const { data: mentionUsers } = useSuspenseQuery(
-    queryUtils.communication.message.getMentionUsers.queryOptions({
-      input: {
-        userIds: message.mentions || [],
-      },
-    })
-  );
+  if (!message.content) return null;
 
+  const safe = DOMPurify.sanitize(message.content);
   return (
-    <div className="mt-1 space-y-2">
-      <EnhancedMessageContent 
-        message={{
-          ...message,
-          mentionedUsers: mentionUsers,
-        }} 
-      />
-    </div>
+    <div className="ProseMirror prose-sm dark:prose-invert">{parse(safe)}</div>
   );
 }

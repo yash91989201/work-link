@@ -1,21 +1,21 @@
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import Mention from "@tiptap/extension-mention";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
-import Mention from "@tiptap/extension-mention";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
-  Italic,
-  Strikethrough,
   Code,
-  UnderlineIcon,
+  Italic,
   List,
   ListOrdered,
+  Strikethrough,
+  UnderlineIcon,
 } from "lucide-react";
-import { Toggle } from "@/components/ui/toggle";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import { useEffect } from "react";
+import { Separator } from "@/components/ui/separator";
+import { Toggle } from "@/components/ui/toggle";
+import { cn } from "@/lib/utils";
 import { createMentionSuggestion } from "./mention-suggestion";
 import "tippy.js/dist/tippy.css";
 
@@ -26,7 +26,9 @@ interface TiptapEditorProps {
   placeholder?: string;
   disabled?: boolean;
   onCursorChange?: (position: number) => void;
-  fetchUsers: (query: string) => Promise<Array<{ id: string; name: string; email: string }>>;
+  fetchUsers: (
+    query: string
+  ) => Promise<Array<{ id: string; name: string; email: string }>>;
 }
 
 export function TiptapEditor({
@@ -70,7 +72,7 @@ export function TiptapEditor({
         class:
           "prose prose-sm max-w-none focus:outline-none min-h-24 max-h-48 overflow-y-auto p-3",
       },
-      handleKeyDown: (view, event) => {
+      handleKeyDown: (_, event) => {
         if (event.key === "Enter" && event.shiftKey) {
           event.preventDefault();
           onSubmit();
@@ -83,7 +85,7 @@ export function TiptapEditor({
 
   useEffect(() => {
     if (!editor) return;
-    
+
     const currentContent = editor.getHTML();
     if (content !== currentContent && content !== editor.getText()) {
       editor.commands.setContent(content || "");
@@ -96,7 +98,7 @@ export function TiptapEditor({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-1 px-2 py-1 border-b">
+      <div className="flex items-center gap-1 border-b px-2 py-1">
         <Toggle
           aria-label="Toggle bold"
           onPressedChange={() => editor.chain().focus().toggleBold().run()}
@@ -146,7 +148,9 @@ export function TiptapEditor({
 
         <Toggle
           aria-label="Toggle bullet list"
-          onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+          onPressedChange={() =>
+            editor.chain().focus().toggleBulletList().run()
+          }
           pressed={editor.isActive("bulletList")}
           size="sm"
         >
@@ -155,7 +159,9 @@ export function TiptapEditor({
 
         <Toggle
           aria-label="Toggle ordered list"
-          onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+          onPressedChange={() =>
+            editor.chain().focus().toggleOrderedList().run()
+          }
           pressed={editor.isActive("orderedList")}
           size="sm"
         >
