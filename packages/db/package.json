@@ -4,11 +4,11 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./src/index.js"
+      "default": "./dist/index.js"
     },
     "./*": {
       "types": "./dist/*.d.ts",
-      "default": "./src/*.js"
+      "default": "./dist/*.js"
     }
   },
   "scripts": {
