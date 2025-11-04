@@ -8,9 +8,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { queryUtils } from "@/utils/orpc";
 
 export const TeamList = () => {
@@ -55,17 +55,6 @@ export const TeamList = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                  >
-                    View Details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                    Edit Team
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
                     className="text-destructive"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -91,3 +80,31 @@ export const TeamList = () => {
     </div>
   );
 };
+
+export const TeamListSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {Array.from({ length: 6 }).map((_, index) => (
+      <Card key={index.toString()}>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="w-full space-y-2">
+              <Skeleton className="h-6 w-3/4" />
+            </div>
+            <Skeleton className="h-8 w-8" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            </div>
+            <Skeleton className="h-6 w-16" />
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
