@@ -6,7 +6,7 @@ import {
   MessageList,
   MessageListSkeleton,
 } from "@/components/member/communication/channels/message-list";
-import { PendingSkeleton } from "@/components/member/communication/channels/pending-skeleton";
+import { ChannelSkeleton } from "@/components/member/communication/channels/channel-skeleton";
 import { MessageListProvider } from "@/contexts/message-list-context";
 
 export const Route = createFileRoute(
@@ -42,7 +42,7 @@ export const Route = createFileRoute(
 
     return { isMember, channelName: channel?.name ?? "Channel Name" };
   },
-  pendingComponent: PendingSkeleton,
+  pendingComponent: ChannelSkeleton,
   component: RouteComponent,
 });
 

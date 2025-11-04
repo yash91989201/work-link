@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 const MessageRowSkeleton = () => (
   <div className="flex gap-3 px-4 py-3">
-    <Skeleton className="h-10 w-10 flex-shrink-0 rounded-full" />
+    <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
     <div className="flex-1 space-y-2">
       <div className="flex items-center gap-2">
         <Skeleton className="h-4 w-24" />
@@ -19,7 +19,7 @@ const MessageRowSkeleton = () => (
   </div>
 );
 
-export const PendingSkeleton = () => {
+export const ChannelSkeleton = () => {
   return (
     <div className="flex min-h-0 flex-1 flex-col border-r">
       <div className="flex min-h-0 flex-1 flex-col">
@@ -37,7 +37,7 @@ export const PendingSkeleton = () => {
         </div>
 
         {/* Message composer (exact layout, inputs disabled) */}
-        <div className="flex-shrink-0 border-t bg-gradient-to-b from-background to-muted/20">
+        <div className="shrink-0 border-t bg-linear-to-b from-background to-muted/20">
           <div className="relative p-4">
             <div className="relative flex items-end gap-3">
               <div className="flex items-center gap-1">
