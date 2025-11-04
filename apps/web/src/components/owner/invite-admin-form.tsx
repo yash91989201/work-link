@@ -58,7 +58,7 @@ export const InviteAdminForm = () => {
 
       toast.success("Admin invitation sent successfully");
       form.reset();
-      onOpenChange(false); // Close dialog after successful invitation
+      onOpenChange(false);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong"
