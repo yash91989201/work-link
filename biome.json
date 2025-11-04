@@ -25,6 +25,9 @@
   "extends": ["ultracite/core", "ultracite/react"],
   "linter": {
     "rules": {
+      "nursery": {
+        "noShadow": "off"
+      },
       "style": {
         "noMagicNumbers": "off",
         "useBlockStatements": "off",

@@ -18,10 +18,10 @@
       "typescript": "^5.8.2",
       "tsdown": "^0.15.5",
       "@orpc/client": "^1.10.0",
-      "react": "19.1.0",
-      "react-dom": "19.1.0",
-      "@types/react": "~19.1.10",
-      "@types/react-dom": "~19.1.10"
+      "react": "19.2.0",
+      "react-dom": "19.2.0",
+      "@types/react": "~19.2.2",
+      "@types/react-dom": "~19.2.2"
     }
   },
   "scripts": {
