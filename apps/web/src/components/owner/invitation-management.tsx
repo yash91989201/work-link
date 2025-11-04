@@ -1,5 +1,8 @@
 import { Suspense } from "react";
-import { InvitationListTable } from "@/components/admin/invitation-list-table";
+import {
+  InvitationListTable,
+  InvitationListTableSkeleton,
+} from "@/components/admin/invitation-list-table";
 import {
   Card,
   CardContent,
@@ -27,7 +30,7 @@ export const InvitationManagement = () => (
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-3">
-          <Suspense fallback={<div>loading</div>}>
+          <Suspense fallback={<InvitationListTableSkeleton />}>
             <InvitationListTable />
           </Suspense>
         </div>

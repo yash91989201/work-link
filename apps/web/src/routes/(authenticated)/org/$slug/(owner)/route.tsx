@@ -8,7 +8,7 @@ export const Route = createFileRoute("/(authenticated)/org/$slug/(owner)")({
 function RouteComponent() {
   return (
     <div className="min-h-screen bg-background">
-      <OwnerHeader organizationName="Acme Corp" organizationSlug="acme-corp" />
+      <OwnerHeader />
       <main className="container mx-auto">
         <Outlet />
       </main>

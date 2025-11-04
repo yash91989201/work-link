@@ -1,16 +1,21 @@
+import { IconDotsVertical, IconLogout } from "@tabler/icons-react";
 import { Link, useParams } from "@tanstack/react-router";
-import {
-  Bell,
-  Building2,
-  ChevronDown,
-  LayoutDashboard,
-  User,
-  Users,
-} from "lucide-react";
+import { Building2, LayoutDashboard, User, Users } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useAuthedSession } from "@/hooks/use-authed-session";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const navigation = [
   {
@@ -40,6 +45,8 @@ export const AdminRootLayout = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const isMobile = useIsMobile();
+  const { user } = useAuthedSession();
   const { slug } = useParams({
     from: "/(authenticated)/org/$slug",
   });
@@ -89,22 +96,38 @@ export const AdminRootLayout = ({
           </ScrollArea>
 
           {/* User Menu */}
-          <div className="border-t p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                <span className="font-medium text-primary-foreground text-sm">
-                  A
-                </span>
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-sm">Admin User</p>
-                <p className="text-muted-foreground text-xs">admin@acme.com</p>
-              </div>
-              <Button size="sm" variant="ghost">
-                <ChevronDown className="h-4 w-4" />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="lg" variant="outline">
+                <Avatar className="h-8 w-8 rounded-lg grayscale">
+                  <AvatarImage alt={user.name} src={user.image ?? undefined} />
+                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate text-muted-foreground text-xs">
+                    {user.email}
+                  </span>
+                </div>
+                <IconDotsVertical className="ml-auto size-4" />
               </Button>
-            </div>
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+              side={isMobile ? "bottom" : "right"}
+              sideOffset={4}
+            >
+              <DropdownMenuLabel className="p-0 font-normal">
+                Account
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <IconLogout />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
