@@ -12,9 +12,7 @@
   },
   "type": "module",
   "scripts": {
-    "build": "tsdown",
-    "generate:types:watch": "bun src/scripts/generate-types.ts --watch",
-    "dev": "bun run generate:types:watch & bunx --bun tsdown --watch"
+    "build": "tsdown"
   },
   "devDependencies": {
     "tsdown": "^0.15.12"

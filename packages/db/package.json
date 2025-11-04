@@ -16,9 +16,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "generate:types:watch": "bun src/scripts/generate-types.ts --watch",
-    "dev": "bun run generate:types:watch & bunx --bun tsdown --watch"
+    "db:migrate": "drizzle-kit migrate"
   },
   "devDependencies": {
     "@types/pg": "^8.15.6",

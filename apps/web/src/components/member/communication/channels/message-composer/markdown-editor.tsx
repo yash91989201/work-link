@@ -1,6 +1,6 @@
+import { ComposerActions } from "./composer-actions";
 import { TiptapEditor } from "./tiptap-editor";
 import { TypingIndicator } from "./typing-indicator";
-import { ComposerActions } from "./composer-actions";
 
 interface MarkdownEditorProps {
   text: string;
@@ -12,7 +12,11 @@ interface MarkdownEditorProps {
   onFileUpload: () => void;
   onVoiceRecord: () => void;
   onSubmit: () => void;
-  fetchUsers: (query: string) => Promise<Array<{ id: string; name: string; email: string }>>;
+  fetchUsers: (
+    query: string
+  ) => Promise<
+    Array<{ id: string; name: string; email: string; image: string | null }>
+  >;
 }
 
 export function MarkdownEditor({

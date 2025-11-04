@@ -4,7 +4,7 @@ import { useMessageMutations } from "@/hooks/communications/use-message-mutation
 import { useTypingIndicator } from "@/hooks/communications/use-typing-indicator";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { cn } from "@/lib/utils";
-import { queryUtils } from "@/utils/orpc";
+import { orpcClient } from "@/utils/orpc";
 import { FileUploadOverlay } from "./file-upload-overlay";
 import { HelpText } from "./help-text";
 import { MarkdownEditor } from "./markdown-editor";
@@ -35,13 +35,14 @@ export function MessageComposer({
   const fetchUsers = useCallback(
     async (query: string) => {
       try {
-        const { data } =
-          await queryUtils.communication.message.searchUsers.query({
+        const { users = [] } =
+          await orpcClient.communication.message.searchUsers({
             channelId,
             query,
             limit: 10,
           });
-        return data?.users || [];
+
+        return users;
       } catch (error) {
         console.error("Error fetching mention users:", error);
         return [];
@@ -90,9 +91,9 @@ export function MessageComposer({
       const mentionRegex =
         /<span[^>]*data-type="mention"[^>]*data-id="([^"]+)"[^>]*>/g;
       const mentionUserIds: string[] = [];
-      let match: RegExpExecArray | null;
+      const match = mentionRegex.exec(text);
 
-      while ((match = mentionRegex.exec(text)) !== null) {
+      while (match !== null) {
         mentionUserIds.push(match[1]);
       }
 
@@ -104,9 +105,7 @@ export function MessageComposer({
 
       setText("");
 
-      if (user?.name) {
-        broadcastTyping(false, user.name);
-      }
+      broadcastTyping(false, user.name);
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
@@ -122,7 +121,7 @@ export function MessageComposer({
     createMessage,
     broadcastTyping,
     isCreatingMessage,
-    user?.name,
+    user.name,
   ]);
 
   const handleEmojiSelect = useCallback(
@@ -169,6 +168,8 @@ export function MessageComposer({
         type="file"
       />
 
+      {/** biome-ignore lint/a11y/noNoninteractiveElementInteractions: <required here> */}
+      {/** biome-ignore lint/a11y/noStaticElementInteractions: <required here> */}
       <div
         className={cn("border-t bg-background p-4", className)}
         onDragLeave={handleDragLeave}

@@ -123,7 +123,7 @@ export const SearchUsersOutput = z.object({
   users: z.array(
     z.object({
       id: z.string(),
-      name: z.string().nullable(),
+      name: z.string(),
       email: z.string(),
       image: z.string().nullable(),
     })

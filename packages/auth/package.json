@@ -12,8 +12,7 @@
   },
   "type": "module",
   "scripts": {
-    "build": "tsdown",
-    "dev": "bunx --bun tsdown --watch"
+    "build": "tsdown"
   },
   "devDependencies": {
     "tsdown": "^0.15.12"
