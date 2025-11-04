@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Suspense } from "react";
 import {
   Card,
   CardContent,
@@ -6,12 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import { MemberTable } from "./member-table";
+import { MemberListTable, MemberListTableSkeleton } from "./member-list-table";
 
 export const MemberManagement = () => (
   <div className="space-y-4">
@@ -27,14 +22,9 @@ export const MemberManagement = () => (
         </div>
       </CardHeader>
       <CardContent>
-        <InputGroup className="mb-3">
-          <InputGroupInput placeholder="Search..." />
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-        </InputGroup>
-
-        {/* <MemberTable /> */}
+        <Suspense fallback={<MemberListTableSkeleton />}>
+          <MemberListTable />
+        </Suspense>
       </CardContent>
     </Card>
   </div>
