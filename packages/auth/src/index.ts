@@ -10,7 +10,7 @@ export const auth = betterAuth({
     provider: "pg",
     schema: authSchema,
   }),
-  trustedOrigins: ["http://localhost:3001", "work-link://"],
+  trustedOrigins: [process.env.CORS_ORIGIN as string, "work-link://"],
   emailAndPassword: {
     enabled: true,
   },
