@@ -1,25 +1,12 @@
 import { useParams } from "@tanstack/react-router";
-import {
-  Archive,
-  Bell,
-  Hash,
-  Lock,
-  MoreHorizontal,
-  Settings,
-} from "lucide-react";
+import { Hash, Lock, X } from "lucide-react";
 import { Activity } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useChannelContext } from "@/contexts/channel-context";
+import { cn } from "@/lib/utils";
 import { Actions } from "./actions";
 import { ChannelInfo } from "./channel-info";
 import { JoinRequests } from "./join-requests";
@@ -30,12 +17,22 @@ export const ChannelInfoSidebar = () => {
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
 
-  const { showChannelInfoSidebar, channel, channelMembers, onlineUsersCount } =
-    useChannelContext();
+  const {
+    showChannelInfoSidebar,
+    setShowChannelInfoSidebar,
+    channel,
+    channelMembers,
+    onlineUsersCount,
+  } = useChannelContext();
 
   return (
     <Activity mode={showChannelInfoSidebar ? "visible" : "hidden"}>
-      <div className={`flex h-full w-80 flex-col overflow-hidden border-border border-l bg-background transition-transform duration-300 ease-in-out transform ${showChannelInfoSidebar ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div
+        className={cn(
+          "flex h-full w-80 transform flex-col overflow-hidden border-border border-l bg-background transition-transform duration-300 ease-in-out",
+          showChannelInfoSidebar ? "translate-x-0" : "translate-x-full"
+        )}
+      >
         {/* Fixed Header */}
         <div className="shrink-0 border-border border-b p-4">
           <div className="flex items-start justify-between">
@@ -69,28 +66,14 @@ export const ChannelInfoSidebar = () => {
               </div>
             </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="h-8 w-8" size="icon" variant="ghost">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem>
-                  <Settings className="h-4 w-4" />
-                  Channel Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Bell className="h-4 w-4" />
-                  Notifications
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">
-                  <Archive className="h-4 w-4" />
-                  Archive Channel
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              className="h-8 w-8"
+              onClick={() => setShowChannelInfoSidebar(false)}
+              size="icon"
+              variant="ghost"
+            >
+              <X />
+            </Button>
           </div>
         </div>
 
