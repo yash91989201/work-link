@@ -7,6 +7,37 @@
     display: block;
   }
 
+  /* Ensure list markers are visible */
+  ol,
+  ul {
+    padding-left: 1.5rem;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  ul {
+    list-style-type: disc;
+  }
+
+  li {
+    margin-left: 0;
+  }
+
+  a,
+  .tiptap-link {
+    color: #2563eb; /* blue-600 */
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s;
+    pointer-events: none; /* Prevent clicking links in editor */
+
+    &:hover {
+      color: #1d4ed8; /* blue-700 */
+    }
+  }
+
   [data-resize-handle] {
     position: absolute;
     background: rgba(0, 0, 0, 0.5);

@@ -12,19 +12,36 @@ import {
   Code,
   Image as ImageIcon,
   Italic,
+  LinkIcon,
   List,
   ListOrdered,
   Strikethrough,
   UnderlineIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
+import { AutoLinkPreview } from "./auto-link-preview";
+import { LinkBubbleMenu } from "./link-bubble-menu";
+import { LinkPreviewNode } from "./link-preview-node";
 import { createMentionSuggestion } from "./mention-suggestion";
 import "tippy.js/dist/tippy.css";
 import "@/styles/tiptap.css";
+import z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+
+const URL_REGEX = /^[a-zA-Z]+:\/\//;
 
 interface TiptapEditorProps {
   content: string;
@@ -117,6 +134,15 @@ export function TiptapEditor({
         linkOnPaste: true,
         openOnClick: false,
         protocols: ["http", "https", "mailto", "tel"],
+        HTMLAttributes: {
+          class: "tiptap-link",
+          rel: "noopener noreferrer",
+          target: "_blank",
+        },
+        shouldAutoLink: (url) => {
+          const checkUrl = z.url().safeParse(url);
+          return checkUrl.success;
+        },
       }),
       Image.configure({
         resize: {
@@ -124,10 +150,13 @@ export function TiptapEditor({
           alwaysPreserveAspectRatio: true,
         },
       }),
+      LinkPreviewNode,
+      AutoLinkPreview,
       Dropcursor,
     ],
     content,
     editable: !disabled,
+    autofocus: true,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -138,7 +167,7 @@ export function TiptapEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none focus:outline-none min-h-24 max-h-48 overflow-y-auto p-3",
+          "prose prose-sm max-w-none focus:outline-none min-h-60 max-h-80 overflow-y-auto p-3",
       },
       handleKeyDown: (_, event) => {
         if (event.key === "Enter" && event.shiftKey) {
@@ -213,6 +242,56 @@ export function TiptapEditor({
     }
   }, [content, editor]);
 
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+
+  const handleAddLink = useCallback(() => {
+    const { from, to } = editor.state.selection;
+    const text = editor.state.doc.textBetween(from, to, " ");
+
+    if (text) {
+      // User has selected text
+      setIsLinkDialogOpen(true);
+    } else {
+      // No text selected, just show dialog
+      setIsLinkDialogOpen(true);
+    }
+  }, [editor]);
+
+  const handleSaveLink = useCallback(() => {
+    if (linkUrl) {
+      // Ensure URL has protocol
+      let url = linkUrl;
+      if (!url.match(URL_REGEX)) {
+        url = `https://${url}`;
+      }
+
+      const { from, to } = editor.state.selection;
+      const text = editor.state.doc.textBetween(from, to, " ");
+
+      if (text) {
+        // Text is selected, apply link to selection (keep the text)
+        editor.chain().focus().setLink({ href: url }).run();
+      } else {
+        // No text selected, insert the URL as both text and link
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "text",
+            marks: [{ type: "link", attrs: { href: url } }],
+            text: url,
+          })
+          .run();
+      }
+
+      // Note: Preview will be auto-inserted by AutoLinkPreview extension
+
+      setLinkUrl("");
+      setIsLinkDialogOpen(false);
+    }
+  }, [editor, linkUrl]);
+
   if (!editor) {
     return null;
   }
@@ -227,12 +306,13 @@ export function TiptapEditor({
         ref={fileInputRef}
         type="file"
       />
-      <div className="flex items-center gap-1 border-b px-2 py-1">
+      <div className="flex items-center gap-1 border-b p-3">
         <Toggle
           aria-label="Toggle bold"
           onPressedChange={() => editor.chain().focus().toggleBold().run()}
           pressed={editor.isActive("bold")}
           size="sm"
+          title="Bold (Ctrl+B)"
         >
           <Bold className="h-4 w-4" />
         </Toggle>
@@ -242,6 +322,7 @@ export function TiptapEditor({
           onPressedChange={() => editor.chain().focus().toggleItalic().run()}
           pressed={editor.isActive("italic")}
           size="sm"
+          title="Italic (Ctrl+I)"
         >
           <Italic className="h-4 w-4" />
         </Toggle>
@@ -251,6 +332,7 @@ export function TiptapEditor({
           onPressedChange={() => editor.chain().focus().toggleStrike().run()}
           pressed={editor.isActive("strike")}
           size="sm"
+          title="Strikethrough (Ctrl+Shift+S)"
         >
           <Strikethrough className="h-4 w-4" />
         </Toggle>
@@ -260,6 +342,7 @@ export function TiptapEditor({
           onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
           pressed={editor.isActive("underline")}
           size="sm"
+          title="Underline (Ctrl+U)"
         >
           <UnderlineIcon className="h-4 w-4" />
         </Toggle>
@@ -269,6 +352,7 @@ export function TiptapEditor({
           onPressedChange={() => editor.chain().focus().toggleCode().run()}
           pressed={editor.isActive("code")}
           size="sm"
+          title="Inline Code (Ctrl+E)"
         >
           <Code className="h-4 w-4" />
         </Toggle>
@@ -282,6 +366,7 @@ export function TiptapEditor({
           }
           pressed={editor.isActive("bulletList")}
           size="sm"
+          title="Bullet List (Ctrl+Shift+8)"
         >
           <List className="h-4 w-4" />
         </Toggle>
@@ -293,23 +378,82 @@ export function TiptapEditor({
           }
           pressed={editor.isActive("orderedList")}
           size="sm"
+          title="Ordered List (Ctrl+Shift+7)"
         >
           <ListOrdered className="h-4 w-4" />
         </Toggle>
 
         <Separator className="h-6" orientation="vertical" />
+        <Toggle
+          aria-label="Add a link"
+          onPressedChange={handleAddLink}
+          pressed={editor.isActive("link")}
+          size="sm"
+          title="Insert Link (Ctrl+K)"
+        >
+          <LinkIcon className="h-4 w-4" />
+        </Toggle>
 
         <Toggle
           aria-label="Upload image"
           onPressedChange={handleImageUploadClick}
           pressed={false}
           size="sm"
+          title="Upload Image"
         >
           <ImageIcon className="h-4 w-4" />
         </Toggle>
       </div>
 
-      <EditorContent className={cn(disabled && "opacity-50")} editor={editor} />
+      <div className="relative">
+        <LinkBubbleMenu editor={editor} />
+        <EditorContent
+          className={cn("p-3", disabled && "opacity-50")}
+          editor={editor}
+        />
+      </div>
+
+      <Dialog onOpenChange={setIsLinkDialogOpen} open={isLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insert Link</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="link-url">URL</Label>
+              <Input
+                autoFocus
+                id="link-url"
+                onChange={(e) => setLinkUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSaveLink();
+                  }
+                }}
+                placeholder="https://example.com"
+                type="url"
+                value={linkUrl}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setLinkUrl("");
+                setIsLinkDialogOpen(false);
+              }}
+              type="button"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveLink} type="button">
+              Insert Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
