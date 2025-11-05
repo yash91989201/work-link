@@ -14,11 +14,19 @@ import { TypingIndicator } from "./typing-indicator";
 interface MessageComposerProps {
   channelId: string;
   className?: string;
+  parentMessageId?: string;
+  placeholder?: string;
+  showHelpText?: boolean;
+  onSendSuccess?: () => void;
 }
 
 export function MessageComposer({
   channelId,
   className,
+  parentMessageId,
+  placeholder = "Type a message...",
+  showHelpText = true,
+  onSendSuccess,
 }: MessageComposerProps) {
   const { user } = useAuthedSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,11 +113,14 @@ export function MessageComposer({
         channelId,
         content: text.trim(),
         mentions: mentionUserIds.length > 0 ? mentionUserIds : undefined,
+        parentMessageId,
       });
 
       setText("");
 
       broadcastTyping(false, user.name);
+
+      onSendSuccess?.();
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
@@ -204,7 +215,7 @@ export function MessageComposer({
               fetchUsers={fetchUsers}
               onChange={handleMarkdownChange}
               onSubmit={handleSubmit}
-              placeholder="Type a message..."
+              placeholder={placeholder}
             />
 
             <div className="border-t p-3">
@@ -220,7 +231,7 @@ export function MessageComposer({
             </div>
           </div>
 
-          <HelpText />
+          {showHelpText && <HelpText />}
         </div>
       </div>
     </>
