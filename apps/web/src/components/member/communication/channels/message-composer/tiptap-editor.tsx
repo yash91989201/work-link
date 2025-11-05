@@ -167,7 +167,7 @@ export function TiptapEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none focus:outline-none min-h-60 max-h-80 overflow-y-auto p-3",
+          "prose prose-sm max-w-none focus:outline-none min-h-48 max-h-60 overflow-y-auto p-3",
       },
       handleKeyDown: (_, event) => {
         if (event.key === "Enter" && event.shiftKey) {
