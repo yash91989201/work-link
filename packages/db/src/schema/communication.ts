@@ -2,6 +2,7 @@ import { cuid2 } from "drizzle-cuid2/postgres";
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  index,
   integer,
   json,
   pgEnum,
@@ -143,7 +144,9 @@ export const messageTable = pgTable("message", {
   }), // For direct messages
   content: text("content"),
   type: messageTypeEnum("type").notNull().default("text"),
-  parentMessageId: text("parent_message_id"), // For replies/threads - will be self-referenced
+  parentMessageId: text("parent_message_id").references(() => messageTable.id, {
+    onDelete: "cascade",
+  }), // For replies/threads - will be self-referenced
   threadCount: integer("thread_count").default(0).notNull(),
   isEdited: boolean("is_edited").default(false).notNull(),
   editedAt: timestamp("edited_at", { withTimezone: true }),
@@ -163,7 +166,18 @@ export const messageTable = pgTable("message", {
     .$defaultFn(() => new Date())
     .$onUpdate(() => new Date())
     .notNull(),
-});
+}, (table) => ({
+  // Index for parent-child relationship (critical for recursive queries)
+  parentMessageIdx: index("idx_message_parent_message_id").on(table.parentMessageId),
+  // Index for soft deletes
+  isDeletedIdx: index("idx_message_is_deleted").on(table.isDeleted),
+  // Index for channel queries
+  channelIdIdx: index("idx_message_channel_id").on(table.channelId),
+  // Composite index for common queries
+  channelDeletedIdx: index("idx_message_channel_deleted").on(table.channelId, table.isDeleted),
+  // Composite index for thread queries
+  parentDeletedIdx: index("idx_message_parent_deleted").on(table.parentMessageId, table.isDeleted),
+}));
 
 // File attachments for messages
 export const attachmentTable = pgTable("attachment", {

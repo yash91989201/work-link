@@ -182,14 +182,83 @@ export const messageRouter = {
     .input(DeleteMessageInput)
     .output(SuccessOutput)
     .handler(async ({ input, context }) => {
-      await context.db
-        .update(messageTable)
-        .set({
-          isDeleted: true,
-          deletedAt: new Date(),
-        })
-        .where(eq(messageTable.id, input.messageId))
-        .returning();
+      const { db } = context;
+
+      // Use a transaction to ensure atomicity
+      await db.transaction(async (tx) => {
+        // First check if the message exists and user has permission
+        const message = await tx.query.messageTable.findFirst({
+          where: eq(messageTable.id, input.messageId),
+          columns: { id: true, senderId: true },
+        });
+
+        if (!message) {
+          throw new ORPCError("NOT_FOUND", {
+            message: "Message not found.",
+          });
+        }
+
+        // Check if user is the sender or has admin privileges (you may want to add role-based checks)
+        if (message.senderId !== context.session.user.id) {
+          throw new ORPCError("FORBIDDEN", {
+            message: "You can only delete your own messages.",
+          });
+        }
+
+        // Recursively soft delete the message and all its descendants
+        await tx.execute(sql`
+          WITH RECURSIVE message_tree AS (
+            -- Start with the root message to delete
+            SELECT id, parent_message_id, 1 as depth
+            FROM messages 
+            WHERE id = ${input.messageId}
+            
+            UNION ALL
+            
+            -- Find all child messages recursively
+            SELECT m.id, m.parent_message_id, mt.depth + 1
+            FROM messages m
+            INNER JOIN message_tree mt ON m.parent_message_id = mt.id
+            WHERE m.is_deleted = false
+          )
+          UPDATE messages 
+          SET 
+            is_deleted = true, 
+            deleted_at = NOW(),
+            -- Clear thread information for deleted messages
+            thread_count = 0
+          WHERE id IN (SELECT id FROM message_tree)
+        `);
+
+        // update parent message thread counts
+        await tx.execute(sql`
+          UPDATE messages 
+          SET thread_count = (
+            SELECT COUNT(*) 
+            FROM messages 
+            WHERE parent_message_id = messages.id AND is_deleted = false
+          )
+          WHERE id IN (
+            SELECT DISTINCT parent_message_id 
+            FROM messages 
+            WHERE parent_message_id IS NOT NULL 
+            AND id IN (SELECT id FROM (
+              WITH RECURSIVE message_tree AS (
+                SELECT id, parent_message_id
+                FROM messages 
+                WHERE id = ${input.messageId}
+                UNION ALL
+                SELECT m.id, m.parent_message_id
+                FROM messages m
+                INNER JOIN message_tree mt ON m.parent_message_id = mt.id
+              )
+              SELECT parent_message_id 
+              FROM message_tree 
+              WHERE parent_message_id IS NOT NULL
+            ) AS parent_ids)
+          )
+        `);
+      });
 
       return {
         success: true,
