@@ -1,10 +1,16 @@
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
 import type { ReactNode } from "react";
-import { createContext, useCallback, useContext, useMemo } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { useMessages } from "@/hooks/communications/use-messages";
 
-type MessageWithParent = MessageWithSenderType & {
+export type MessageWithParent = MessageWithSenderType & {
   parentMessage?: MessageWithSenderType | null;
 };
 
@@ -12,20 +18,27 @@ interface MessageListContextValue {
   channelId: string;
   messages: MessageWithParent[];
   orderedMessages: MessageWithParent[];
+  threadMessages: MessageWithParent[];
+  threadParentMessage: MessageWithParent | null;
+  threadOriginMessageId: string | null;
+  isThreadSidebarOpen: boolean;
+  threadComposerFocusKey: number;
 
   // Mutation functions
   handleDelete: (messageId: string) => Promise<void>;
-  handleReply: (
-    content: string,
-    parentMessageId: string,
-    mentions?: string[]
-  ) => Promise<void>;
   handleEdit: (
     messageId: string,
     content: string,
     mentions?: string[]
   ) => Promise<void>;
   handlePin: (messageId: string, isPinned: boolean) => Promise<void>;
+  openThread: (
+    message: MessageWithParent,
+    options?: { focusComposer?: boolean }
+  ) => void;
+  closeThread: () => void;
+  shouldFocusThreadComposer: boolean;
+  acknowledgeThreadComposerFocus: () => void;
 
   // Loading states
   isDeletingMessage: boolean;
@@ -58,13 +71,24 @@ export function MessageListProvider({
     isPinningMessage,
     isDeletingMessage,
     isUpdatingMessage,
-    createMessage,
     deleteMessage,
     updateMessage,
     messagesEndRef,
     pinMessage,
     unpinMessage,
   } = useMessages(channelId);
+
+  const [threadState, setThreadState] = useState<{
+    parentMessageId: string | null;
+    originMessageId: string | null;
+    shouldFocusComposer: boolean;
+    composerFocusKey: number;
+  }>({
+    parentMessageId: null,
+    originMessageId: null,
+    shouldFocusComposer: false,
+    composerFocusKey: 0,
+  });
 
   const handleDelete = useCallback(
     async (messageId: string) => {
@@ -78,25 +102,6 @@ export function MessageListProvider({
       }
     },
     [deleteMessage]
-  );
-
-  const handleReply = useCallback(
-    async (content: string, parentMessageId: string, mentions?: string[]) => {
-      try {
-        await createMessage({
-          channelId,
-          content,
-          parentMessageId,
-          mentions,
-        });
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to send reply";
-        toast(message);
-        throw error;
-      }
-    },
-    [channelId, createMessage]
   );
 
   const handleEdit = useCallback(
@@ -131,6 +136,37 @@ export function MessageListProvider({
     [pinMessage, unpinMessage]
   );
 
+  const openThread = useCallback(
+    (message: MessageWithParent, options?: { focusComposer?: boolean }) => {
+      const parentMessageId = message.parentMessage?.id ?? message.id;
+      const composerFocusKey = Date.now();
+      setThreadState({
+        parentMessageId,
+        originMessageId: message.id,
+        shouldFocusComposer: Boolean(options?.focusComposer),
+        composerFocusKey,
+      });
+    },
+    []
+  );
+
+  const closeThread = useCallback(() => {
+    setThreadState({
+      parentMessageId: null,
+      originMessageId: null,
+      shouldFocusComposer: false,
+      composerFocusKey: 0,
+    });
+  }, []);
+
+  const acknowledgeThreadComposerFocus = useCallback(() => {
+    setThreadState((prev) =>
+      prev.shouldFocusComposer
+        ? { ...prev, shouldFocusComposer: false }
+        : prev
+    );
+  }, []);
+
   const orderedMessages = useMemo(
     () =>
       [...messages].sort(
@@ -139,15 +175,42 @@ export function MessageListProvider({
     [messages]
   );
 
+  const threadParentMessage = useMemo(() => {
+    if (!threadState.parentMessageId) return null;
+
+    return (
+      messages.find((message) => message.id === threadState.parentMessageId) ??
+      null
+    );
+  }, [messages, threadState.parentMessageId]);
+
+  const threadMessages = useMemo(() => {
+    if (!threadState.parentMessageId) return [];
+
+    return orderedMessages.filter(
+      (message) =>
+        message.id === threadState.parentMessageId ||
+        message.parentMessageId === threadState.parentMessageId
+    );
+  }, [orderedMessages, threadState.parentMessageId]);
+
   const value = useMemo(
     () => ({
       channelId,
       messages,
       orderedMessages,
+      threadMessages,
+      threadParentMessage,
+      threadOriginMessageId: threadState.originMessageId,
+      isThreadSidebarOpen: Boolean(threadState.parentMessageId),
+      threadComposerFocusKey: threadState.composerFocusKey,
       handleDelete,
-      handleReply,
       handleEdit,
       handlePin,
+      openThread,
+      closeThread,
+      shouldFocusThreadComposer: threadState.shouldFocusComposer,
+      acknowledgeThreadComposerFocus,
       isDeletingMessage,
       isUpdatingMessage,
       isPinningMessage,
@@ -160,10 +223,18 @@ export function MessageListProvider({
       channelId,
       messages,
       orderedMessages,
+      threadMessages,
+      threadParentMessage,
+      threadState.originMessageId,
+      threadState.parentMessageId,
+      threadState.composerFocusKey,
       handleDelete,
-      handleReply,
       handleEdit,
       handlePin,
+      openThread,
+      closeThread,
+      threadState.shouldFocusComposer,
+      acknowledgeThreadComposerFocus,
       isDeletingMessage,
       isUpdatingMessage,
       isPinningMessage,

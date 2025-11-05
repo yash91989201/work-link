@@ -1,15 +1,9 @@
 import { useCallback, useMemo, useReducer } from "react";
 import { useMessageListContext } from "@/contexts/message-list-context";
 
-type MessageState =
-  | { mode: "view" }
-  | { mode: "editing" }
-  | { mode: "replying" };
+type MessageState = { mode: "view" } | { mode: "editing" };
 
-type MessageAction =
-  | { type: "START_EDIT" }
-  | { type: "START_REPLY" }
-  | { type: "CANCEL" };
+type MessageAction = { type: "START_EDIT" } | { type: "CANCEL" };
 
 function messageReducer(
   state: MessageState,
@@ -18,8 +12,6 @@ function messageReducer(
   switch (action.type) {
     case "START_EDIT":
       return { mode: "editing" };
-    case "START_REPLY":
-      return { mode: "replying" };
     case "CANCEL":
       return { mode: "view" };
     default:
@@ -37,7 +29,6 @@ export function useMessageItem({ messageId, isPinned }: UseMessageItemOptions) {
     channelId,
     handleDelete: deleteMessage,
     handleEdit: editMessage,
-    handleReply: replyMessage,
     handlePin: pinMessage,
     isDeletingMessage,
     isPinningMessage,
@@ -69,24 +60,12 @@ export function useMessageItem({ messageId, isPinned }: UseMessageItemOptions) {
     [editMessage]
   );
 
-  const handleReply = useCallback(
-    async (content: string, parentMessageId: string, mentions?: string[]) => {
-      await replyMessage(content, parentMessageId, mentions);
-      dispatch({ type: "CANCEL" });
-    },
-    [replyMessage]
-  );
-
   const handlePin = useCallback(async () => {
     await pinMessage(messageId, isPinned);
   }, [messageId, isPinned, pinMessage]);
 
   const startEditing = useCallback(() => {
     dispatch({ type: "START_EDIT" });
-  }, []);
-
-  const startReplying = useCallback(() => {
-    dispatch({ type: "START_REPLY" });
   }, []);
 
   const cancel = useCallback(() => {
@@ -100,10 +79,8 @@ export function useMessageItem({ messageId, isPinned }: UseMessageItemOptions) {
     isPinning,
     handleDelete,
     handleEdit,
-    handleReply,
     handlePin,
     startEditing,
-    startReplying,
     cancel,
   };
 }

@@ -1,24 +1,37 @@
-import type { MessageWithSenderType } from "@work-link/api/lib/types";
+import { CornerUpLeft } from "lucide-react";
+import { useCallback, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  type MessageWithParent,
+  useMessageListContext,
+} from "@/contexts/message-list-context";
 import { useMessageItem } from "@/hooks/communications/use-message-item";
 import { cn } from "@/lib/utils";
 import { formatMessageDate } from "@/utils/message-utils";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
 import { MessageEditForm } from "./message-edit-form";
-import { MessageReplyForm } from "./message-reply-form";
 import { MessageThreadPreview } from "./message-thread-preview";
-
-type MessageWithParent = MessageWithSenderType & {
-  parentMessage?: MessageWithSenderType | null;
-};
 
 interface MessageItemProps {
   message: MessageWithParent;
+  showParentPreview?: boolean;
+  showThreadSummary?: boolean;
 }
 
-export function MessageItem({ message }: MessageItemProps) {
+export function MessageItem({
+  message,
+  showParentPreview = true,
+  showThreadSummary = true,
+}: MessageItemProps) {
+  const {
+    openThread,
+    threadOriginMessageId,
+    threadParentMessage,
+    isThreadSidebarOpen,
+  } = useMessageListContext();
+
   const {
     channelId,
     state,
@@ -26,31 +39,74 @@ export function MessageItem({ message }: MessageItemProps) {
     isPinning,
     handleDelete,
     handleEdit,
-    handleReply,
     handlePin,
     startEditing,
-    startReplying,
     cancel,
   } = useMessageItem({
     messageId: message.id,
     isPinned: message.isPinned,
   });
 
+  const isThreadRoot = useMemo(
+    () =>
+      isThreadSidebarOpen && threadParentMessage
+        ? threadParentMessage.id === message.id
+        : false,
+    [isThreadSidebarOpen, threadParentMessage, message.id]
+  );
+
+  const isThreadOrigin = useMemo(
+    () =>
+      isThreadSidebarOpen && threadOriginMessageId
+        ? threadOriginMessageId === message.id
+        : false,
+    [isThreadSidebarOpen, threadOriginMessageId, message.id]
+  );
+
+  const handleReplyClick = useCallback(() => {
+    openThread(message, { focusComposer: true });
+  }, [message, openThread]);
+
+  const handleViewThread = useCallback(() => {
+    openThread(message);
+  }, [message, openThread]);
+
+  const canShowThreadSummary =
+    showThreadSummary &&
+    !message.parentMessageId &&
+    (message.threadCount ?? 0) > 0;
+
+  const isReply = Boolean(message.parentMessageId);
+
   return (
     <div
       className={cn(
         "group relative px-4",
-        message.parentMessage ? "py-3" : "py-2",
-        isDeleting && "opacity-50"
+        message.parentMessageId ? "py-3" : "py-2",
+        isDeleting && "opacity-50",
+        isThreadRoot && "bg-primary/5",
+        isThreadOrigin && "ring-1 ring-primary/40",
+        message.parentMessageId && "border-primary/20 border-l-2 bg-muted/10"
       )}
+      data-message-id={message.id}
     >
       {/* Thread preview if replying to another message */}
-      {message.parentMessage && (
-        <MessageThreadPreview parentMessage={message.parentMessage} />
+      {showParentPreview && message.parentMessage && (
+        <MessageThreadPreview
+          onOpenThread={handleViewThread}
+          parentMessage={message.parentMessage}
+        />
       )}
 
       {/* Message header */}
-      <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          "flex items-center gap-2",
+          isReply &&
+            "-mx-1 cursor-pointer rounded-md px-1 py-1 transition-colors hover:bg-muted/30"
+        )}
+        onClick={isReply ? handleViewThread : undefined}
+      >
         <Avatar className="h-10 w-10">
           <AvatarImage
             alt={message.sender.name}
@@ -67,6 +123,12 @@ export function MessageItem({ message }: MessageItemProps) {
           <span className="text-muted-foreground text-xs">
             {formatMessageDate(message.createdAt)}
           </span>
+          {isReply && (
+            <Badge className="text-xs" variant="secondary">
+              <CornerUpLeft className="mr-1 h-3 w-3" />
+              Reply
+            </Badge>
+          )}
           {message.isEdited && (
             <Badge className="text-xs" variant="secondary">
               Edited
@@ -91,7 +153,13 @@ export function MessageItem({ message }: MessageItemProps) {
         />
       ) : (
         <>
-          <div className="mt-1.5 rounded-xl bg-muted/30 p-3 ring-1 ring-border">
+          <div
+            className={cn(
+              "mt-1.5 rounded-xl bg-muted/30 p-3 ring-1 ring-border",
+              isReply && "cursor-pointer transition-colors hover:bg-muted/50"
+            )}
+            onClick={isReply ? handleViewThread : undefined}
+          >
             <MessageContent message={message} />
           </div>
 
@@ -104,24 +172,23 @@ export function MessageItem({ message }: MessageItemProps) {
             onDelete={handleDelete}
             onEdit={startEditing}
             onPin={handlePin}
-            onReply={startReplying}
+            onReply={handleReplyClick}
             senderId={message.senderId}
           />
-        </>
-      )}
 
-      {/* Reply form */}
-      {state.mode === "replying" && (
-        <MessageReplyForm
-          channelId={channelId}
-          onCancel={cancel}
-          onSubmit={handleReply}
-          parentMessage={{
-            id: message.id,
-            content: message.content || "",
-            sender: message.sender,
-          }}
-        />
+          {canShowThreadSummary && (
+            <button
+              className="mt-2 inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 font-medium text-muted-foreground text-xs transition hover:bg-muted/80"
+              onClick={handleViewThread}
+              type="button"
+            >
+              View thread
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-background px-2 font-semibold text-[11px] text-foreground">
+                {message.threadCount}
+              </span>
+            </button>
+          )}
+        </>
       )}
     </div>
   );
