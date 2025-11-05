@@ -1,5 +1,5 @@
 import { CornerUpLeft } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -9,6 +9,7 @@ import {
 import { useMessageItem } from "@/hooks/communications/use-message-item";
 import { cn } from "@/lib/utils";
 import { formatMessageDate } from "@/utils/message-utils";
+import { MaximizedMessageComposer } from "../message-composer/maximized-message-composer";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
 import { MessageEditForm } from "./message-edit-form";
@@ -25,6 +26,8 @@ export function MessageItem({
   showParentPreview = true,
   showThreadSummary = true,
 }: MessageItemProps) {
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
   const {
     openThread,
     threadOriginMessageId,
@@ -33,19 +36,26 @@ export function MessageItem({
   } = useMessageListContext();
 
   const {
-    channelId,
     state,
+    channelId,
     isDeleting,
     isPinning,
     handleDelete,
     handleEdit,
     handlePin,
-    startEditing,
     cancel,
   } = useMessageItem({
     messageId: message.id,
     isPinned: message.isPinned,
   });
+
+  const handleEditDialog = useCallback(() => {
+    setShowEditDialog(true);
+  }, []);
+
+  const handleEditSave = useCallback(() => {
+    setShowEditDialog(false);
+  }, []);
 
   const isThreadRoot = useMemo(
     () =>
@@ -143,7 +153,7 @@ export function MessageItem({
       </div>
 
       {/* Message content or edit form */}
-      {state.mode === "editing" ? (
+      {state.mode === "editing" && !showEditDialog ? (
         <MessageEditForm
           channelId={channelId}
           initialContent={message.content || ""}
@@ -170,7 +180,7 @@ export function MessageItem({
             isPinning={isPinning}
             messageId={message.id}
             onDelete={handleDelete}
-            onEdit={startEditing}
+            onEdit={handleEditDialog}
             onPin={handlePin}
             onReply={handleReplyClick}
             senderId={message.senderId}
@@ -190,6 +200,19 @@ export function MessageItem({
           )}
         </>
       )}
+
+      {/* Maximized Edit Dialog */}
+      <MaximizedMessageComposer
+        channelId={channelId}
+        description="Make changes to your message. Click save when you're done."
+        initialContent={message.content || ""}
+        messageId={message.id}
+        mode="edit"
+        onOpenChange={setShowEditDialog}
+        onSendSuccess={handleEditSave}
+        open={showEditDialog}
+        title="Edit Message"
+      />
     </div>
   );
 }

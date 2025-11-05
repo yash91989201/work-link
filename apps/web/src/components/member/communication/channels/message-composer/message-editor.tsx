@@ -15,6 +15,8 @@ import {
   LinkIcon,
   List,
   ListOrdered,
+  Maximize,
+  Minimize2,
   Strikethrough,
   UnderlineIcon,
 } from "lucide-react";
@@ -43,7 +45,7 @@ import { supabase } from "@/lib/supabase";
 
 const URL_REGEX = /^[a-zA-Z]+:\/\//;
 
-interface TiptapEditorProps {
+interface MessageEditorProps {
   content: string;
   onChange: (content: string) => void;
   onSubmit: () => void;
@@ -53,9 +55,12 @@ interface TiptapEditorProps {
   fetchUsers: (
     query: string
   ) => Promise<Array<{ id: string; name: string; email: string }>>;
+  onMaximize?: () => void;
+  onMinimize?: () => void;
+  isMaximized?: boolean;
 }
 
-export function TiptapEditor({
+export function MessageEditor({
   content,
   onChange,
   onSubmit,
@@ -63,7 +68,10 @@ export function TiptapEditor({
   disabled = false,
   onCursorChange,
   fetchUsers,
-}: TiptapEditorProps) {
+  onMaximize,
+  onMinimize,
+  isMaximized = false,
+}: MessageEditorProps) {
   const uploadImageToSupabase = useCallback(
     async (file: File): Promise<string> => {
       const bucket = "message-image";
@@ -166,8 +174,12 @@ export function TiptapEditor({
     },
     editorProps: {
       attributes: {
-        class:
-          "prose prose-sm max-w-none focus:outline-none min-h-48 max-h-60 overflow-y-auto p-3",
+        class: cn(
+          "prose prose-sm max-w-none p-2 focus:outline-none sm:p-3",
+          isMaximized
+            ? "max-h-[40vh] min-h-[30vh] overflow-y-auto sm:max-h-[50vh] sm:min-h-[40vh]"
+            : "max-h-40 min-h-32 overflow-y-auto sm:max-h-60 sm:min-h-48"
+        ),
       },
       handleKeyDown: (_, event) => {
         if (event.key === "Enter" && event.shiftKey) {
@@ -297,7 +309,7 @@ export function TiptapEditor({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex-1 space-y-2">
       <input
         accept="image/*"
         className="hidden"
@@ -306,7 +318,7 @@ export function TiptapEditor({
         ref={fileInputRef}
         type="file"
       />
-      <div className="flex items-center gap-1 border-b p-3">
+      <div className="flex flex-wrap items-center gap-1 border-b p-2 sm:p-3">
         <Toggle
           aria-label="Toggle bold"
           onPressedChange={() => editor.chain().focus().toggleBold().run()}
@@ -314,7 +326,7 @@ export function TiptapEditor({
           size="sm"
           title="Bold (Ctrl+B)"
         >
-          <Bold className="h-4 w-4" />
+          <Bold className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
 
         <Toggle
@@ -324,7 +336,7 @@ export function TiptapEditor({
           size="sm"
           title="Italic (Ctrl+I)"
         >
-          <Italic className="h-4 w-4" />
+          <Italic className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
 
         <Toggle
@@ -334,7 +346,7 @@ export function TiptapEditor({
           size="sm"
           title="Strikethrough (Ctrl+Shift+S)"
         >
-          <Strikethrough className="h-4 w-4" />
+          <Strikethrough className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
 
         <Toggle
@@ -344,7 +356,7 @@ export function TiptapEditor({
           size="sm"
           title="Underline (Ctrl+U)"
         >
-          <UnderlineIcon className="h-4 w-4" />
+          <UnderlineIcon className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
 
         <Toggle
@@ -354,10 +366,10 @@ export function TiptapEditor({
           size="sm"
           title="Inline Code (Ctrl+E)"
         >
-          <Code className="h-4 w-4" />
+          <Code className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
 
-        <Separator className="h-6" orientation="vertical" />
+        <Separator className="mx-1 h-6" orientation="vertical" />
 
         <Toggle
           aria-label="Toggle bullet list"
@@ -368,7 +380,7 @@ export function TiptapEditor({
           size="sm"
           title="Bullet List (Ctrl+Shift+8)"
         >
-          <List className="h-4 w-4" />
+          <List className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
 
         <Toggle
@@ -380,10 +392,10 @@ export function TiptapEditor({
           size="sm"
           title="Ordered List (Ctrl+Shift+7)"
         >
-          <ListOrdered className="h-4 w-4" />
+          <ListOrdered className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
 
-        <Separator className="h-6" orientation="vertical" />
+        <Separator className="mx-1 h-6" orientation="vertical" />
         <Toggle
           aria-label="Add a link"
           onPressedChange={handleAddLink}
@@ -391,7 +403,7 @@ export function TiptapEditor({
           size="sm"
           title="Insert Link (Ctrl+K)"
         >
-          <LinkIcon className="h-4 w-4" />
+          <LinkIcon className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
 
         <Toggle
@@ -401,14 +413,40 @@ export function TiptapEditor({
           size="sm"
           title="Upload Image"
         >
-          <ImageIcon className="h-4 w-4" />
+          <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
+
+        <div className="ml-auto">
+          <Toggle
+            aria-label={isMaximized ? "Minimize editor" : "Maximize editor"}
+            onPressedChange={() => {
+              if (isMaximized) {
+                onMinimize?.();
+              } else {
+                onMaximize?.();
+              }
+            }}
+            pressed={isMaximized}
+            size="sm"
+            title={
+              isMaximized
+                ? "Minimize Editor (Ctrl+M)"
+                : "Maximize Editor (Ctrl+M)"
+            }
+          >
+            {isMaximized ? (
+              <Minimize2 className="h-3 w-3 sm:h-4 sm:w-4" />
+            ) : (
+              <Maximize className="h-3 w-3 sm:h-4 sm:w-4" />
+            )}
+          </Toggle>
+        </div>
       </div>
 
       <div className="relative">
         <LinkBubbleMenu editor={editor} />
         <EditorContent
-          className={cn("p-3", disabled && "opacity-50")}
+          className={cn("p-2 sm:p-3", disabled && "opacity-50")}
           editor={editor}
         />
       </div>

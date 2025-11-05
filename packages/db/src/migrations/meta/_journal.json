@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1761910975036,
-      "tag": "0000_harsh_mauler",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1762352820701,
-      "tag": "0001_aspiring_chronomancer",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1762352873559,
-      "tag": "0002_brainy_bloodstrike",
+      "when": 1762369924197,
+      "tag": "0000_ambitious_diamondback",
       "breakpoints": true
     }
   ]

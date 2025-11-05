@@ -10,7 +10,6 @@ import {
   Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { queryUtils } from "@/utils/orpc";
+import { CreateChannelForm } from "../create-channel-form";
 import { ChannelTips } from "./tips";
 
 export const ChannelsOverview = () => {
@@ -56,16 +56,7 @@ const RecentChannels = ({ channels }: ListChannelsOutputType) => {
             <p className="mb-4 text-muted-foreground">
               Create your first channel to start organizing team conversations.
             </p>
-            <Button
-              onClick={() => {
-                const createChannelForm = document.querySelector(
-                  "[data-create-channel-form]"
-                );
-                createChannelForm?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              Create First Channel
-            </Button>
+            <CreateChannelForm />
           </CardContent>
         </Card>
       </div>

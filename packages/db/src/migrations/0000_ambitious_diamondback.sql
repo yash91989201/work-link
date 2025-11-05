@@ -118,7 +118,6 @@ CREATE TABLE "user" (
 	"name" text NOT NULL,
 	"email" text NOT NULL,
 	"email_verified" boolean DEFAULT false NOT NULL,
-	"test" boolean DEFAULT false NOT NULL,
 	"image" text,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL,
@@ -265,6 +264,12 @@ ALTER TABLE "message_read" ADD CONSTRAINT "message_read_user_id_user_id_fk" FORE
 ALTER TABLE "message" ADD CONSTRAINT "message_channel_id_channel_id_fk" FOREIGN KEY ("channel_id") REFERENCES "public"."channel"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "message" ADD CONSTRAINT "message_sender_id_user_id_fk" FOREIGN KEY ("sender_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "message" ADD CONSTRAINT "message_receiver_id_user_id_fk" FOREIGN KEY ("receiver_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "message" ADD CONSTRAINT "message_parent_message_id_message_id_fk" FOREIGN KEY ("parent_message_id") REFERENCES "public"."message"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "message" ADD CONSTRAINT "message_pinned_by_user_id_fk" FOREIGN KEY ("pinned_by") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notification" ADD CONSTRAINT "notification_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE UNIQUE INDEX "unique_channel_user" ON "channel_member" USING btree ("channel_id","user_id");
+CREATE UNIQUE INDEX "unique_channel_user" ON "channel_member" USING btree ("channel_id","user_id");--> statement-breakpoint
+CREATE INDEX "idx_message_parent_message_id" ON "message" USING btree ("parent_message_id");--> statement-breakpoint
+CREATE INDEX "idx_message_is_deleted" ON "message" USING btree ("is_deleted");--> statement-breakpoint
+CREATE INDEX "idx_message_channel_id" ON "message" USING btree ("channel_id");--> statement-breakpoint
+CREATE INDEX "idx_message_channel_deleted" ON "message" USING btree ("channel_id","is_deleted");--> statement-breakpoint
+CREATE INDEX "idx_message_parent_deleted" ON "message" USING btree ("parent_message_id","is_deleted");

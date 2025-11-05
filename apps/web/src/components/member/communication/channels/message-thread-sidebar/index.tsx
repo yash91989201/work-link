@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
-import { Button } from "@/components/ui/button";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
 import {
   type MessageWithParent,
   useMessageListContext,
@@ -24,6 +24,8 @@ export function MessageThreadSidebar() {
   } = useMessageListContext();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showMaximizedComposer, setShowMaximizedComposer] = useState(false);
+  const [threadComposerText, setThreadComposerText] = useState("");
 
   useEffect(() => {
     if (shouldFocusThreadComposer) {
@@ -74,6 +76,15 @@ export function MessageThreadSidebar() {
 
   const shouldRenderContent = isThreadSidebarOpen || hasParentMessage;
 
+  const handleMaximizedReply = useCallback(() => {
+    setShowMaximizedComposer(true);
+  }, []);
+
+  const handleMaximizedSubmit = useCallback((content: string) => {
+    setThreadComposerText(content);
+    setShowMaximizedComposer(false);
+  }, []);
+
   return (
     <div
       aria-hidden={!isThreadSidebarOpen}
@@ -116,15 +127,14 @@ export function MessageThreadSidebar() {
                 </p>
               )}
             </div>
-            <Button
+            <button
               aria-label="Close thread"
+              className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
               onClick={closeThread}
-              size="icon"
               type="button"
-              variant="ghost"
             >
               <X className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
 
           <div
@@ -155,7 +165,9 @@ export function MessageThreadSidebar() {
             <div className="border-t">
               <MessageComposer
                 channelId={channelId}
+                initialContent={threadComposerText}
                 key={`${threadParentMessage.id}-${threadComposerFocusKey}`}
+                onMaximize={handleMaximizedReply}
                 parentMessageId={threadParentMessage.id}
                 placeholder="Reply in thread..."
                 showHelpText={false}
@@ -166,6 +178,16 @@ export function MessageThreadSidebar() {
               Select a message to reply in a thread.
             </div>
           )}
+
+          <MaximizedMessageComposer
+            channelId={channelId}
+            mode="create"
+            onOpenChange={setShowMaximizedComposer}
+            onSendSuccess={handleMaximizedSubmit}
+            open={showMaximizedComposer}
+            parentMessageId={threadParentMessage?.id}
+            placeholder="Reply in thread..."
+          />
         </div>
       )}
     </div>

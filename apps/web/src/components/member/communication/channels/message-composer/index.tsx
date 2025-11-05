@@ -1,5 +1,5 @@
 import { Paperclip } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
 import { useTypingIndicator } from "@/hooks/communications/use-typing-indicator";
@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 import { orpcClient } from "@/utils/orpc";
 import { ComposerActions } from "./composer-actions";
 import { HelpText } from "./help-text";
-import { TiptapEditor } from "./tiptap-editor";
+import { MaximizedMessageComposer } from "./maximized-message-composer";
+import { MessageEditor } from "./message-editor";
 import { TypingIndicator } from "./typing-indicator";
 
 interface MessageComposerProps {
@@ -18,6 +19,8 @@ interface MessageComposerProps {
   placeholder?: string;
   showHelpText?: boolean;
   onSendSuccess?: () => void;
+  onMaximize?: () => void;
+  initialContent?: string;
 }
 
 export function MessageComposer({
@@ -27,14 +30,17 @@ export function MessageComposer({
   placeholder = "Type a message...",
   showHelpText = true,
   onSendSuccess,
+  onMaximize,
+  initialContent = "",
 }: MessageComposerProps) {
   const { user } = useAuthedSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialContent);
   const [isRecording, setIsRecording] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showMaximizedComposer, setShowMaximizedComposer] = useState(false);
 
   const { createMessage, isCreatingMessage } = useMessageMutations({
     channelId,
@@ -114,6 +120,7 @@ export function MessageComposer({
         content: text.trim(),
         mentions: mentionUserIds.length > 0 ? mentionUserIds : undefined,
         parentMessageId,
+        type: "text",
       });
 
       setText("");
@@ -137,6 +144,8 @@ export function MessageComposer({
     broadcastTyping,
     isCreatingMessage,
     user.name,
+    parentMessageId,
+    onSendSuccess,
   ]);
 
   const handleEmojiSelect = useCallback(
@@ -171,6 +180,27 @@ export function MessageComposer({
     // Let TipTap handle image drops inside the editor
     setIsDragging(false);
   }, []);
+
+  const handleMaximize = useCallback(() => {
+    if (onMaximize) {
+      onMaximize();
+    } else {
+      setShowMaximizedComposer(true);
+    }
+  }, [onMaximize]);
+
+  const handleMaximizedSubmit = useCallback(
+    async (content: string) => {
+      setText(content);
+      await handleSubmit();
+    },
+    [handleSubmit]
+  );
+
+  // Sync text when initialContent changes (for thread replies)
+  useEffect(() => {
+    setText(initialContent);
+  }, [initialContent]);
 
   return (
     <>
@@ -209,11 +239,13 @@ export function MessageComposer({
               </div>
             )}
 
-            <TiptapEditor
+            <MessageEditor
               content={text}
               disabled={isCreatingMessage}
               fetchUsers={fetchUsers}
+              isMaximized={onMaximize ? false : showMaximizedComposer}
               onChange={handleMarkdownChange}
+              onMaximize={handleMaximize}
               onSubmit={handleSubmit}
               placeholder={placeholder}
             />
@@ -234,6 +266,19 @@ export function MessageComposer({
           {showHelpText && <HelpText />}
         </div>
       </div>
+
+      {!onMaximize && (
+        <MaximizedMessageComposer
+          channelId={channelId}
+          initialContent={text}
+          mode="create"
+          onOpenChange={setShowMaximizedComposer}
+          onSendSuccess={handleMaximizedSubmit}
+          open={showMaximizedComposer}
+          parentMessageId={parentMessageId}
+          placeholder={placeholder}
+        />
+      )}
     </>
   );
 }
