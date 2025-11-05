@@ -12,7 +12,6 @@ import { formatMessageDate } from "@/utils/message-utils";
 import { MaximizedMessageComposer } from "../message-composer/maximized-message-composer";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
-import { MessageEditForm } from "./message-edit-form";
 import { MessageThreadPreview } from "./message-thread-preview";
 
 interface MessageItemProps {
@@ -35,19 +34,11 @@ export function MessageItem({
     isThreadSidebarOpen,
   } = useMessageListContext();
 
-  const {
-    state,
-    channelId,
-    isDeleting,
-    isPinning,
-    handleDelete,
-    handleEdit,
-    handlePin,
-    cancel,
-  } = useMessageItem({
-    messageId: message.id,
-    isPinned: message.isPinned,
-  });
+  const { channelId, isDeleting, isPinning, handleDelete, handlePin } =
+    useMessageItem({
+      messageId: message.id,
+      isPinned: message.isPinned,
+    });
 
   const handleEditDialog = useCallback(() => {
     setShowEditDialog(true);
@@ -152,53 +143,40 @@ export function MessageItem({
         </div>
       </div>
 
-      {/* Message content or edit form */}
-      {state.mode === "editing" && !showEditDialog ? (
-        <MessageEditForm
-          channelId={channelId}
-          initialContent={message.content || ""}
-          messageId={message.id}
-          onCancel={cancel}
-          onSave={handleEdit}
-        />
-      ) : (
-        <>
-          <div
-            className={cn(
-              "mt-1.5 rounded-xl bg-muted/30 p-3 ring-1 ring-border",
-              isReply && "cursor-pointer transition-colors hover:bg-muted/50"
-            )}
-            onClick={isReply ? handleViewThread : undefined}
-          >
-            <MessageContent message={message} />
-          </div>
+      <div
+        className={cn(
+          "mt-1.5 rounded-xl bg-muted/30 p-3 ring-1 ring-border",
+          isReply && "cursor-pointer transition-colors hover:bg-muted/50"
+        )}
+        onClick={isReply ? handleViewThread : undefined}
+      >
+        <MessageContent message={message} />
+      </div>
 
-          {/* Action buttons */}
-          <MessageActions
-            isDeleting={isDeleting}
-            isPinned={message.isPinned}
-            isPinning={isPinning}
-            messageId={message.id}
-            onDelete={handleDelete}
-            onEdit={handleEditDialog}
-            onPin={handlePin}
-            onReply={handleReplyClick}
-            senderId={message.senderId}
-          />
+      {/* Action buttons */}
+      <MessageActions
+        isDeleting={isDeleting}
+        isPinned={message.isPinned}
+        isPinning={isPinning}
+        messageId={message.id}
+        onDelete={handleDelete}
+        onEdit={handleEditDialog}
+        onPin={handlePin}
+        onReply={handleReplyClick}
+        senderId={message.senderId}
+      />
 
-          {canShowThreadSummary && (
-            <button
-              className="mt-2 inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 font-medium text-muted-foreground text-xs transition hover:bg-muted/80"
-              onClick={handleViewThread}
-              type="button"
-            >
-              View thread
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-background px-2 font-semibold text-[11px] text-foreground">
-                {message.threadCount}
-              </span>
-            </button>
-          )}
-        </>
+      {canShowThreadSummary && (
+        <button
+          className="mt-2 inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 font-medium text-muted-foreground text-xs transition hover:bg-muted/80"
+          onClick={handleViewThread}
+          type="button"
+        >
+          View thread
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-background px-2 font-semibold text-[11px] text-foreground">
+            {message.threadCount}
+          </span>
+        </button>
       )}
 
       {/* Maximized Edit Dialog */}
