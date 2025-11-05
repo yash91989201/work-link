@@ -7,7 +7,7 @@ import {
   MoreHorizontal,
   Settings,
 } from "lucide-react";
-import { Activity, Suspense } from "react";
+import { Activity } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +24,6 @@ import { Actions } from "./actions";
 import { ChannelInfo } from "./channel-info";
 import { JoinRequests } from "./join-requests";
 import { Members } from "./members";
-import { PinnedMessages, PinnedMessagesSkeleton } from "./pinned-messages";
 
 export const ChannelInfoSidebar = () => {
   const { id: channelId } = useParams({
@@ -36,7 +35,7 @@ export const ChannelInfoSidebar = () => {
 
   return (
     <Activity mode={showChannelInfoSidebar ? "visible" : "hidden"}>
-      <div className="flex h-full w-80 flex-col overflow-hidden border-border border-l bg-background">
+      <div className={`flex h-full w-80 flex-col overflow-hidden border-border border-l bg-background transition-transform duration-300 ease-in-out transform ${showChannelInfoSidebar ? 'translate-x-0' : 'translate-x-full'}`}>
         {/* Fixed Header */}
         <div className="shrink-0 border-border border-b p-4">
           <div className="flex items-start justify-between">
@@ -98,12 +97,6 @@ export const ChannelInfoSidebar = () => {
         <ScrollArea className="h-0 flex-1">
           <div className="space-y-3 p-3">
             <Actions channelId={channelId} />
-
-            <Separator />
-
-            <Suspense fallback={<PinnedMessagesSkeleton />}>
-              <PinnedMessages channelId={channelId} />
-            </Suspense>
 
             <Separator />
 
