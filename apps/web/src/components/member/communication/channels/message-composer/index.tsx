@@ -174,7 +174,7 @@ export function MessageComposer({
       {/** biome-ignore lint/a11y/noNoninteractiveElementInteractions: <required here> */}
       {/** biome-ignore lint/a11y/noStaticElementInteractions: <required here> */}
       <div
-        className={cn("relative border-t bg-background p-4", className)}
+        className={cn("relative border-t bg-background", className)}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -190,7 +190,7 @@ export function MessageComposer({
           </div>
         )}
 
-        <div className="space-y-3">
+        <div>
           <div className="relative">
             {typingUsers.length > 0 && (
               <div className="border-b px-4 py-2">
@@ -207,7 +207,7 @@ export function MessageComposer({
               placeholder="Type a message..."
             />
 
-            <div className="border-t px-3 py-1.5">
+            <div className="border-t p-3">
               <ComposerActions
                 isCreatingMessage={isCreatingMessage}
                 isRecording={isRecording}

@@ -79,9 +79,9 @@ export function ComposerActions({
 
       <Badge
         className="ml-auto"
-        variant={text.length > 2000 ? "destructive" : "secondary"}
+        variant={text.length > 5000 ? "destructive" : "secondary"}
       >
-        {text.length}/2000
+        {text.length}/5000
       </Badge>
 
       <InputGroupButton
