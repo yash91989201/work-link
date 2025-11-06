@@ -15,16 +15,16 @@
     "build": "tsdown"
   },
   "devDependencies": {
-    "tsdown": "^0.15.12"
+    "tsdown": "^0.16.0"
   },
   "peerDependencies": {
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@orpc/client": "^1.10.3",
-    "@orpc/openapi": "^1.10.3",
-    "@orpc/server": "^1.10.3",
-    "@orpc/zod": "^1.10.3",
+    "@orpc/client": "^1.10.4",
+    "@orpc/openapi": "^1.10.4",
+    "@orpc/server": "^1.10.4",
+    "@orpc/zod": "^1.10.4",
     "@work-link/auth": "workspace:*",
     "@work-link/db": "workspace:*",
     "chokidar": "^4.0.3",

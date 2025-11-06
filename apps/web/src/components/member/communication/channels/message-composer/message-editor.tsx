@@ -177,7 +177,7 @@ export function MessageEditor({
         class: cn(
           "prose prose-sm max-w-none p-2 focus:outline-none sm:p-3",
           isMaximized
-            ? "max-h-[40vh] min-h-[30vh] overflow-y-auto sm:max-h-[50vh] sm:min-h-[40vh]"
+            ? "min-h-[40vh] overflow-y-auto sm:min-h-[50vh]"
             : "max-h-40 min-h-32 overflow-y-auto sm:max-h-60 sm:min-h-48"
         ),
       },

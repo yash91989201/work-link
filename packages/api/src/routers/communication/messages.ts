@@ -210,46 +210,46 @@ export const messageRouter = {
           WITH RECURSIVE message_tree AS (
             -- Start with the root message to delete
             SELECT id, parent_message_id, 1 as depth
-            FROM messages 
+            FROM message
             WHERE id = ${input.messageId}
             
             UNION ALL
             
-            -- Find all child messages recursively
+            -- Find all child message recursively
             SELECT m.id, m.parent_message_id, mt.depth + 1
-            FROM messages m
+            FROM message m
             INNER JOIN message_tree mt ON m.parent_message_id = mt.id
             WHERE m.is_deleted = false
           )
-          UPDATE messages 
+          UPDATE message 
           SET 
             is_deleted = true, 
             deleted_at = NOW(),
-            -- Clear thread information for deleted messages
+            -- Clear thread information for deleted message
             thread_count = 0
           WHERE id IN (SELECT id FROM message_tree)
         `);
 
         // update parent message thread counts
         await tx.execute(sql`
-          UPDATE messages 
+          UPDATE message
           SET thread_count = (
             SELECT COUNT(*) 
-            FROM messages 
-            WHERE parent_message_id = messages.id AND is_deleted = false
+            FROM message
+            WHERE parent_message_id = message.id AND is_deleted = false
           )
           WHERE id IN (
             SELECT DISTINCT parent_message_id 
-            FROM messages 
+            FROM message
             WHERE parent_message_id IS NOT NULL 
             AND id IN (SELECT id FROM (
               WITH RECURSIVE message_tree AS (
                 SELECT id, parent_message_id
-                FROM messages 
+                FROM message
                 WHERE id = ${input.messageId}
                 UNION ALL
                 SELECT m.id, m.parent_message_id
-                FROM messages m
+                FROM message m
                 INNER JOIN message_tree mt ON m.parent_message_id = mt.id
               )
               SELECT parent_message_id 

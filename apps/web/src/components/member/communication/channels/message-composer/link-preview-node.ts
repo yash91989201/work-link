@@ -68,12 +68,10 @@ export const LinkPreviewNode = Node.create<LinkPreviewOptions>({
       setLinkPreview:
         (options) =>
         ({ commands }) => {
-          console.log('[LinkPreviewNode] setLinkPreview called with:', options);
           const result = commands.insertContent({
             type: this.name,
             attrs: options,
           });
-          console.log('[LinkPreviewNode] insertContent result:', result);
           return result;
         },
       removeLinkPreview:
@@ -81,7 +79,6 @@ export const LinkPreviewNode = Node.create<LinkPreviewOptions>({
         ({ commands, state }) => {
           const { from } = state.selection;
           const nodeAtPos = state.doc.nodeAt(from);
-
           if (nodeAtPos?.type.name === this.name) {
             return commands.deleteRange({
               from,
