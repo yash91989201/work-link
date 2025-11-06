@@ -22,14 +22,30 @@ export function useMessageMutations({ channelId }: { channelId: string }) {
         await queryClient.cancelQueries({ queryKey });
         const previousMessages = queryClient.getQueryData(queryKey);
 
+        const messageId = `temp-${Date.now()}-${Math.random()}`;
         const optimisticMessage: MessageWithSenderType = {
-          id: `temp-${Date.now()}-${Math.random()}`,
+          id: messageId,
           channelId: newMessageData.channelId ?? null,
           receiverId: newMessageData.receiverId ?? null,
           content: newMessageData.content ?? null,
           type: newMessageData.type as MessageTypeType,
           mentions: newMessageData.mentions ?? null,
           parentMessageId: newMessageData.parentMessageId ?? null,
+          attachments: newMessageData.attachments?.map((attachment, index) => ({
+            id: `temp-attachment-${Date.now()}-${index}`,
+            messageId,
+            fileName: attachment.fileName,
+            originalName: attachment.originalName,
+            fileSize: attachment.fileSize,
+            mimeType: attachment.mimeType,
+            type: attachment.type,
+            url: attachment.url,
+            uploadedBy: user.id,
+            thumbnailUrl: null,
+            isPublic: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })),
           senderId: user.id,
           sender: {
             name: user.name,
@@ -78,10 +94,10 @@ export function useMessageMutations({ channelId }: { channelId: string }) {
                 ? {
                     ...serverMessage,
                     sender: {
-                      name: user.name,
-                      email: user.email,
                       image: user.image ?? null,
+                      ...user,
                     },
+                    attachments: context.optimisticMessage.attachments,
                   }
                 : msg
             ),
@@ -96,11 +112,7 @@ export function useMessageMutations({ channelId }: { channelId: string }) {
           payload: {
             message: {
               ...serverMessage,
-              sender: {
-                name: user.name,
-                email: user.email,
-                image: user.image ?? null,
-              },
+              sender: user,
             },
           },
         });

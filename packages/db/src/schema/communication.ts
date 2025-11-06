@@ -2,6 +2,7 @@ import { cuid2 } from "drizzle-cuid2/postgres";
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  foreignKey,
   index,
   integer,
   json,
@@ -131,53 +132,64 @@ export const channelJoinRequestTable = pgTable("channel_join_request", {
 });
 
 // Messages table - all messages across channels and DMs
-export const messageTable = pgTable("message", {
-  id: cuid2("id").defaultRandom().primaryKey(),
-  channelId: text("channel_id").references(() => channelTable.id, {
-    onDelete: "cascade",
-  }),
-  senderId: text("sender_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  receiverId: text("receiver_id").references(() => user.id, {
-    onDelete: "cascade",
-  }), // For direct messages
-  content: text("content"),
-  type: messageTypeEnum("type").notNull().default("text"),
-  parentMessageId: text("parent_message_id").references(() => messageTable.id, {
-    onDelete: "cascade",
-  }), // For replies/threads - will be self-referenced
-  threadCount: integer("thread_count").default(0).notNull(),
-  isEdited: boolean("is_edited").default(false).notNull(),
-  editedAt: timestamp("edited_at", { withTimezone: true }),
-  isDeleted: boolean("is_deleted").default(false).notNull(),
-  isPinned: boolean("is_pinned").default(false).notNull(),
-  pinnedAt: timestamp("pinned_at", { withTimezone: true }),
-  pinnedBy: text("pinned_by").references(() => user.id, {
-    onDelete: "set null",
-  }),
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  mentions: json("mentions").$type<string[]>(),
-  reactions: json("reactions").$type<{ reaction: string; count: number }[]>(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .$defaultFn(() => new Date())
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .$defaultFn(() => new Date())
-    .$onUpdate(() => new Date())
-    .notNull(),
-}, (table) => ({
-  // Index for parent-child relationship (critical for recursive queries)
-  parentMessageIdx: index("idx_message_parent_message_id").on(table.parentMessageId),
-  // Index for soft deletes
-  isDeletedIdx: index("idx_message_is_deleted").on(table.isDeleted),
-  // Index for channel queries
-  channelIdIdx: index("idx_message_channel_id").on(table.channelId),
-  // Composite index for common queries
-  channelDeletedIdx: index("idx_message_channel_deleted").on(table.channelId, table.isDeleted),
-  // Composite index for thread queries
-  parentDeletedIdx: index("idx_message_parent_deleted").on(table.parentMessageId, table.isDeleted),
-}));
+export const messageTable = pgTable(
+  "message",
+  {
+    id: cuid2("id").defaultRandom().primaryKey(),
+    channelId: text("channel_id").references(() => channelTable.id, {
+      onDelete: "cascade",
+    }),
+    senderId: text("sender_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    receiverId: text("receiver_id").references(() => user.id, {
+      onDelete: "cascade",
+    }), // For direct messages
+    content: text("content"),
+    type: messageTypeEnum("type").notNull().default("text"),
+    parentMessageId: text("parent_message_id"),
+    threadCount: integer("thread_count").default(0).notNull(),
+    isEdited: boolean("is_edited").default(false).notNull(),
+    editedAt: timestamp("edited_at", { withTimezone: true }),
+    isDeleted: boolean("is_deleted").default(false).notNull(),
+    isPinned: boolean("is_pinned").default(false).notNull(),
+    pinnedAt: timestamp("pinned_at", { withTimezone: true }),
+    pinnedBy: text("pinned_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    mentions: json("mentions").$type<string[]>(),
+    reactions: json("reactions").$type<{ reaction: string; count: number }[]>(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    // Foreign key for self-referencing relationship
+    foreignKey({
+      columns: [table.parentMessageId],
+      foreignColumns: [table.id],
+      name: "fk_message_parent",
+    }).onDelete("cascade"),
+    // Index for parent-child relationship (critical for recursive queries)
+    index("idx_message_parent_message_id").on(table.parentMessageId),
+    // Index for soft deletes
+    index("idx_message_is_deleted").on(table.isDeleted),
+    // Index for channel queries
+    index("idx_message_channel_id").on(table.channelId),
+    // Composite index for common queries
+    index("idx_message_channel_deleted").on(table.channelId, table.isDeleted),
+    // Composite index for thread queries
+    index("idx_message_parent_deleted").on(
+      table.parentMessageId,
+      table.isDeleted
+    ),
+  ]
+);
 
 // File attachments for messages
 export const attachmentTable = pgTable("attachment", {

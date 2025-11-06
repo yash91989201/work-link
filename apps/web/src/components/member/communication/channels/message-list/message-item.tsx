@@ -159,6 +159,7 @@ export function MessageItem({
         isPinned={message.isPinned}
         isPinning={isPinning}
         messageId={message.id}
+        messageType={message.type}
         onDelete={handleDelete}
         onEdit={handleEditDialog}
         onPin={handlePin}

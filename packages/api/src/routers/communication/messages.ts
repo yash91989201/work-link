@@ -1,5 +1,7 @@
 import { ORPCError } from "@orpc/client";
+import { createClient } from "@supabase/supabase-js";
 import {
+  attachmentTable,
   channelMemberTable,
   messageTable,
   notificationTable,
@@ -85,7 +87,12 @@ export const messageRouter = {
         const [newMessage] = await db
           .insert(messageTable)
           .values({
-            ...input,
+            channelId: input.channelId,
+            receiverId: input.receiverId,
+            content: input.content,
+            type: input.type,
+            parentMessageId: input.parentMessageId,
+            mentions: input.mentions,
             senderId: user.id,
           })
           .returning();
@@ -94,6 +101,22 @@ export const messageRouter = {
           throw new ORPCError("NOT_FOUND", {
             message: "Failed to create message",
           });
+        }
+
+        // Handle attachments
+        if (input.attachments && input.attachments.length > 0) {
+          const attachmentValues = input.attachments.map((attachment) => ({
+            messageId: newMessage.id,
+            fileName: attachment.fileName,
+            originalName: attachment.originalName,
+            fileSize: attachment.fileSize,
+            mimeType: attachment.mimeType,
+            type: attachment.type,
+            url: attachment.url,
+            uploadedBy: user.id,
+          }));
+
+          await db.insert(attachmentTable).values(attachmentValues);
         }
 
         if (input.mentions && input.mentions.length > 0) {
@@ -113,7 +136,15 @@ export const messageRouter = {
           await db.insert(notificationTable).values(mentionNotifications);
         }
 
-        return newMessage;
+        // Fetch the complete message with attachments
+        const messageWithAttachments = await db.query.messageTable.findFirst({
+          where: eq(messageTable.id, newMessage.id),
+          with: {
+            attachments: true,
+          },
+        });
+
+        return messageWithAttachments || newMessage;
       }
     ),
 
@@ -143,6 +174,10 @@ export const messageRouter = {
         sender: {
           name: context.session.user.name,
           email: context.session.user.email,
+          createdAt: context.session.user.createdAt,
+          emailVerified: context.session.user.emailVerified,
+          id: context.session.user.id,
+          updatedAt: context.session.user.updatedAt,
           image: context.session.user.image ?? null,
         },
       };
@@ -159,6 +194,7 @@ export const messageRouter = {
         ),
         with: {
           sender: true,
+          attachments: true,
           parentMessage: {
             with: {
               sender: {
@@ -190,6 +226,14 @@ export const messageRouter = {
         const message = await tx.query.messageTable.findFirst({
           where: eq(messageTable.id, input.messageId),
           columns: { id: true, senderId: true },
+          with: {
+            attachments: {
+              columns: {
+                fileName: true,
+                type: true,
+              },
+            },
+          },
         });
 
         if (!message) {
@@ -203,6 +247,32 @@ export const messageRouter = {
           throw new ORPCError("FORBIDDEN", {
             message: "You can only delete your own messages.",
           });
+        }
+
+        // Delete attachments from Supabase storage
+        if (message.attachments && message.attachments.length > 0) {
+          const supabase = createClient(
+            process.env.SUPABASE_URL as string,
+            process.env.SUPABASE_SERVICE_ROLE_KEY as string
+          );
+
+          for (const attachment of message.attachments) {
+            const bucket =
+              attachment.type === "audio"
+                ? "message-audio"
+                : "message-attachment";
+
+            const { error } = await supabase.storage
+              .from(bucket)
+              .remove([attachment.fileName]);
+
+            if (error) {
+              console.error(
+                `Failed to delete file ${attachment.fileName} from ${bucket}:`,
+                error
+              );
+            }
+          }
         }
 
         // Recursively soft delete the message and all its descendants

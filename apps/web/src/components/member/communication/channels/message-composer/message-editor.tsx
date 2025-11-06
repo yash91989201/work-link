@@ -178,7 +178,7 @@ export function MessageEditor({
           "prose prose-sm max-w-none p-2 focus:outline-none sm:p-3",
           isMaximized
             ? "min-h-[40vh] overflow-y-auto sm:min-h-[50vh]"
-            : "max-h-40 min-h-32 overflow-y-auto sm:max-h-60 sm:min-h-48"
+            : "max-h-32 min-h-24 overflow-y-auto"
         ),
       },
       handleKeyDown: (_, event) => {
@@ -309,7 +309,7 @@ export function MessageEditor({
   }
 
   return (
-    <div className="flex-1 space-y-2">
+    <div className={cn("flex flex-col", isMaximized ? "flex-1 overflow-hidden" : "space-y-2")}>
       <input
         accept="image/*"
         className="hidden"
@@ -318,7 +318,7 @@ export function MessageEditor({
         ref={fileInputRef}
         type="file"
       />
-      <div className="flex flex-wrap items-center gap-1 border-b p-2 sm:p-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-1 border-b p-2 sm:p-3">
         <Toggle
           aria-label="Toggle bold"
           onPressedChange={() => editor.chain().focus().toggleBold().run()}
@@ -443,7 +443,7 @@ export function MessageEditor({
         </div>
       </div>
 
-      <div className="relative">
+      <div className={cn("relative", isMaximized && "flex-1 overflow-y-auto")}>
         <LinkBubbleMenu editor={editor} />
         <EditorContent
           className={cn("p-2 sm:p-3", disabled && "opacity-50")}

@@ -1,9 +1,23 @@
-import { MessageSchema, UserSchema } from "@work-link/db/lib/schemas/db-tables";
+import {
+  AttachmentSchema,
+  MessageSchema,
+  UserSchema,
+} from "@work-link/db/lib/schemas/db-tables";
 import { z } from "zod";
 import { SuccessOutput } from "./channel";
 
 // Message types enum
 export const MessageTypeSchema = MessageSchema.shape.type;
+
+// Attachment input schema
+export const AttachmentInput = z.object({
+  fileName: z.string(),
+  originalName: z.string(),
+  fileSize: z.number(),
+  mimeType: z.string(),
+  type: z.enum(["image", "document", "video", "audio", "archive"]),
+  url: z.string(),
+});
 
 // Create message input
 export const CreateMessageInput = z
@@ -14,6 +28,7 @@ export const CreateMessageInput = z
     type: MessageTypeSchema.default("text"),
     parentMessageId: z.string().optional(),
     mentions: z.array(z.string()).optional(),
+    attachments: z.array(AttachmentInput).optional(),
   })
   .refine((data) => data.channelId || data.receiverId, {
     message: "Either channelId or receiverId must be provided",
@@ -30,14 +45,11 @@ export const UpdateMessageInput = z.object({
 });
 
 export const UpdateMessageOutput = MessageSchema.extend({
-  sender: z.object({
-    name: z.string(),
-    email: z.string(),
-    image: z.string().optional().nullable(),
-  }),
+  sender: UserSchema,
 });
 
 export const MessageWithSenderSchema = MessageSchema.extend({
+  attachments: z.array(AttachmentSchema).optional(),
   sender: UserSchema,
 });
 

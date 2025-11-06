@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 interface MessageActionsProps {
   messageId: string;
   senderId: string;
+  messageType?: "text" | "attachment" | "audio";
   isPinned?: boolean;
   onEdit: () => void;
   onReply: () => void;
@@ -23,6 +24,7 @@ interface MessageActionsProps {
 
 export function MessageActions({
   senderId,
+  messageType = "text",
   isPinned,
   onEdit,
   onReply,
@@ -33,6 +35,7 @@ export function MessageActions({
 }: MessageActionsProps) {
   const { user } = useAuthedSession();
   const isOwnMessage = user.id === senderId;
+  const canEdit = isOwnMessage && messageType === "text";
 
   return (
     <div className="pointer-events-none absolute top-2 right-3 z-10 flex items-center gap-0.5 rounded-lg border bg-popover/95 p-1 opacity-0 shadow-md backdrop-blur transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 supports-backdrop-filter:bg-popover/75">
@@ -52,7 +55,7 @@ export function MessageActions({
         <TooltipContent>Reply</TooltipContent>
       </Tooltip>
 
-      {isOwnMessage && (
+      {canEdit && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

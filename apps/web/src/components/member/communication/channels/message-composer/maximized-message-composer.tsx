@@ -13,7 +13,6 @@ import { useAuthedSession } from "@/hooks/use-authed-session";
 import { useResponsive } from "@/hooks/use-responsive";
 import { cn } from "@/lib/utils";
 import { orpcClient } from "@/utils/orpc";
-import { ComposerActions } from "../message-composer/composer-actions";
 import { TypingIndicator } from "../message-composer/typing-indicator";
 import { MessageEditor } from "./message-editor";
 
@@ -52,8 +51,6 @@ export function MaximizedMessageComposer({
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [text, setText] = useState(initialContent);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
   const { createMessage, isCreatingMessage, updateMessage, isUpdatingMessage } =
     useMessageMutations({ channelId });
@@ -63,7 +60,7 @@ export function MaximizedMessageComposer({
   const isEditing = mode === "edit" && !!messageId;
   const isLoading = isCreatingMessage || isUpdatingMessage;
 
-  const dialogSizeClasses = cn("flex flex-col p-0", {
+  const dialogSizeClasses = cn("flex flex-col overflow-y-auto p-0", {
     "h-screen w-screen max-w-none rounded-none": isMobile,
     "max-h-[90vh] sm:max-w-[90vw] sm:max-w-[95vw]": isTablet,
     "h-[90vh] sm:max-w-[90vw] lg:h-[80vh] lg:max-w-[80vw]": isDesktop,
@@ -176,30 +173,6 @@ export function MaximizedMessageComposer({
     broadcastTyping,
   ]);
 
-  const handleEmojiSelect = useCallback(
-    (emoji: { emoji: string }) => setText((prev) => prev + emoji.emoji),
-    []
-  );
-
-  const handleFileUpload = useCallback(() => fileInputRef.current?.click(), []);
-
-  const handleVoiceRecord = useCallback(() => {
-    setIsRecording((prev) => !prev);
-    toast.info(isRecording ? "Recording stopped" : "Recording started");
-  }, [isRecording]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback(() => setIsDragging(false), []);
-
   useEffect(() => {
     if (open) {
       setText(initialContent);
@@ -230,22 +203,7 @@ export function MaximizedMessageComposer({
           )}
         </DialogHeader>
 
-        {/** biome-ignore lint/a11y/noNoninteractiveElementInteractions: <required here> */}
-        {/** biome-ignore lint/a11y/noStaticElementInteractions: <required here> */}
-        <div
-          className="flex flex-1 flex-col overflow-hidden"
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          {isDragging && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/5">
-              <p className="font-medium text-muted-foreground">
-                Drop files to upload
-              </p>
-            </div>
-          )}
-
+        <div className="flex flex-1 flex-col overflow-hidden">
           {typingUsers.length > 0 && (
             <div className="border-b px-4 py-2 sm:px-6">
               <TypingIndicator typingUsers={typingUsers} />
@@ -264,18 +222,6 @@ export function MaximizedMessageComposer({
               onSubmit={handleSubmit}
               placeholder={placeholder}
             />
-
-            <div className="border-t px-4 py-3 sm:px-6">
-              <ComposerActions
-                isCreatingMessage={isLoading}
-                isRecording={isRecording}
-                onEmojiSelect={handleEmojiSelect}
-                onFileUpload={handleFileUpload}
-                onSubmit={handleSubmit}
-                onVoiceRecord={handleVoiceRecord}
-                text={text}
-              />
-            </div>
           </div>
         </div>
 
