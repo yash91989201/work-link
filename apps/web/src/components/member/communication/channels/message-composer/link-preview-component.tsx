@@ -22,10 +22,7 @@ export function LinkPreviewComponent(props: NodeViewProps) {
 
   const url = (props.node.attrs as LinkPreviewAttrs).url;
 
-  console.log('[LinkPreviewComponent] Rendered with URL:', url);
-
   const fetchLinkPreview = useCallback((url: string) => {
-    console.log('[LinkPreviewComponent] Fetching preview for:', url);
     try {
       const urlObj = new URL(url);
       const domain = urlObj.hostname.replace("www.", "");
@@ -37,38 +34,26 @@ export function LinkPreviewComponent(props: NodeViewProps) {
         favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
         url: domain,
       });
-      console.log('[LinkPreviewComponent] Preview set successfully');
-    } catch (error) {
-      console.error("[LinkPreviewComponent] Failed to fetch link preview:", error);
+    } catch {
       setLinkPreview(null);
     }
   }, []);
 
   useEffect(() => {
-    console.log('[LinkPreviewComponent] useEffect triggered, URL:', url);
     if (url) {
       fetchLinkPreview(url);
     }
   }, [url, fetchLinkPreview]);
 
   const handleClose = useCallback(() => {
-    console.log('[LinkPreviewComponent] Close button clicked');
     if (props.deleteNode) {
       props.deleteNode();
-      console.log('[LinkPreviewComponent] deleteNode called');
-    } else {
-      console.error('[LinkPreviewComponent] deleteNode is not available');
     }
   }, [props]);
 
-  console.log('[LinkPreviewComponent] linkPreview state:', linkPreview);
-
   if (!linkPreview) {
-    console.log('[LinkPreviewComponent] Not rendering - no linkPreview yet');
     return null;
   }
-
-  console.log('[LinkPreviewComponent] Rendering preview card');
 
   return (
     <NodeViewWrapper className="link-preview-wrapper">

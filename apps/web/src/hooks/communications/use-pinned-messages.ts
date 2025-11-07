@@ -18,8 +18,7 @@ export const usePinnedMessagesRealtime = ({
           table: "message",
           filter: `channel_id=eq.${channelId}`,
         },
-        (payload) => {
-          console.log(payload);
+        () => {
           queryClient.refetchQueries({
             queryKey:
               queryUtils.communication.message.getPinnedMessages.queryKey({

@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1762369924197,
-      "tag": "0000_ambitious_diamondback",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1762404224759,
-      "tag": "0001_yummy_vampiro",
+      "when": 1762498205028,
+      "tag": "0000_real_tyger_tiger",
       "breakpoints": true
     }
   ]

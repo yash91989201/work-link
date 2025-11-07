@@ -7,46 +7,55 @@ import {
 } from "@work-link/db/lib/schemas/db-tables";
 import { env } from "@/env";
 
-export const messagesCollection = createCollection<typeof MessageSchema>(
+export const messagesCollection = createCollection(
   electricCollectionOptions({
-    id: "messages",
-    syncMode: "eager",
     getKey: (m) => m.id,
     schema: MessageSchema,
     shapeOptions: {
-      url: `${env.VITE_SERVER_URL}/rpc/electric/messages`,
+      url: `${env.VITE_SERVER_URL}/api/electric/shapes/messages`,
       params: {
         table: "message",
       },
+      fetchClient: (url, init) =>
+        fetch(url, {
+          ...init,
+          credentials: "include",
+        }),
     },
   })
 );
 
-export const usersCollection = createCollection<typeof UserSchema>(
+export const usersCollection = createCollection(
   electricCollectionOptions({
-    id: "users",
-    syncMode: "eager",
     schema: UserSchema,
     getKey: (m) => m.id,
     shapeOptions: {
-      url: `${env.VITE_SERVER_URL}/rpc/electric/users`,
+      url: `${env.VITE_SERVER_URL}/api/electric/shapes/users`,
       params: {
         table: "user",
       },
+      fetchClient: (url, init) =>
+        fetch(url, {
+          ...init,
+          credentials: "include",
+        }),
     },
   })
 );
-export const attachmentsCollection = createCollection<typeof AttachmentSchema>(
+export const attachmentsCollection = createCollection(
   electricCollectionOptions({
-    id: "attachments",
-    syncMode: "eager",
     getKey: (m) => m.id,
     schema: AttachmentSchema,
     shapeOptions: {
-      url: `${env.VITE_SERVER_URL}/rpc/electric/attachments`,
+      url: `${env.VITE_SERVER_URL}/api/electric/shapes/attachments`,
       params: {
         table: "attachment",
       },
+      fetchClient: (url, init) =>
+        fetch(url, {
+          ...init,
+          credentials: "include",
+        }),
     },
   })
 );

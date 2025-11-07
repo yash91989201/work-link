@@ -42,7 +42,9 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
         setAudioBlob(blob);
         setAudioUrl(url);
 
-        stream.getTracks().forEach((track) => track.stop());
+        for (const track of stream.getTracks()) {
+          track.stop();
+        }
       };
 
       mediaRecorder.start();
@@ -52,9 +54,10 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
       timerRef.current = setInterval(() => {
         setDuration(Math.floor((Date.now() - startTimeRef.current) / 1000));
       }, 1000);
-    } catch (error) {
-      console.error("Error starting recording:", error);
-      toast.error("Failed to start recording. Please check microphone permissions.");
+    } catch {
+      toast.error(
+        "Failed to start recording. Please check microphone permissions."
+      );
     }
   }, []);
 

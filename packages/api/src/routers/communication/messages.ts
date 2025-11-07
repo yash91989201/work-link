@@ -1,5 +1,4 @@
 import { ORPCError } from "@orpc/client";
-import { createClient } from "@supabase/supabase-js";
 import {
   attachmentTable,
   channelMemberTable,
@@ -44,6 +43,7 @@ import {
   UpdateMessageInput,
   UpdateMessageOutput,
 } from "@/lib/schemas/message";
+import { supabase } from "@/lib/supabase";
 
 export const messageRouter = {
   searchUsers: protectedProcedure
@@ -251,11 +251,6 @@ export const messageRouter = {
 
         // Delete attachments from Supabase storage
         if (message.attachments && message.attachments.length > 0) {
-          const supabase = createClient(
-            process.env.SUPABASE_URL as string,
-            process.env.SUPABASE_SERVICE_ROLE_KEY as string
-          );
-
           for (const attachment of message.attachments) {
             const bucket =
               attachment.type === "audio"

@@ -9,6 +9,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: authSchema,
+    camelCase: true,
   }),
   trustedOrigins: [process.env.CORS_ORIGIN as string, "work-link://"],
   emailAndPassword: {
@@ -28,9 +29,7 @@ export const auth = betterAuth({
         enabled: true,
       },
       // sendInvitationEmail(data) {
-      //   console.log(data);
       //   const invitationLink = `${env.WEB_URL}/accept-invitation/${data.id}?email=${data.email}`;
-      //   console.log(invitationLink);
       //
       //   await sendOrgInvitationEmail({
       //     email: data.email,

@@ -5,6 +5,7 @@ import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createContext } from "@work-link/api/context";
+import { electricRouter } from "@work-link/api/routers/electric/index";
 import { appRouter } from "@work-link/api/routers/index";
 import { auth } from "@work-link/auth";
 import { Hono } from "hono";
@@ -46,6 +47,8 @@ export const rpcHandler = new RPCHandler(appRouter, {
     }),
   ],
 });
+
+app.route("/api/electric", electricRouter);
 
 app.use("/*", async (c, next) => {
   const context = await createContext({ context: c });
