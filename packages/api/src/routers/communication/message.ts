@@ -17,6 +17,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { protectedProcedure } from "@/index";
+import { generateTxId } from "@/lib/electric-proxy";
 import { SuccessOutput } from "@/lib/schemas/channel";
 import {
   CreateMessageInput,
@@ -84,67 +85,64 @@ export const messageRouter = {
         },
         input,
       }) => {
-        const [newMessage] = await db
-          .insert(messageTable)
-          .values({
-            channelId: input.channelId,
-            receiverId: input.receiverId,
-            content: input.content,
-            type: input.type,
-            parentMessageId: input.parentMessageId,
-            mentions: input.mentions,
-            senderId: user.id,
-          })
-          .returning();
-
-        if (!newMessage) {
-          throw new ORPCError("NOT_FOUND", {
-            message: "Failed to create message",
-          });
-        }
-
-        // Handle attachments
-        if (input.attachments && input.attachments.length > 0) {
-          const attachmentValues = input.attachments.map((attachment) => ({
-            messageId: newMessage.id,
-            fileName: attachment.fileName,
-            originalName: attachment.originalName,
-            fileSize: attachment.fileSize,
-            mimeType: attachment.mimeType,
-            type: attachment.type,
-            url: attachment.url,
-            uploadedBy: user.id,
-          }));
-
-          await db.insert(attachmentTable).values(attachmentValues);
-        }
-
-        if (input.mentions && input.mentions.length > 0) {
-          const mentionNotifications = input.mentions.map(
-            (mentionedUserId) => ({
-              userId: mentionedUserId,
-              type: "mention" as const,
-              title: `${user.name || user.email} mentioned you`,
-              message:
-                input.content?.slice(0, 200) ||
-                "You were mentioned in a message",
-              entityId: newMessage.id,
-              entityType: "message",
+        const { txid, message } = await db.transaction(async (tx) => {
+          const txid = await generateTxId(tx);
+          const [newMessage] = await tx
+            .insert(messageTable)
+            .values({
+              channelId: input.channelId,
+              receiverId: input.receiverId,
+              content: input.content,
+              type: input.type,
+              parentMessageId: input.parentMessageId,
+              mentions: input.mentions,
+              senderId: user.id,
             })
-          );
+            .returning();
 
-          await db.insert(notificationTable).values(mentionNotifications);
-        }
+          if (!newMessage) {
+            throw new ORPCError("NOT_FOUND", {
+              message: "Failed to create message",
+            });
+          }
 
-        // Fetch the complete message with attachments
-        const messageWithAttachments = await db.query.messageTable.findFirst({
-          where: eq(messageTable.id, newMessage.id),
-          with: {
-            attachments: true,
-          },
+          // Handle attachments
+          if (input.attachments && input.attachments.length > 0) {
+            const attachmentValues = input.attachments.map((attachment) => ({
+              messageId: newMessage.id,
+              fileName: attachment.fileName,
+              originalName: attachment.originalName,
+              fileSize: attachment.fileSize,
+              mimeType: attachment.mimeType,
+              type: attachment.type,
+              url: attachment.url,
+              uploadedBy: user.id,
+            }));
+
+            await tx.insert(attachmentTable).values(attachmentValues);
+          }
+
+          if (input.mentions && input.mentions.length > 0) {
+            const mentionNotifications = input.mentions.map(
+              (mentionedUserId) => ({
+                userId: mentionedUserId,
+                type: "mention" as const,
+                title: `${user.name || user.email} mentioned you`,
+                message:
+                  input.content?.slice(0, 200) ||
+                  "You were mentioned in a message",
+                entityId: newMessage.id,
+                entityType: "message",
+              })
+            );
+
+            await tx.insert(notificationTable).values(mentionNotifications);
+          }
+
+          return { txid, message: newMessage };
         });
 
-        return messageWithAttachments || newMessage;
+        return { txid, message };
       }
     ),
 

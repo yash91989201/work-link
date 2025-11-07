@@ -89,10 +89,11 @@ export function useMessageMutations({ channelId }: { channelId: string }) {
           if (!old) return old;
 
           return {
+            ...old,
             messages: old.messages.map((msg) =>
               msg.id === context?.optimisticMessage?.id
                 ? {
-                    ...serverMessage,
+                    ...serverMessage.message,
                     sender: {
                       image: user.image ?? null,
                       ...user,

@@ -35,7 +35,10 @@ export const CreateMessageInput = z
     path: ["channelId"],
   });
 
-export const CreateMessageOutput = MessageSchema;
+export const CreateMessageOutput = z.object({
+  txid: z.number(),
+  message: MessageSchema,
+});
 
 // Update message input
 export const UpdateMessageInput = z.object({

@@ -1,6 +1,5 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Hash } from "lucide-react";
+import { CircleAlert, Hash } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,16 +9,15 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useUserChannels } from "@/hooks/communications/use-user-channels";
 import { useActiveOrgSlug } from "@/hooks/use-active-org-slug";
-import { queryUtils } from "@/utils/orpc";
 
 export function NavChannels({
   ...props
 }: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { state } = useSidebar();
-  const {
-    data: { channels },
-  } = useSuspenseQuery(queryUtils.member.channel.listChannels.queryOptions());
+  const { channels } = useUserChannels();
 
   const slug = useActiveOrgSlug();
 
@@ -32,7 +30,19 @@ export function NavChannels({
       <SidebarGroup {...props}>
         <SidebarGroupLabel>Channels</SidebarGroupLabel>
         <SidebarGroupContent>
-          <p>No Channels</p>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="No channels available">
+                <span>
+                  {state === "collapsed" ? (
+                    <CircleAlert className="size-4 text-gray-500" />
+                  ) : (
+                    "No Channels"
+                  )}
+                </span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
     );
@@ -58,6 +68,27 @@ export function NavChannels({
                   </span>
                 </Link>
               </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
+
+export function NavChannelsSkeleton(
+  props: React.ComponentPropsWithoutRef<typeof SidebarGroup>
+) {
+  return (
+    <SidebarGroup {...props}>
+      <SidebarGroupLabel>Channels</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <SidebarMenuItem key={index.toString()}>
+              <div className="flex h-8 w-full items-center gap-2 rounded-md px-2">
+                <Skeleton className="h-4 w-full" />
+              </div>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

@@ -9,6 +9,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useMessages } from "@/hooks/communications/use-messages";
+import { useMessagesOld } from "@/hooks/communications/use-messages-old";
 
 export type MessageWithParent = MessageWithSenderType & {
   parentMessage?: MessageWithSenderType | null;
@@ -23,6 +24,11 @@ interface MessageListContextValue {
   threadOriginMessageId: string | null;
   isThreadSidebarOpen: boolean;
   threadComposerFocusKey: number;
+
+  // Pinned messages sidebar
+  isPinnedMessagesSidebarOpen: boolean;
+  openPinnedMessagesSidebar: () => void;
+  closePinnedMessagesSidebar: () => void;
 
   // Mutation functions
   handleDelete: (messageId: string) => Promise<void>;
@@ -63,8 +69,8 @@ export function MessageListProvider({
   channelId,
   children,
 }: MessageListProviderProps) {
+  const { messages } = useMessages({ channelId });
   const {
-    messages,
     deletingMessageId,
     updatingMessageId,
     pinningMessageId,
@@ -76,7 +82,7 @@ export function MessageListProvider({
     messagesEndRef,
     pinMessage,
     unpinMessage,
-  } = useMessages(channelId);
+  } = useMessagesOld(channelId);
 
   const [threadState, setThreadState] = useState<{
     parentMessageId: string | null;
@@ -89,6 +95,9 @@ export function MessageListProvider({
     shouldFocusComposer: false,
     composerFocusKey: 0,
   });
+
+  const [isPinnedMessagesSidebarOpen, setIsPinnedMessagesSidebarOpen] =
+    useState(false);
 
   const handleDelete = useCallback(
     async (messageId: string) => {
@@ -161,10 +170,16 @@ export function MessageListProvider({
 
   const acknowledgeThreadComposerFocus = useCallback(() => {
     setThreadState((prev) =>
-      prev.shouldFocusComposer
-        ? { ...prev, shouldFocusComposer: false }
-        : prev
+      prev.shouldFocusComposer ? { ...prev, shouldFocusComposer: false } : prev
     );
+  }, []);
+
+  const openPinnedMessagesSidebar = useCallback(() => {
+    setIsPinnedMessagesSidebarOpen(true);
+  }, []);
+
+  const closePinnedMessagesSidebar = useCallback(() => {
+    setIsPinnedMessagesSidebarOpen(false);
   }, []);
 
   const orderedMessages = useMemo(
@@ -204,6 +219,9 @@ export function MessageListProvider({
       threadOriginMessageId: threadState.originMessageId,
       isThreadSidebarOpen: Boolean(threadState.parentMessageId),
       threadComposerFocusKey: threadState.composerFocusKey,
+      isPinnedMessagesSidebarOpen,
+      openPinnedMessagesSidebar,
+      closePinnedMessagesSidebar,
       handleDelete,
       handleEdit,
       handlePin,
@@ -228,6 +246,9 @@ export function MessageListProvider({
       threadState.originMessageId,
       threadState.parentMessageId,
       threadState.composerFocusKey,
+      isPinnedMessagesSidebarOpen,
+      openPinnedMessagesSidebar,
+      closePinnedMessagesSidebar,
       handleDelete,
       handleEdit,
       handlePin,

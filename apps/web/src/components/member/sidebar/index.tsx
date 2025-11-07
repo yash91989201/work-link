@@ -12,7 +12,7 @@ import {
   SidebarMenu,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { NavChannels } from "./nav-channels";
+import { NavChannels, NavChannelsSkeleton } from "./nav-channels";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 
@@ -31,7 +31,9 @@ export function MemberSidebar({
       <SidebarContent>
         <NavMain />
         <SidebarSeparator />
-        <NavChannels />
+        <Suspense fallback={<NavChannelsSkeleton />}>
+          <NavChannels />
+        </Suspense>
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

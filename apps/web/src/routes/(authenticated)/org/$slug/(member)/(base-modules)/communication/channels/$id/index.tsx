@@ -1,11 +1,9 @@
-import { eq, useLiveQuery } from "@tanstack/react-db";
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { ChannelHeader } from "@/components/member/communication/channels/channel-header";
 import { ChannelSkeleton } from "@/components/member/communication/channels/channel-skeleton";
 import { JoinRequestForm } from "@/components/member/communication/channels/join-request-form";
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
 import { MessageList } from "@/components/member/communication/channels/message-list";
-import { messagesCollection } from "@/db/collections";
 
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/"

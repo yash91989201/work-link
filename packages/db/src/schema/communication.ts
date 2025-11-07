@@ -131,12 +131,15 @@ export const messageTable = pgTable(
   "message",
   {
     id: cuid2().defaultRandom().primaryKey(),
-    channelId: text().references(() => channelTable.id, {
-      onDelete: "cascade",
-    }),
+    channelId: text()
+      .references(() => channelTable.id, {
+        onDelete: "cascade",
+      })
+      .notNull(),
     senderId: text()
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" })
+      .notNull(),
     receiverId: text().references(() => user.id, {
       onDelete: "cascade",
     }),

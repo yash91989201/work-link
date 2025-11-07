@@ -1,40 +1,49 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useCallback } from "react";
-import { queryUtils } from "@/utils/orpc";
-import { useMessageMutations } from "./use-message-mutations";
-import { useMessageScroll } from "./use-message-scroll";
-import { useMessagesRealtime } from "./use-messages-realtime";
+import { eq, useLiveSuspenseQuery } from "@tanstack/react-db";
+import {
+  attachmentsCollection,
+  messagesCollection,
+  usersCollection,
+} from "@/db/collections";
+import { buildMessageWithAttachments } from "@/lib/communications/message";
 
-export function useMessages(channelId: string) {
-  const {
-    data: { messages = [] },
-    refetch,
-  } = useSuspenseQuery(
-    queryUtils.communication.message.getChannelMessages.queryOptions({
-      input: {
-        channelId,
-      },
-    })
+export function useMessages({ channelId }: { channelId: string }) {
+  const { data: rows } = useLiveSuspenseQuery(
+    (q) =>
+      q
+        .from({ message: messagesCollection })
+        .innerJoin({ sender: usersCollection }, ({ message, sender }) =>
+          eq(message.senderId, sender.id)
+        )
+        .leftJoin(
+          { attachment: attachmentsCollection },
+          ({ message, attachment }) => eq(attachment.messageId, message.id)
+        )
+        .where(({ message }) => eq(message.channelId, channelId))
+        .select(({ message, sender, attachment }) => ({
+          message,
+          sender,
+          attachment,
+        })),
+    [channelId]
   );
 
-  const { messagesEndRef, scrollToBottom } = useMessageScroll();
+  const messagesMap = new Map<
+    string,
+    ReturnType<typeof buildMessageWithAttachments>
+  >();
 
-  const mutations = useMessageMutations({
-    channelId,
-  });
+  for (const { message, sender, attachment } of rows) {
+    let entry = messagesMap.get(message.id);
+    if (!entry) {
+      entry = buildMessageWithAttachments(message, sender);
+      messagesMap.set(message.id, entry);
+    }
+    if (attachment) {
+      entry.attachments.push(attachment);
+    }
+  }
 
-  useMessagesRealtime({
-    channelId,
-    onNewMessage: useCallback(() => {
-      setTimeout(() => scrollToBottom(), 50);
-    }, [scrollToBottom]),
-  });
+  const messages = Array.from(messagesMap.values());
 
-  return {
-    messages,
-    refetch,
-    messagesEndRef,
-    scrollToBottom,
-    ...mutations,
-  };
+  return { messages };
 }

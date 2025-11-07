@@ -41,14 +41,9 @@ electricRouter.get("/shapes/messages", requireAuth, async (c) => {
 });
 
 electricRouter.get("/shapes/users", requireAuth, (c) => {
-  const context = c.get("context") as Context;
   const originUrl = prepareElectricUrl(c.req.url);
 
   originUrl.searchParams.set("table", "user");
-  // Users can see all users in their organization (adjust as needed)
-  // For now, we'll allow all users to be visible
-  const filter = `organization_id = '${context.session?.session.activeOrganizationId}'`;
-  originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
 });
@@ -67,7 +62,7 @@ electricRouter.get("/shapes/accounts", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "account");
   // Users can only see their own accounts
-  const filter = `userId = '${context.session?.user.id}'`;
+  const filter = `"userId" = '${context.session?.user.id}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -79,7 +74,7 @@ electricRouter.get("/shapes/sessions", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "session");
   // Users can only see their own sessions
-  const filter = `userId = '${context.session?.user.id}'`;
+  const filter = `"userId" = '${context.session?.user.id}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -91,7 +86,7 @@ electricRouter.get("/shapes/invitations", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "invitation");
   // Users can see invitations related to their organization
-  const filter = `organizationId = '${context.session?.session.activeOrganizationId}'`;
+  const filter = `"organizationId" = '${context.session?.session.activeOrganizationId}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -103,7 +98,7 @@ electricRouter.get("/shapes/members", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "member");
   // Users can see all members in their organization
-  const filter = `organizationId = '${context.session?.session.activeOrganizationId}'`;
+  const filter = `"organizationId" = '${context.session?.session.activeOrganizationId}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -115,7 +110,7 @@ electricRouter.get("/shapes/organizations", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "organization");
   // Users can see organizations they belong to
-  const filter = `id IN (SELECT organizationId FROM member WHERE userId = '${context.session?.user.id}')`;
+  const filter = `id IN (SELECT "organizationId" FROM member WHERE "userId" = '${context.session?.user.id}')`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -127,7 +122,7 @@ electricRouter.get("/shapes/teams", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "team");
   // Users can see teams in their organization
-  const filter = `organizationId = '${context.session?.session.activeOrganizationId}'`;
+  const filter = `"organizationId" = '${context.session?.session.activeOrganizationId}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -139,7 +134,7 @@ electricRouter.get("/shapes/team-members", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "teamMember");
   // Users can see team members for teams in their organization
-  const filter = `teamId IN (SELECT id FROM team WHERE organizationId = '${context.session?.session.activeOrganizationId}')`;
+  const filter = `teamId IN (SELECT id FROM team WHERE "organizationId" = '${context.session?.session.activeOrganizationId}')`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -151,7 +146,7 @@ electricRouter.get("/shapes/verifications", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "verification");
   // Users can only see their own verifications
-  const filter = `userId = '${context.session?.user.id}'`;
+  const filter = `"userId" = '${context.session?.user.id}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -163,7 +158,7 @@ electricRouter.get("/shapes/attendance", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "attendance");
   // Users can see their own attendance and potentially attendance for their organization
-  const filter = `userId = '${context.session?.user.id}' OR organizationId = '${context.session?.session.activeOrganizationId}'`;
+  const filter = `"userId" = '${context.session?.user.id}' OR "organizationId" = '${context.session?.session.activeOrganizationId}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -175,7 +170,7 @@ electricRouter.get("/shapes/channels", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "channel");
   // Users can see channels in their organization
-  const filter = `organizationId = '${context.session?.session.activeOrganizationId}'`;
+  const filter = `"organizationId" = '${context.session?.session.activeOrganizationId}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -184,7 +179,7 @@ electricRouter.get("/shapes/channels", requireAuth, (c) => {
 electricRouter.get("/shapes/channel-members", requireAuth, (c) => {
   const originUrl = prepareElectricUrl(c.req.url);
 
-  originUrl.searchParams.set("table", "channelMember");
+  originUrl.searchParams.set("table", '"channelMember"');
 
   return proxyElectricRequest(originUrl);
 });
@@ -195,7 +190,7 @@ electricRouter.get("/shapes/notifications", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "notification");
   // Users can only see their own notifications
-  const filter = `userId = '${context.session?.user.id}'`;
+  const filter = `"userId" = '${context.session?.user.id}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);
@@ -207,7 +202,7 @@ electricRouter.get("/shapes/message-read", requireAuth, (c) => {
 
   originUrl.searchParams.set("table", "messageRead");
   // Users can only see their own message read status
-  const filter = `userId = '${context.session?.user.id}'`;
+  const filter = `"userId" = '${context.session?.user.id}'`;
   originUrl.searchParams.set("where", filter);
 
   return proxyElectricRequest(originUrl);

@@ -21,6 +21,7 @@ import {
 } from "@work-link/db/lib/schemas/db-tables";
 import { env } from "@/env";
 import { fetchClient } from "@/lib/electric";
+import { orpcClient } from "@/utils/orpc";
 
 export const messagesCollection = createCollection(
   electricCollectionOptions({
@@ -32,6 +33,22 @@ export const messagesCollection = createCollection(
         table: "message",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
+    },
+    onInsert: async ({ transaction }) => {
+      const newItem = transaction.mutations[0].modified;
+
+      const { txid } = await orpcClient.communication.message.create({
+        ...newItem,
+        receiverId: newItem.receiverId ?? undefined,
+        content: newItem.content ?? undefined,
+        parentMessageId: newItem.parentMessageId ?? undefined,
+        mentions: newItem.mentions ?? [],
+      });
+
+      return { txid };
     },
   })
 );
@@ -46,6 +63,9 @@ export const usersCollection = createCollection(
         table: "user",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -59,6 +79,9 @@ export const attachmentsCollection = createCollection(
         table: "attachment",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -73,6 +96,9 @@ export const accountsCollection = createCollection(
         table: "account",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -87,6 +113,9 @@ export const sessionsCollection = createCollection(
         table: "session",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -101,6 +130,9 @@ export const invitationsCollection = createCollection(
         table: "invitation",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -115,6 +147,9 @@ export const membersCollection = createCollection(
         table: "member",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -129,6 +164,9 @@ export const organizationsCollection = createCollection(
         table: "organization",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -143,6 +181,9 @@ export const teamsCollection = createCollection(
         table: "team",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -157,6 +198,9 @@ export const teamMembersCollection = createCollection(
         table: "teamMember",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -171,6 +215,9 @@ export const verificationsCollection = createCollection(
         table: "verification",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -185,6 +232,9 @@ export const attendanceCollection = createCollection(
         table: "attendance",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -199,6 +249,9 @@ export const channelsCollection = createCollection(
         table: "channel",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -213,6 +266,9 @@ export const channelMembersCollection = createCollection(
         table: "channelMember",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -227,6 +283,9 @@ export const notificationsCollection = createCollection(
         table: "notification",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -241,6 +300,9 @@ export const messageReadCollection = createCollection(
         table: "messageRead",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );
@@ -255,6 +317,9 @@ export const channelJoinRequestsCollection = createCollection(
         table: "channelJoinRequest",
       },
       fetchClient,
+      parser: {
+        timestamptz: (s: string) => new Date(s),
+      },
     },
   })
 );

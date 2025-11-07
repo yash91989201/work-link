@@ -10,6 +10,7 @@ import {
 import type { SQL } from "drizzle-orm";
 import { and, eq, getTableColumns } from "drizzle-orm";
 import { protectedProcedure } from "@/index";
+import { generateTxId } from "@/lib/electric-proxy";
 import {
   AddChannelMembersInput,
   ChannelJoinRequestInput,
@@ -45,40 +46,46 @@ export const channelRouter = {
         });
       }
 
-      // Verify user is a member of the organization
-      const membership = await db.query.member.findFirst({
-        where: and(
-          eq(member.organizationId, orgId),
-          eq(member.userId, user.id)
-        ),
+      const { txId, channel } = await db.transaction(async (tx) => {
+        const txId = await generateTxId(tx);
+        // Verify user is a member of the organization
+        const membership = await tx.query.member.findFirst({
+          where: and(
+            eq(member.organizationId, orgId),
+            eq(member.userId, user.id)
+          ),
+        });
+
+        if (!membership) {
+          throw new ORPCError("FORBIDDEN", {
+            message: "You are not a member of this organization.",
+          });
+        }
+
+        const [channel] = await tx
+          .insert(channelTable)
+          .values(input)
+          .returning();
+
+        if (!channel) {
+          throw new ORPCError("INTERNAL_SERVER_ERROR", {
+            message: "Failed to create channel.",
+          });
+        }
+
+        const channelMembers = input.memberIds.map((memberId) => ({
+          channelId: channel.id,
+          userId: memberId,
+          role: memberId === user.id ? "admin" : "member",
+        }));
+
+        await tx.insert(channelMemberTable).values(channelMembers).returning();
+
+        return { txId, channel };
       });
 
-      if (!membership) {
-        throw new ORPCError("FORBIDDEN", {
-          message: "You are not a member of this organization.",
-        });
-      }
-
-      const [newChannel] = await db
-        .insert(channelTable)
-        .values(input)
-        .returning();
-
-      if (!newChannel) {
-        throw new ORPCError("INTERNAL_SERVER_ERROR", {
-          message: "Failed to create channel.",
-        });
-      }
-
-      const channelMembers = input.memberIds.map((memberId) => ({
-        channelId: newChannel.id,
-        userId: memberId,
-        role: memberId === user.id ? "admin" : "member",
-      }));
-
-      await db.insert(channelMemberTable).values(channelMembers).returning();
-
-      return newChannel;
+      console.log("Created channel with txId:", txId);
+      return channel;
     }),
 
   // Update a channel

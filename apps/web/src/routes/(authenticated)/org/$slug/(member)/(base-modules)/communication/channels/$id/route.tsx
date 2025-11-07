@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { ChannelInfoSidebar } from "@/components/member/communication/channels/channel-info-sidebar";
 import { MessageListSkeleton } from "@/components/member/communication/channels/message-list";
 import { MessageThreadSidebar } from "@/components/member/communication/channels/message-thread-sidebar";
+import { PinnedMessagesSidebar } from "@/components/member/communication/channels/pinned-messages-sidebar";
 import { ChannelProvider } from "@/contexts/channel-context";
 import { MessageListProvider } from "@/contexts/message-list-context";
 
@@ -33,6 +34,7 @@ function RouteComponent() {
           <div className="flex min-h-0 flex-1">
             <Outlet />
             <MessageThreadSidebar />
+            <PinnedMessagesSidebar channelId={id} />
             <ChannelInfoSidebar />
           </div>
         </MessageListProvider>

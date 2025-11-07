@@ -16,6 +16,7 @@ import type { orpcClient, queryUtils } from "@/utils/orpc";
 import { link } from "@/utils/orpc";
 import "@/styles/index.css";
 import "react-lazy-load-image-component/src/effects/blur.css";
+import { FullScreenLoader } from "@/components/shared/full-screen-loader";
 import { authClient } from "@/lib/auth-client";
 
 export interface RouterAppContext {
@@ -50,6 +51,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       session: session.data,
     };
   },
+  pendingComponent: () => <FullScreenLoader />,
   component: RootComponent,
 });
 

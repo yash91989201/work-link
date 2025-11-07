@@ -215,6 +215,7 @@ export function MaximizedMessageComposer({
               content={text}
               disabled={isLoading}
               fetchUsers={fetchUsers}
+              isInMaximizedComposer={true}
               isMaximized
               onChange={handleMarkdownChange}
               onMaximize={() => onOpenChange(false)}

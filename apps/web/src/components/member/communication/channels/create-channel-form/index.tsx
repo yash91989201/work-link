@@ -81,6 +81,7 @@ export const CreateChannelForm = () => {
 
   const onSubmit: SubmitHandler<CreateChannelFormType> = async (formData) => {
     const createChannelRes = await createChannel(formData);
+    if (createChannelRes === undefined) return;
 
     navigate({
       to: "/org/$slug/communication/channels/$id",

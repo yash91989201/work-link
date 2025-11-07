@@ -71,6 +71,8 @@ const RecentChannels = ({ channels }: ListChannelsOutputType) => {
           <ChannelCard channel={channel} key={channel.id} slug={slug} />
         ))}
       </div>
+
+      <CreateChannelForm />
     </div>
   );
 };

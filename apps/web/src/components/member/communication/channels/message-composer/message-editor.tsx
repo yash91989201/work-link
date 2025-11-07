@@ -58,6 +58,7 @@ interface MessageEditorProps {
   onMaximize?: () => void;
   onMinimize?: () => void;
   isMaximized?: boolean;
+  isInMaximizedComposer?: boolean;
 }
 
 export function MessageEditor({
@@ -71,6 +72,7 @@ export function MessageEditor({
   onMaximize,
   onMinimize,
   isMaximized = false,
+  isInMaximizedComposer = false,
 }: MessageEditorProps) {
   const uploadImageToSupabase = useCallback(
     async (file: File): Promise<string> => {
@@ -176,8 +178,8 @@ export function MessageEditor({
       attributes: {
         class: cn(
           "prose prose-sm max-w-none p-2 focus:outline-none sm:p-3",
-          isMaximized
-            ? "min-h-[40vh] overflow-y-auto sm:min-h-[50vh]"
+          isMaximized && isInMaximizedComposer
+            ? "min-h-[50vh] overflow-y-auto sm:min-h-[60vh]"
             : "max-h-32 min-h-24 overflow-y-auto"
         ),
       },
@@ -309,7 +311,12 @@ export function MessageEditor({
   }
 
   return (
-    <div className={cn("flex flex-col", isMaximized ? "flex-1 overflow-hidden" : "space-y-2")}>
+    <div
+      className={cn(
+        "flex flex-col",
+        isMaximized ? "flex-1 overflow-hidden" : "space-y-2"
+      )}
+    >
       <input
         accept="image/*"
         className="hidden"

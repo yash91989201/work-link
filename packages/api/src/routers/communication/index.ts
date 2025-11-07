@@ -1,5 +1,5 @@
 import { channelRouter } from "@/routers/communication/channel";
-import { messageRouter } from "@/routers/communication/messages";
+import { messageRouter } from "@/routers/communication/message";
 
 export const communicationRouter = {
   channel: channelRouter,
