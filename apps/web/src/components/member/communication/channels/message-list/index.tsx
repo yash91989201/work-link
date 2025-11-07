@@ -1,6 +1,7 @@
+import { useParams } from "@tanstack/react-router";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMessageListContext } from "@/contexts/message-list-context";
+import { useMessageList } from "@/stores/message-list-store";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "./empty-state";
 import { MessageItem } from "./message-item";
@@ -30,7 +31,10 @@ export const MessageListSkeleton = () => (
 );
 
 export function MessageList({ className }: { className?: string }) {
-  const { orderedMessages, messagesEndRef } = useMessageListContext();
+  const { id: channelId } = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+  });
+  const { orderedMessages, messagesEndRef } = useMessageList(channelId);
 
   const hasMessages = orderedMessages.length > 0;
 

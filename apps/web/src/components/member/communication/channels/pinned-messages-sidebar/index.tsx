@@ -2,16 +2,14 @@ import { Pin, X } from "lucide-react";
 import { Activity, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useMessageListContext } from "@/contexts/message-list-context";
+import { usePinnedMessagesSidebar } from "@/stores/message-list-store";
 import { usePinnedMessages } from "@/hooks/communications/use-pinned-messages";
 import { cn } from "@/lib/utils";
 import { MessageItem } from "../message-list/message-item";
 
 export function PinnedMessagesSidebar({ channelId }: { channelId: string }) {
-  const {
-    isPinnedMessagesSidebarOpen: isOpen,
-    closePinnedMessagesSidebar: onClose,
-  } = useMessageListContext();
+  const { isPinnedMessagesSidebarOpen: isOpen, closePinnedMessagesSidebar: onClose } =
+    usePinnedMessagesSidebar();
   const { pinnedMessages } = usePinnedMessages({ channelId });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 

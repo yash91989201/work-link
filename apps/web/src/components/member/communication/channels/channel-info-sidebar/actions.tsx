@@ -7,10 +7,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { useMessageListContext } from "@/contexts/message-list-context";
+import { useMessageListActions } from "@/stores/message-list-store";
 
 export const Actions = ({ channelId }: { channelId: string }) => {
-  const { openPinnedMessagesSidebar } = useMessageListContext();
+  const { openPinnedMessagesSidebar } = useMessageListActions();
 
   return (
     <Accordion collapsible defaultValue="actions" type="single">

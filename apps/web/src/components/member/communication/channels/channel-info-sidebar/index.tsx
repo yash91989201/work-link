@@ -1,29 +1,20 @@
-import { useParams } from "@tanstack/react-router";
 import { Hash, Lock, X } from "lucide-react";
 import { Activity } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useChannelContext } from "@/contexts/channel-context";
+import { useChannel, useChannelSidebar } from "@/stores/channel-store";
 import { cn } from "@/lib/utils";
-import { Actions } from "./actions";
+import { AddMemberForm } from "@/components/member/communication/channels/add-member-form";
 import { ChannelInfo } from "./channel-info";
 import { JoinRequests } from "./join-requests";
 import { Members } from "./members";
 
-export const ChannelInfoSidebar = () => {
-  const { id: channelId } = useParams({
-    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
-  });
-
-  const {
-    showChannelInfoSidebar,
-    setShowChannelInfoSidebar,
-    channel,
-    channelMembers,
-    onlineUsersCount,
-  } = useChannelContext();
+export const ChannelInfoSidebar = ({ channelId }: { channelId: string }) => {
+  const { channel, channelMembers, onlineUsersCount } = useChannel(channelId);
+  const { showChannelInfoSidebar, setShowChannelInfoSidebar } =
+    useChannelSidebar();
 
   return (
     <Activity mode={showChannelInfoSidebar ? "visible" : "hidden"}>
@@ -79,7 +70,9 @@ export const ChannelInfoSidebar = () => {
 
         <ScrollArea className="h-0 flex-1">
           <div className="space-y-3 p-3">
-            <Actions channelId={channelId} />
+            <div className="space-y-2">
+              <AddMemberForm channelId={channelId} />
+            </div>
 
             <Separator />
 

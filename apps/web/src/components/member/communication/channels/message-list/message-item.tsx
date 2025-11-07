@@ -1,11 +1,10 @@
 import { CornerUpLeft } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import { useParams } from "@tanstack/react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  type MessageWithParent,
-  useMessageListContext,
-} from "@/contexts/message-list-context";
+import type { MessageWithParent } from "@/stores/message-list-store";
+import { useMessageList, useMessageListActions } from "@/stores/message-list-store";
 import { useMessageItem } from "@/hooks/communications/use-message-item";
 import { cn } from "@/lib/utils";
 import { formatMessageDate } from "@/utils/message-utils";
@@ -25,20 +24,24 @@ export function MessageItem({
   showParentPreview = true,
   showThreadSummary = true,
 }: MessageItemProps) {
+  const { id: channelId } = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+  });
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   const {
-    openThread,
     threadOriginMessageId,
     threadParentMessage,
     isThreadSidebarOpen,
-  } = useMessageListContext();
+  } = useMessageList(channelId);
 
-  const { channelId, isDeleting, isPinning, handleDelete, handlePin } =
-    useMessageItem({
-      messageId: message.id,
-      isPinned: message.isPinned,
-    });
+  const { openThread, closeThread } = useMessageListActions();
+
+  const { isDeleting, isPinning, handleDelete, handlePin } = useMessageItem({
+    channelId,
+    messageId: message.id,
+    isPinned: message.isPinned,
+  });
 
   const handleEditDialog = useCallback(() => {
     setShowEditDialog(true);
@@ -65,8 +68,14 @@ export function MessageItem({
   );
 
   const handleReplyClick = useCallback(() => {
-    openThread(message, { focusComposer: true });
-  }, [message, openThread]);
+    const parentId = message.parentMessage?.id ?? message.id;
+    
+    if (isThreadSidebarOpen && threadParentMessage?.id === parentId) {
+      closeThread();
+    } else {
+      openThread(message, { focusComposer: true });
+    }
+  }, [message, openThread, closeThread, isThreadSidebarOpen, threadParentMessage]);
 
   const handleViewThread = useCallback(() => {
     openThread(message);
@@ -138,6 +147,11 @@ export function MessageItem({
           {message.isPinned && (
             <Badge className="text-xs" variant="outline">
               Pinned
+            </Badge>
+          )}
+          {!message.parentMessageId && (message.threadCount ?? 0) > 0 && (
+            <Badge className="text-xs" variant="secondary">
+              {message.threadCount} {message.threadCount === 1 ? "reply" : "replies"}
             </Badge>
           )}
         </div>

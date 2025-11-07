@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useReducer } from "react";
-import { useMessageListContext } from "@/contexts/message-list-context";
+import { useMessageList } from "@/stores/message-list-store";
 
 type MessageState = { mode: "view" } | { mode: "editing" };
 
@@ -20,13 +20,17 @@ function messageReducer(
 }
 
 interface UseMessageItemOptions {
+  channelId: string;
   messageId: string;
   isPinned: boolean;
 }
 
-export function useMessageItem({ messageId, isPinned }: UseMessageItemOptions) {
+export function useMessageItem({
+  channelId,
+  messageId,
+  isPinned,
+}: UseMessageItemOptions) {
   const {
-    channelId,
     handleDelete: deleteMessage,
     handleEdit: editMessage,
     handlePin: pinMessage,
@@ -34,7 +38,7 @@ export function useMessageItem({ messageId, isPinned }: UseMessageItemOptions) {
     isPinningMessage,
     deletingMessageId,
     pinningMessageId,
-  } = useMessageListContext();
+  } = useMessageList(channelId);
 
   const [state, dispatch] = useReducer(messageReducer, { mode: "view" });
 

@@ -1,27 +1,25 @@
 import { X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
-import {
-  type MessageWithParent,
-  useMessageListContext,
-} from "@/contexts/message-list-context";
+import type { MessageWithParent } from "@/stores/message-list-store";
+import { useMessageList, useMessageListActions } from "@/stores/message-list-store";
 import { cn } from "@/lib/utils";
 import { formatMessageDate } from "@/utils/message-utils";
 import { MessageComposer } from "../message-composer";
 import { MessageItem } from "../message-list/message-item";
 
-export function MessageThreadSidebar() {
+export function MessageThreadSidebar({ channelId }: { channelId: string }) {
   const {
-    channelId,
     isThreadSidebarOpen,
     threadMessages,
     threadParentMessage,
     threadOriginMessageId,
     threadComposerFocusKey,
     shouldFocusThreadComposer,
-    acknowledgeThreadComposerFocus,
-    closeThread,
-  } = useMessageListContext();
+  } = useMessageList(channelId);
+
+  const { acknowledgeThreadComposerFocus, closeThread } =
+    useMessageListActions();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showMaximizedComposer, setShowMaximizedComposer] = useState(false);
