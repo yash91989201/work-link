@@ -1,12 +1,157 @@
 import { useParams } from "@tanstack/react-router";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { CornerUpLeft } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useMessageList } from "@/stores/message-list-store";
 import { EmptyState } from "./empty-state";
 import { MessageItem } from "./message-item";
+
+export function MessageList({ className }: { className?: string }) {
+  const { id: channelId } = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+  });
+  const { orderedMessages, messagesEndRef, hasMore, loadMore } =
+    useMessageList(channelId);
+
+  const parentRef = useRef<HTMLDivElement>(null);
+  const isInitialMount = useRef(true);
+  const previousScrollHeight = useRef(0);
+
+  const virtualizer = useVirtualizer({
+    count: orderedMessages.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 150,
+    overscan: 5,
+    gap: 16,
+  });
+
+  const virtualItems = virtualizer.getVirtualItems();
+
+  // Scroll to bottom on initial load
+  useEffect(() => {
+    if (isInitialMount.current && orderedMessages.length > 0) {
+      const scrollElement = parentRef.current;
+      if (scrollElement) {
+        console.log(
+          `[MessageList] Initial load: ${orderedMessages.length} messages`
+        );
+        console.log(
+          "[MessageList] First message date:",
+          orderedMessages[0]?.createdAt
+        );
+        console.log(
+          "[MessageList] Last message date:",
+          orderedMessages[orderedMessages.length - 1]?.createdAt
+        );
+
+        // Use a small delay to ensure DOM is rendered
+        setTimeout(() => {
+          scrollElement.scrollTop = scrollElement.scrollHeight;
+          console.log(
+            `[MessageList] Scrolled to bottom: ${scrollElement.scrollHeight}px`
+          );
+          isInitialMount.current = false;
+        }, 100);
+      }
+    }
+  }, [orderedMessages.length]);
+
+  // Load more when scrolling near the top
+  useEffect(() => {
+    const scrollElement = parentRef.current;
+    if (!scrollElement || virtualItems.length === 0) return;
+
+    const [firstItem] = virtualItems;
+
+    // When we're close to the top and have more data, load more
+    if (firstItem?.index < 5 && hasMore) {
+      // Store current scroll height before loading
+      previousScrollHeight.current = scrollElement.scrollHeight;
+      loadMore();
+    }
+  }, [virtualItems, hasMore, loadMore]);
+
+  // Restore scroll position after loading older messages
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Need to track message count changes
+  useEffect(() => {
+    const scrollElement = parentRef.current;
+    if (!scrollElement || isInitialMount.current) return;
+
+    const currentScrollHeight = scrollElement.scrollHeight;
+    const heightDifference = currentScrollHeight - previousScrollHeight.current;
+
+    if (heightDifference > 0) {
+      // Adjust scroll position to maintain visual position
+      scrollElement.scrollTop += heightDifference;
+      previousScrollHeight.current = currentScrollHeight;
+    }
+  }, [orderedMessages.length]);
+
+  const hasMessages = orderedMessages.length > 0;
+
+  if (!hasMessages) {
+    return (
+      <div
+        className={cn(
+          "flex-1 overflow-hidden bg-linear-to-b from-background via-background to-muted/10",
+          className
+        )}
+      >
+        <EmptyState />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "flex-1 overflow-hidden bg-linear-to-b from-background via-background to-muted/10",
+        className
+      )}
+    >
+      <div className="h-full overflow-auto" ref={parentRef}>
+        <div className="flex flex-col py-4 sm:px-4">
+          {hasMore && (
+            <div className="flex justify-center py-2">
+              <div className="text-muted-foreground text-sm">
+                Loading older messages...
+              </div>
+            </div>
+          )}
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {virtualItems.map((virtualItem) => (
+              <div
+                data-index={virtualItem.index}
+                key={virtualItem.key}
+                ref={virtualizer.measureElement}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  transform: `translateY(${virtualItem.start}px)`,
+                  paddingBottom: "16px",
+                }}
+              >
+                <MessageItem message={orderedMessages[virtualItem.index]} />
+              </div>
+            ))}
+          </div>
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type AttachmentSkeletonType = "media" | "file" | "audio";
 
@@ -228,43 +373,3 @@ export const MessageListSkeleton = () => (
     </div>
   </div>
 );
-
-export function MessageList({ className }: { className?: string }) {
-  const { id: channelId } = useParams({
-    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
-  });
-  const { orderedMessages, messagesEndRef } = useMessageList(channelId);
-
-  const hasMessages = orderedMessages.length > 0;
-
-  if (!hasMessages) {
-    return (
-      <div
-        className={cn(
-          "flex-1 overflow-hidden bg-linear-to-b from-background via-background to-muted/10",
-          className
-        )}
-      >
-        <EmptyState />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        "flex-1 overflow-hidden bg-linear-to-b from-background via-background to-muted/10",
-        className
-      )}
-    >
-      <ScrollArea className="h-full">
-        <div className="flex flex-col gap-4 py-4 sm:px-4">
-          {orderedMessages.map((message) => (
-            <MessageItem key={message.id} message={message} />
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
-    </div>
-  );
-}

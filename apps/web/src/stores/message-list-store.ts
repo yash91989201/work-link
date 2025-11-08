@@ -80,7 +80,7 @@ const useMessageListStore = create<MessageListState>((set) => ({
 }));
 
 export function useMessageList(channelId: string) {
-  const { messages } = useMessages({ channelId });
+  const { messages, hasMore, loadMore } = useMessages({ channelId });
   const {
     deletingMessageId,
     updatingMessageId,
@@ -185,6 +185,8 @@ export function useMessageList(channelId: string) {
     updatingMessageId,
     pinningMessageId,
     messagesEndRef,
+    hasMore,
+    loadMore,
   };
 }
 
