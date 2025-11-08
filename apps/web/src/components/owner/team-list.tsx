@@ -1,7 +1,10 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Building2, Calendar, MoreHorizontal } from "lucide-react";
+import {
+  useMutation,
+  useMutationState,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import { Building2, Calendar, MoreHorizontal, Users } from "lucide-react";
 import { CreateTeamForm } from "@/components/admin/team/create-team-form";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,12 +14,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { queryUtils } from "@/utils/orpc";
+import { authClient } from "@/lib/auth-client";
+import { queryClient, queryUtils } from "@/utils/orpc";
 
 export const TeamList = () => {
   const {
     data: { teams },
   } = useSuspenseQuery(queryUtils.admin.team.listTeams.queryOptions({}));
+
+  const { mutateAsync: deleteTeam } = useMutation({
+    mutationKey: ["delete-team"],
+    mutationFn: async ({ teamId }: { teamId: string }) => {
+      await authClient.organization.removeTeam({
+        teamId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.refetchQueries({
+        queryKey: queryUtils.admin.team.listTeams.queryKey({}),
+      });
+    },
+  });
+
+  const variables = useMutationState({
+    filters: {
+      mutationKey: queryUtils.admin.team.deleteTeam.mutationKey(),
+      status: "pending",
+    },
+    select: (mutation) => mutation.state.variables,
+  });
+
+  console.log(variables);
 
   if (teams.length === 0) {
     return (
@@ -56,7 +84,7 @@ export const TeamList = () => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
                     className="text-destructive"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={() => deleteTeam({ teamId: team.id })}
                   >
                     Delete Team
                   </DropdownMenuItem>
@@ -65,14 +93,15 @@ export const TeamList = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{new Date(team.createdAt).toLocaleDateString()}</span>
-                </div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span>{team.teamMembers.length}</span>
               </div>
-              <Badge>Active</Badge>
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>{new Date(team.createdAt).toLocaleDateString()}</span>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -17,6 +17,9 @@ export const adminTeamRouter = {
 
       const teams = await db.query.team.findMany({
         where: eq(team.organizationId, organizationId),
+        with: {
+          teamMembers: true,
+        },
       });
 
       return { teams };
