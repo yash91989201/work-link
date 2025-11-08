@@ -61,6 +61,8 @@ export function MessageList({ className }: { className?: string }) {
 
   // Load more when scrolling near the top
   useEffect(() => {
+    if (isInitialMount.current) return;
+
     const scrollElement = parentRef.current;
     if (!scrollElement || virtualItems.length === 0) return;
 

@@ -12,8 +12,7 @@ const MESSAGES_PER_PAGE = 50;
 export function useMessages({ channelId }: { channelId: string }) {
   const [loadedCount, setLoadedCount] = useState(MESSAGES_PER_PAGE);
 
-  // Fetch messages in descending order (newest first) with limit
-  const { data: rows } = useLiveSuspenseQuery(
+  const { data: rowsWithExtra } = useLiveSuspenseQuery(
     (q) =>
       q
         .from({ message: messagesCollection })
@@ -28,13 +27,20 @@ export function useMessages({ channelId }: { channelId: string }) {
           and(eq(message.channelId, channelId), eq(message.isDeleted, false))
         )
         .orderBy(({ message }) => message.createdAt, "desc")
-        .limit(loadedCount)
+        .limit(loadedCount + 1)
         .select(({ message, sender, attachment }) => ({
           message,
           sender,
           attachment,
         })),
     [channelId, loadedCount]
+  );
+
+  const hasMore = rowsWithExtra.length > loadedCount;
+
+  const rows = useMemo(
+    () => (hasMore ? rowsWithExtra.slice(0, loadedCount) : rowsWithExtra),
+    [rowsWithExtra, hasMore, loadedCount]
   );
 
   const messagesMap = useMemo(() => {
@@ -62,20 +68,11 @@ export function useMessages({ channelId }: { channelId: string }) {
     [messagesMap]
   );
 
-  // Debug: Log the count
-  console.log(
-    `[useMessages] Loaded ${messages.length} messages (limit: ${loadedCount})`
-  );
-
-  // Check if there might be more messages to load
-  const hasMore = rows.length === loadedCount;
-
   const loadMore = useCallback(() => {
     if (hasMore) {
-      console.log(`[useMessages] Loading more... Current: ${loadedCount}`);
       setLoadedCount((prev) => prev + MESSAGES_PER_PAGE);
     }
-  }, [hasMore, loadedCount]);
+  }, [hasMore]);
 
   return {
     messages,
