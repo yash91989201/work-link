@@ -58,38 +58,37 @@ export const JoinRequestForm = ({
   };
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center p-8">
-      <div className="w-full max-w-sm space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-          <LockIcon className="h-8 w-8 text-muted-foreground" />
+    <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-b from-background via-background to-muted/20 p-8">
+      <div className="w-full max-w-md space-y-8 text-center">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-500/20 to-orange-600/20 ring-2 ring-orange-500/30">
+          <LockIcon className="h-10 w-10 text-orange-600" />
         </div>
 
-        <div className="space-y-2">
-          <h1 className="max-w-md font-semibold text-2xl">
-            Join {channelName} channel
+        <div className="space-y-3">
+          <h1 className="max-w-md font-bold text-3xl tracking-tight">
+            Join {channelName}
           </h1>
-          <p className="text-muted-foreground">
-            This is a private channel. Request to join and wait for an admin to
-            approve your request.
+          <p className="text-muted-foreground text-lg">
+            This is a private channel. Send a join request and wait for an admin to
+            approve your access.
           </p>
         </div>
 
         <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="note"
               render={({ field }) => (
                 <FormItem className="text-left">
-                  <FormLabel className="flex items-center gap-2">
-                    <MessageSquareIcon className="h-4 w-4" />
-                    Note (optional)
+                  <FormLabel className="flex items-center gap-2 text-base">
+                    <MessageSquareIcon className="h-5 w-5 text-primary" />
+                    Add a note (optional)
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      className="resize-none"
-                      placeholder="Send a note"
-                      rows={2}
+                      className="min-h-[100px] resize-none"
+                      placeholder="Let the admins know why you want to join this channel..."
                       {...field}
                     />
                   </FormControl>
@@ -97,10 +96,14 @@ export const JoinRequestForm = ({
                 </FormItem>
               )}
             />
-            <Button className="w-full" disabled={form.formState.isSubmitting}>
+            <Button 
+              className="w-full h-12 text-base font-semibold" 
+              disabled={form.formState.isSubmitting}
+              size="lg"
+            >
               {form.formState.isSubmitting
-                ? "Sending Request"
-                : "Request to join"}
+                ? "Sending Request..."
+                : "Request to Join Channel"}
             </Button>
           </form>
         </Form>

@@ -18,6 +18,7 @@ import {
   Maximize,
   Minimize2,
   Strikethrough,
+  Trash2,
   UnderlineIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -423,7 +424,7 @@ export function MessageEditor({
           <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4" />
         </Toggle>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1">
           <Toggle
             aria-label={isMaximized ? "Minimize editor" : "Maximize editor"}
             onPressedChange={() => {
@@ -447,6 +448,17 @@ export function MessageEditor({
               <Maximize className="h-3 w-3 sm:h-4 sm:w-4" />
             )}
           </Toggle>
+          <Button
+            aria-label="Clear content"
+            onClick={() => {
+              editor.chain().focus().clearContent().run();
+            }}
+            size="icon"
+            title="Clear Content"
+            variant="destructive"
+          >
+            <Trash2 className="text-destructive-foreground" />
+          </Button>
         </div>
       </div>
 

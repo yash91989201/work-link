@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Sparkles } from "lucide-react";
 import {
   Empty,
   EmptyContent,
@@ -13,21 +13,41 @@ export const EmptyState = () => (
     <Empty>
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <MessageCircle className="h-10 w-10" />
+          <div className="relative">
+            <MessageCircle className="h-12 w-12 text-primary" />
+            <Sparkles className="-top-1 -right-1 absolute h-5 w-5 text-primary/70" />
+          </div>
         </EmptyMedia>
-        <EmptyTitle>Welcome to the channel!</EmptyTitle>
-        <EmptyDescription>
-          This is the beginning of your conversation. Start by sending a message
-          to break the ice. 🎉
+        <EmptyTitle className="text-2xl">Welcome to the channel!</EmptyTitle>
+        <EmptyDescription className="max-w-md text-base">
+          Start by sending a message to break the ice and connect with your
+          team. 🎉
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <div className="space-y-2">
-          <p className="font-medium text-muted-foreground text-xs">Tips:</p>
-          <ul className="space-y-1 text-muted-foreground text-xs">
-            <li>• Be respectful and professional</li>
-            <li>• Use @ to mention team members</li>
-            <li>• Share files with the attachment button</li>
+        <div className="w-full max-w-md space-y-3 rounded-lg border bg-muted/30 p-4">
+          <p className="font-semibold text-foreground text-sm">Quick Tips:</p>
+          <ul className="space-y-2 text-muted-foreground text-sm">
+            <li className="flex items-start gap-2 text-left">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              <span>Be respectful and professional in all conversations</span>
+            </li>
+            <li className="flex items-start gap-2 text-left">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              <span>
+                Use{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">@</code>{" "}
+                to mention team members
+              </span>
+            </li>
+            <li className="flex items-start gap-2 text-left">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              <span>Share files using the attachment button</span>
+            </li>
+            <li className="flex items-start gap-2 text-left">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              <span>Use threads to keep related discussions organized</span>
+            </li>
           </ul>
         </div>
       </EmptyContent>

@@ -110,7 +110,6 @@ export const Members = ({
               <div
                 className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/50"
                 key={member.id}
-                title="Mock navigation"
               >
                 <div className="relative">
                   <Avatar className="h-8 w-8">

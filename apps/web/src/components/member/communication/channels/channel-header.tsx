@@ -1,5 +1,5 @@
+import { Link, useParams } from "@tanstack/react-router";
 import { Bell, Info, Pin } from "lucide-react";
-import { useParams } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import {
   Breadcrumb,
@@ -16,19 +16,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useChannel, useChannelSidebar } from "@/stores/channel-store";
+import { useChannelSidebar } from "@/stores/channel-store";
 import { useMessageListActions } from "@/stores/message-list-store";
 
 export function ChannelHeader() {
-  const { id: channelId } = useParams({
+  const { slug, id: channelId } = useParams({
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
-  const { channel } = useChannel(channelId);
+
   const { toggleChannelInfoSidebar } = useChannelSidebar();
   const { openPinnedMessagesSidebar } = useMessageListActions();
 
   return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur-sm transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height) supports-backdrop-filter:bg-background/60">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1.5" />
         <Separator
@@ -38,35 +38,66 @@ export function ChannelHeader() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="#">Channels</BreadcrumbLink>
+              <BreadcrumbLink asChild className="font-medium">
+                <Link params={{ slug }} to="/org/$slug/communication/channels">
+                  Channels
+                </Link>
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="#">{channel.name}</BreadcrumbLink>
+              <BreadcrumbLink
+                className="font-semibold text-foreground"
+                href="#"
+              >
+                <Link
+                  params={{ slug, id: channelId }}
+                  to="/org/$slug/communication/channels/$id"
+                >
+                  Channels
+                </Link>
+              </BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={openPinnedMessagesSidebar} size="icon" variant="ghost">
-                <Pin />
+              <Button
+                className="h-9 w-9"
+                onClick={openPinnedMessagesSidebar}
+                size="icon"
+                variant="ghost"
+              >
+                <Pin className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>View Pinned Messages</TooltipContent>
           </Tooltip>
-          <Button size="icon" variant="ghost">
-            <Bell />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button className="h-9 w-9" size="icon" variant="ghost">
+                <Bell className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Notifications</TooltipContent>
+          </Tooltip>
           <ThemeToggle />
-          <Button
-            onClick={toggleChannelInfoSidebar}
-            size="icon"
-            variant="ghost"
-          >
-            <Info />
-          </Button>
+          <Separator className="mx-1 h-6" orientation="vertical" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="h-9 w-9"
+                onClick={toggleChannelInfoSidebar}
+                size="icon"
+                variant="ghost"
+              >
+                <Info className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Channel Info</TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </header>

@@ -50,13 +50,15 @@ function RouteComponent() {
   const { isMember, channelName } = Route.useLoaderData();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col border-r">
+    <div className="flex min-h-0 flex-1 flex-col bg-background shadow-sm">
       {isMember ? (
         <>
           <ChannelHeader />
           <div className="flex min-h-0 flex-1 flex-col">
             <MessageList className="flex-1" />
-            <MessageComposer channelId={id} />
+            <div className="shrink-0 border-t bg-gradient-to-b from-background to-muted/20">
+              <MessageComposer channelId={id} />
+            </div>
           </div>
         </>
       ) : (

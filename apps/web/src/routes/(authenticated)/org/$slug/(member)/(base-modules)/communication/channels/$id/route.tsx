@@ -16,18 +16,18 @@ function RouteComponent() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-0 flex-1">
-          <div className="flex min-h-0 flex-1 flex-col border-r">
+        <div className="flex min-h-0 flex-1 bg-muted/10">
+          <div className="flex min-h-0 flex-1 flex-col">
             <MessageListSkeleton />
-            <div className="border-t px-4 py-6 text-muted-foreground text-sm">
-              Preparing composer…
+            <div className="border-t bg-background px-4 py-6 text-center text-muted-foreground text-sm">
+              Preparing message composer.
             </div>
           </div>
-          <div className="hidden h-full w-96 border-l bg-background lg:block" />
+          <div className="hidden h-full w-96 border-l bg-background/50 backdrop-blur-sm lg:block" />
         </div>
       }
     >
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 bg-muted/10">
         <Outlet />
         <MessageThreadSidebar channelId={id} />
         <PinnedMessagesSidebar channelId={id} />

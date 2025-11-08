@@ -1,8 +1,8 @@
 import { useParams } from "@tanstack/react-router";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMessageList } from "@/stores/message-list-store";
 import { cn } from "@/lib/utils";
+import { useMessageList } from "@/stores/message-list-store";
 import { EmptyState } from "./empty-state";
 import { MessageItem } from "./message-item";
 
@@ -40,16 +40,26 @@ export function MessageList({ className }: { className?: string }) {
 
   if (!hasMessages) {
     return (
-      <div className={cn("flex-1 overflow-hidden bg-background", className)}>
+      <div
+        className={cn(
+          "flex-1 overflow-hidden bg-linear-to-b from-background via-background to-muted/10",
+          className
+        )}
+      >
         <EmptyState />
       </div>
     );
   }
 
   return (
-    <div className={cn("flex-1 overflow-hidden bg-background", className)}>
+    <div
+      className={cn(
+        "flex-1 overflow-hidden bg-linear-to-b from-background via-background to-muted/10",
+        className
+      )}
+    >
       <ScrollArea className="h-full">
-        <div className="flex flex-col gap-1.5 py-3 sm:px-4">
+        <div className="flex flex-col gap-4 py-4 sm:px-4">
           {orderedMessages.map((message) => (
             <MessageItem key={message.id} message={message} />
           ))}

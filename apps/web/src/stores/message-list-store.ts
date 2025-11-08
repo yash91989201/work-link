@@ -1,7 +1,7 @@
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
 import { useMemo } from "react";
-import { create } from "zustand";
 import { toast } from "sonner";
+import { create } from "zustand";
 import { useMessages } from "@/hooks/communications/use-messages";
 import { useMessagesOld } from "@/hooks/communications/use-messages-old";
 
