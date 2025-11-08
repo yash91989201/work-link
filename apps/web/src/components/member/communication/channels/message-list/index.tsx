@@ -30,6 +30,12 @@ export function MessageList({ className }: { className?: string }) {
 
   const virtualItems = virtualizer.getVirtualItems();
 
+  // Reset scroll helpers when switching channels so each thread re-inits cleanly
+  useEffect(() => {
+    isInitialMount.current = true;
+    previousScrollHeight.current = 0;
+  }, [channelId]);
+
   // Scroll to bottom on initial load
   useEffect(() => {
     if (isInitialMount.current && orderedMessages.length > 0) {
@@ -57,7 +63,7 @@ export function MessageList({ className }: { className?: string }) {
         }, 100);
       }
     }
-  }, [orderedMessages.length]);
+  }, [orderedMessages.length, channelId]);
 
   // Load more when scrolling near the top
   useEffect(() => {
