@@ -8,31 +8,46 @@ import { PinnedMessagesSidebar } from "@/components/member/communication/channel
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id"
 )({
+  beforeLoad: ({ context: { queryClient, queryUtils }, params }) => {
+    queryClient.prefetchQuery(
+      queryUtils.communication.channel.get.queryOptions({
+        input: { channelId: params.id },
+      })
+    );
+
+    queryClient.prefetchQuery(
+      queryUtils.communication.channel.listMembers.queryOptions({
+        input: {
+          channelId: params.id,
+        },
+      })
+    );
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const { id } = Route.useParams();
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-0 flex-1 bg-muted/10">
-          <div className="flex min-h-0 flex-1 flex-col">
-            <MessageListSkeleton />
-            <div className="border-t bg-background px-4 py-6 text-center text-muted-foreground text-sm">
-              Preparing message composer.
+    <div className="flex min-h-0 flex-1 bg-muted/10">
+      <Suspense
+        fallback={
+          <div className="flex min-h-0 flex-1 bg-muted/10">
+            <div className="flex min-h-0 flex-1 flex-col">
+              <MessageListSkeleton />
+              <div className="border-t bg-background px-4 py-6 text-center text-muted-foreground text-sm">
+                Preparing message composer.
+              </div>
             </div>
+            <div className="hidden h-full w-96 border-l bg-background/50 backdrop-blur-sm lg:block" />
           </div>
-          <div className="hidden h-full w-96 border-l bg-background/50 backdrop-blur-sm lg:block" />
-        </div>
-      }
-    >
-      <div className="flex min-h-0 flex-1 bg-muted/10">
+        }
+      >
         <Outlet />
-        <MessageThreadSidebar channelId={id} />
-        <PinnedMessagesSidebar channelId={id} />
-        <ChannelInfoSidebar channelId={id} />
-      </div>
-    </Suspense>
+      </Suspense>
+      <MessageThreadSidebar channelId={id} />
+      <PinnedMessagesSidebar channelId={id} />
+      <ChannelInfoSidebar channelId={id} />
+    </div>
   );
 }
