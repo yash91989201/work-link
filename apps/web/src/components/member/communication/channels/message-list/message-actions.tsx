@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { cn } from "@/lib/utils";
+import { ReactionPicker } from "./reaction-picker";
 
 interface MessageActionsProps {
   messageId: string;
@@ -18,6 +19,7 @@ interface MessageActionsProps {
   onReply: () => void;
   onDelete: () => void;
   onPin?: () => void;
+  onReact?: (emoji: string) => void;
   isDeleting?: boolean;
   isPinning?: boolean;
 }
@@ -30,6 +32,7 @@ export function MessageActions({
   onReply,
   onDelete,
   onPin,
+  onReact,
   isDeleting,
   isPinning,
 }: MessageActionsProps) {
@@ -39,6 +42,17 @@ export function MessageActions({
 
   return (
     <div className="pointer-events-none absolute top-2 right-3 z-10 flex items-center gap-0.5 rounded-lg border bg-popover/95 p-1 opacity-0 shadow-md backdrop-blur transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 supports-backdrop-filter:bg-popover/75">
+      {onReact && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <ReactionPicker onSelectEmoji={onReact} />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>Add reaction</TooltipContent>
+        </Tooltip>
+      )}
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

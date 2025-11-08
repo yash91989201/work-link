@@ -20,6 +20,7 @@ import { protectedProcedure } from "@/index";
 import { generateTxId } from "@/lib/electric-proxy";
 import { SuccessOutput } from "@/lib/schemas/channel";
 import {
+  AddReactionInput,
   CreateMessageInput,
   CreateMessageOutput,
   DeleteMessageInput,
@@ -34,6 +35,7 @@ import {
   GetUnreadCountInput,
   PinMessageInput,
   PinMessageOutput,
+  RemoveReactionInput,
   SearchMessageOutput,
   SearchMessagesInput,
   SearchUsersInput,
@@ -518,5 +520,80 @@ export const messageRouter = {
       });
 
       return users;
+    }),
+
+  addReaction: protectedProcedure
+    .input(AddReactionInput)
+    .output(SuccessOutput)
+    .handler(async ({ context, input }) => {
+      const { db, session } = context;
+      const userId = session.user.id;
+
+      const message = await db.query.messageTable.findFirst({
+        where: eq(messageTable.id, input.messageId),
+        columns: { id: true, reactions: true },
+      });
+
+      if (!message) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Message not found.",
+        });
+      }
+
+      const reactions = message.reactions || [];
+      const reactionIndex = reactions.findIndex(
+        (r) => r.reaction === input.emoji && r.userId === userId
+      );
+
+      if (reactionIndex === -1) {
+        reactions.push({
+          reaction: input.emoji,
+          userId,
+          createdAt: new Date().toISOString(),
+        });
+
+        await db
+          .update(messageTable)
+          .set({ reactions })
+          .where(eq(messageTable.id, input.messageId));
+      }
+
+      return {
+        success: true,
+        message: "Reaction added successfully.",
+      };
+    }),
+
+  removeReaction: protectedProcedure
+    .input(RemoveReactionInput)
+    .output(SuccessOutput)
+    .handler(async ({ context, input }) => {
+      const { db, session } = context;
+      const userId = session.user.id;
+
+      const message = await db.query.messageTable.findFirst({
+        where: eq(messageTable.id, input.messageId),
+        columns: { id: true, reactions: true },
+      });
+
+      if (!message) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Message not found.",
+        });
+      }
+
+      const reactions = (message.reactions || []).filter(
+        (r) => !(r.reaction === input.emoji && r.userId === userId)
+      );
+
+      await db
+        .update(messageTable)
+        .set({ reactions })
+        .where(eq(messageTable.id, input.messageId));
+
+      return {
+        success: true,
+        message: "Reaction removed successfully.",
+      };
     }),
 };

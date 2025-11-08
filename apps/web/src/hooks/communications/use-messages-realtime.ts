@@ -188,6 +188,86 @@ export function useMessagesRealtime(options: UseMessagesRealtimeOptions) {
       );
     });
 
+    channel.on("broadcast", { event: "reaction-added" }, (payload) => {
+      const { messageId, emoji, userId } = payload.payload as {
+        messageId: string;
+        emoji: string;
+        userId: string;
+      };
+
+      queryClient.setQueryData(
+        queryUtils.communication.message.getChannelMessages.queryKey({
+          input: {
+            channelId,
+          },
+        }),
+        (old) => {
+          if (!old) return;
+          const updatedMessages = old.messages.map((message) => {
+            if (message.id !== messageId) return message;
+
+            const reactions = message.reactions || [];
+            const existingReaction = reactions.find(
+              (r) => r.reaction === emoji && r.userId === userId
+            );
+
+            if (existingReaction) return message;
+
+            return {
+              ...message,
+              reactions: [
+                ...reactions,
+                {
+                  reaction: emoji,
+                  userId,
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+            };
+          });
+          return {
+            ...old,
+            messages: updatedMessages,
+          };
+        }
+      );
+    });
+
+    channel.on("broadcast", { event: "reaction-removed" }, (payload) => {
+      const { messageId, emoji, userId } = payload.payload as {
+        messageId: string;
+        emoji: string;
+        userId: string;
+      };
+
+      queryClient.setQueryData(
+        queryUtils.communication.message.getChannelMessages.queryKey({
+          input: {
+            channelId,
+          },
+        }),
+        (old) => {
+          if (!old) return;
+          const updatedMessages = old.messages.map((message) => {
+            if (message.id !== messageId) return message;
+
+            const reactions = (message.reactions || []).filter(
+              (r) => !(r.reaction === emoji && r.userId === userId)
+            );
+
+            return {
+              ...message,
+              reactions,
+            };
+          });
+          return {
+            ...old,
+            messages: updatedMessages,
+          };
+        }
+      );
+    });
+
     channel.on(
       "postgres_changes",
       {

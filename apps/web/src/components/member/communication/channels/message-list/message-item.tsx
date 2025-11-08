@@ -1,19 +1,21 @@
+import { useParams } from "@tanstack/react-router";
 import { CornerUpLeft } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { useParams } from "@tanstack/react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useMessageItem } from "@/hooks/communications/use-message-item";
+import { useReactionMutations } from "@/hooks/communications/use-reaction-mutations";
+import { cn } from "@/lib/utils";
 import type { MessageWithParent } from "@/stores/message-list-store";
 import {
   useMessageList,
   useMessageListActions,
 } from "@/stores/message-list-store";
-import { useMessageItem } from "@/hooks/communications/use-message-item";
-import { cn } from "@/lib/utils";
 import { formatMessageDate } from "@/utils/message-utils";
 import { MaximizedMessageComposer } from "../message-composer/maximized-message-composer";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
+import { MessageReactions } from "./message-reactions";
 import { MessageThreadPreview } from "./message-thread-preview";
 
 interface MessageItemProps {
@@ -43,6 +45,22 @@ export function MessageItem({
     messageId: message.id,
     isPinned: message.isPinned,
   });
+
+  const { addReaction, removeReaction } = useReactionMutations({ channelId });
+
+  const handleReact = useCallback(
+    (emoji: string) => {
+      addReaction({ messageId: message.id, emoji });
+    },
+    [addReaction, message.id]
+  );
+
+  const handleReactionClick = useCallback(
+    (emoji: string) => {
+      removeReaction({ messageId: message.id, emoji });
+    },
+    [removeReaction, message.id]
+  );
 
   const handleEditDialog = useCallback(() => {
     setShowEditDialog(true);
@@ -182,6 +200,13 @@ export function MessageItem({
         <MessageContent message={message} />
       </div>
 
+      {/* Reactions */}
+      <MessageReactions
+        onAddReaction={handleReact}
+        onRemoveReaction={handleReactionClick}
+        reactions={message.reactions || []}
+      />
+
       {/* Action buttons */}
       <MessageActions
         isDeleting={isDeleting}
@@ -192,6 +217,7 @@ export function MessageItem({
         onDelete={handleDelete}
         onEdit={handleEditDialog}
         onPin={handlePin}
+        onReact={handleReact}
         onReply={handleReplyClick}
         senderId={message.senderId}
       />
