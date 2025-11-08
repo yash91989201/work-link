@@ -94,7 +94,7 @@ export function MessageReactions({
             <TooltipTrigger asChild>
               <Button
                 className={cn(
-                  "h-auto gap-1 rounded-full px-2 py-0.5 text-xs",
+                  "gap-1.5 rounded-full px-2 py-0.5 text-xs",
                   reaction.hasCurrentUser
                     ? "border-primary/50 bg-primary/10 hover:bg-primary/20"
                     : "bg-background hover:bg-muted"

@@ -34,25 +34,13 @@ export function MessageList({ className }: { className?: string }) {
   useEffect(() => {
     isInitialMount.current = true;
     previousScrollHeight.current = 0;
-  }, [channelId]);
+  }, []);
 
   // Scroll to bottom on initial load
   useEffect(() => {
     if (isInitialMount.current && orderedMessages.length > 0) {
       const scrollElement = parentRef.current;
       if (scrollElement) {
-        console.log(
-          `[MessageList] Initial load: ${orderedMessages.length} messages`
-        );
-        console.log(
-          "[MessageList] First message date:",
-          orderedMessages[0]?.createdAt
-        );
-        console.log(
-          "[MessageList] Last message date:",
-          orderedMessages[orderedMessages.length - 1]?.createdAt
-        );
-
         // Use a small delay to ensure DOM is rendered
         setTimeout(() => {
           scrollElement.scrollTop = scrollElement.scrollHeight;
@@ -63,7 +51,7 @@ export function MessageList({ className }: { className?: string }) {
         }, 100);
       }
     }
-  }, [orderedMessages.length, channelId]);
+  }, [orderedMessages.length]);
 
   // Load more when scrolling near the top
   useEffect(() => {

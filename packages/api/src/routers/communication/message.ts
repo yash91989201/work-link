@@ -274,52 +274,52 @@ export const messageRouter = {
         await tx.execute(sql`
           WITH RECURSIVE message_tree AS (
             -- Start with the root message to delete
-            SELECT id, parent_message_id, 1 as depth
+            SELECT id, "parentMessageId", 1 as depth
             FROM message
             WHERE id = ${input.messageId}
             
             UNION ALL
             
             -- Find all child message recursively
-            SELECT m.id, m.parent_message_id, mt.depth + 1
+            SELECT m.id, m."parentMessageId", mt.depth + 1
             FROM message m
-            INNER JOIN message_tree mt ON m.parent_message_id = mt.id
-            WHERE m.is_deleted = false
+            INNER JOIN message_tree mt ON m."parentMessageId" = mt.id
+            WHERE m."isDeleted" = false
           )
           UPDATE message 
           SET 
-            is_deleted = true, 
-            deleted_at = NOW(),
+            "isDeleted" = true, 
+            "deletedAt" = NOW(),
             -- Clear thread information for deleted message
-            thread_count = 0
+            "threadCount" = 0
           WHERE id IN (SELECT id FROM message_tree)
         `);
 
         // update parent message thread counts
         await tx.execute(sql`
           UPDATE message
-          SET thread_count = (
+          SET "threadCount" = (
             SELECT COUNT(*) 
             FROM message
-            WHERE parent_message_id = message.id AND is_deleted = false
+            WHERE "parentMessageId" = message.id AND "isDeleted" = false
           )
           WHERE id IN (
-            SELECT DISTINCT parent_message_id 
+            SELECT DISTINCT "parentMessageId" 
             FROM message
-            WHERE parent_message_id IS NOT NULL 
+            WHERE "parentMessageId" IS NOT NULL 
             AND id IN (SELECT id FROM (
               WITH RECURSIVE message_tree AS (
-                SELECT id, parent_message_id
+                SELECT id, "parentMessageId"
                 FROM message
                 WHERE id = ${input.messageId}
                 UNION ALL
-                SELECT m.id, m.parent_message_id
+                SELECT m.id, m."parentMessageId"
                 FROM message m
-                INNER JOIN message_tree mt ON m.parent_message_id = mt.id
+                INNER JOIN message_tree mt ON m."parentMessageId" = mt.id
               )
-              SELECT parent_message_id 
+              SELECT "parentMessageId" 
               FROM message_tree 
-              WHERE parent_message_id IS NOT NULL
+              WHERE "parentMessageId" IS NOT NULL
             ) AS parent_ids)
           )
         `);

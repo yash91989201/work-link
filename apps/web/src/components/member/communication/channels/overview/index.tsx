@@ -20,6 +20,7 @@ import {
 import { queryUtils } from "@/utils/orpc";
 import { CreateChannelForm } from "../create-channel-form";
 import { ChannelTips } from "./tips";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export const ChannelsOverview = () => {
   const { data: channelListData } = useSuspenseQuery(
@@ -48,6 +49,7 @@ const RecentChannels = ({ channels }: ListChannelsOutputType) => {
   if (channels.length === 0) {
     return (
       <div>
+        <SidebarTrigger />
         <h2 className="mb-4 font-semibold text-2xl">Recent Channels</h2>
         <Card>
           <CardContent className="p-6 text-center">
@@ -65,6 +67,7 @@ const RecentChannels = ({ channels }: ListChannelsOutputType) => {
 
   return (
     <div data-channels-list>
+      <SidebarTrigger />
       <h2 className="mb-4 font-semibold text-2xl">Recent Channels</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {channels.map((channel) => (
