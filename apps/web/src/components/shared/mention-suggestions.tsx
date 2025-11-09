@@ -18,6 +18,7 @@ type MentionSuggestionsProps = {
   isLoading?: boolean;
   selectedIndex?: number;
   ref?: React.Ref<HTMLDivElement>;
+  currentUserId?: string;
 };
 
 export const MentionSuggestions = ({
@@ -28,6 +29,7 @@ export const MentionSuggestions = ({
   isLoading = false,
   selectedIndex = 0,
   ref,
+  currentUserId,
 }: MentionSuggestionsProps) => {
   const handleSelect = (mention: Mention) => {
     onSelect(mention);
@@ -36,6 +38,10 @@ export const MentionSuggestions = ({
   if (!isVisible) {
     return null;
   }
+
+  const filteredUsers = currentUserId
+    ? users.filter((user) => user.id !== currentUserId)
+    : users;
 
   const renderContent = () => {
     if (isLoading) {
@@ -46,7 +52,7 @@ export const MentionSuggestions = ({
       );
     }
 
-    if (users.length === 0) {
+    if (filteredUsers.length === 0) {
       return (
         <Command.Empty className="py-6 text-center text-sm">
           {query.trim() ? "No users found." : "Type to search users..."}
@@ -54,7 +60,7 @@ export const MentionSuggestions = ({
       );
     }
 
-    return users.map((user, index) => (
+    return filteredUsers.map((user, index) => (
       <Command.Item
         className={cn(
           "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",

@@ -79,13 +79,13 @@ export function MessageComposer({
             limit: 10,
           });
 
-        return users;
+        return users.filter((su) => su.id !== user.id);
       } catch (error) {
         console.error("Error fetching mention users:", error);
         return [];
       }
     },
-    [channelId]
+    [channelId, user.id]
   );
 
   const handleTypingBroadcast = useCallback(

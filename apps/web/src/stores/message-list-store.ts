@@ -16,9 +16,16 @@ interface ThreadState {
   composerFocusKey: number;
 }
 
+interface MentionState {
+  messageId: string | null;
+  shouldPlaySound: boolean;
+}
+
 interface MessageListState {
   threadState: ThreadState;
+  mentionState: MentionState;
   isPinnedMessagesSidebarOpen: boolean;
+  isMentionSidebarOpen: boolean;
   openThread: (
     message: MessageWithParent,
     options?: { focusComposer?: boolean }
@@ -27,6 +34,10 @@ interface MessageListState {
   acknowledgeThreadComposerFocus: () => void;
   openPinnedMessagesSidebar: () => void;
   closePinnedMessagesSidebar: () => void;
+  openMentionSidebar: (messageId: string) => void;
+  closeMentionSidebar: () => void;
+  acknowledgeMentionSound: () => void;
+  setMentionMessage: (messageId: string) => void;
 }
 
 const useMessageListStore = create<MessageListState>((set) => ({
@@ -36,7 +47,12 @@ const useMessageListStore = create<MessageListState>((set) => ({
     shouldFocusComposer: false,
     composerFocusKey: 0,
   },
+  mentionState: {
+    messageId: null,
+    shouldPlaySound: false,
+  },
   isPinnedMessagesSidebarOpen: false,
+  isMentionSidebarOpen: false,
 
   openThread: (message, options) => {
     const parentMessageId = message.parentMessage?.id ?? message.id;
@@ -48,6 +64,8 @@ const useMessageListStore = create<MessageListState>((set) => ({
         shouldFocusComposer: Boolean(options?.focusComposer),
         composerFocusKey,
       },
+      // Close mention sidebar when opening thread
+      isMentionSidebarOpen: false,
     });
   },
 
@@ -77,6 +95,44 @@ const useMessageListStore = create<MessageListState>((set) => ({
   closePinnedMessagesSidebar: () => {
     set({ isPinnedMessagesSidebarOpen: false });
   },
+
+  openMentionSidebar: (messageId) => {
+    set({
+      isMentionSidebarOpen: true,
+      mentionState: {
+        messageId,
+        shouldPlaySound: true,
+      },
+    });
+  },
+
+  closeMentionSidebar: () => {
+    set({
+      isMentionSidebarOpen: false,
+      mentionState: {
+        messageId: null,
+        shouldPlaySound: false,
+      },
+    });
+  },
+
+  acknowledgeMentionSound: () => {
+    set((state) => ({
+      mentionState: {
+        ...state.mentionState,
+        shouldPlaySound: false,
+      },
+    }));
+  },
+
+  setMentionMessage: (messageId) => {
+    set((state) => ({
+      mentionState: {
+        messageId,
+        shouldPlaySound: false,
+      },
+    }));
+  },
 }));
 
 export function useMessageList(channelId: string) {
@@ -96,6 +152,10 @@ export function useMessageList(channelId: string) {
   } = useMessagesOld(channelId);
 
   const threadState = useMessageListStore((state) => state.threadState);
+  const mentionState = useMessageListStore((state) => state.mentionState);
+  const isMentionSidebarOpen = useMessageListStore(
+    (state) => state.isMentionSidebarOpen
+  );
 
   const orderedMessages = useMemo<MessageWithParent[]>(
     () =>
@@ -123,6 +183,14 @@ export function useMessageList(channelId: string) {
         message.parentMessageId === threadState.parentMessageId
     );
   }, [orderedMessages, threadState.parentMessageId]);
+
+  const mentionMessage = useMemo(() => {
+    if (!mentionState.messageId) return null;
+
+    return (
+      messages.find((message) => message.id === mentionState.messageId) ?? null
+    );
+  }, [messages, mentionState.messageId]);
 
   const handleDelete = async (messageId: string) => {
     try {
@@ -175,6 +243,9 @@ export function useMessageList(channelId: string) {
     isThreadSidebarOpen: Boolean(threadState.parentMessageId),
     threadComposerFocusKey: threadState.composerFocusKey,
     shouldFocusThreadComposer: threadState.shouldFocusComposer,
+    isMentionSidebarOpen,
+    mentionMessage,
+    shouldPlayMentionSound: mentionState.shouldPlaySound,
     handleDelete,
     handleEdit,
     handlePin,
@@ -202,6 +273,18 @@ export function useMessageListActions() {
   const closePinnedMessagesSidebar = useMessageListStore(
     (state) => state.closePinnedMessagesSidebar
   );
+  const openMentionSidebar = useMessageListStore(
+    (state) => state.openMentionSidebar
+  );
+  const closeMentionSidebar = useMessageListStore(
+    (state) => state.closeMentionSidebar
+  );
+  const acknowledgeMentionSound = useMessageListStore(
+    (state) => state.acknowledgeMentionSound
+  );
+  const setMentionMessage = useMessageListStore(
+    (state) => state.setMentionMessage
+  );
 
   return {
     openThread,
@@ -209,6 +292,10 @@ export function useMessageListActions() {
     acknowledgeThreadComposerFocus,
     openPinnedMessagesSidebar,
     closePinnedMessagesSidebar,
+    openMentionSidebar,
+    closeMentionSidebar,
+    acknowledgeMentionSound,
+    setMentionMessage,
   };
 }
 
@@ -230,4 +317,4 @@ export function usePinnedMessagesSidebar() {
   };
 }
 
-export type { ThreadState };
+export type { ThreadState, MentionState };

@@ -369,6 +369,11 @@ body {
   @apply underline;
 }
 
+.ProseMirror a {
+  @apply text-primary underline transition-colors hover:text-primary/80;
+  @apply cursor-pointer;
+}
+
 .ProseMirror .mention {
   @apply inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 font-medium text-primary;
   @apply cursor-pointer transition-colors hover:bg-primary/20;

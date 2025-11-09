@@ -2,6 +2,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { ChannelInfoSidebar } from "@/components/member/communication/channels/channel-info-sidebar";
 import { MessageListSkeleton } from "@/components/member/communication/channels/message-list";
+import { MessageMentionSidebar } from "@/components/member/communication/channels/message-mention-sidebar";
 import { MessageThreadSidebar } from "@/components/member/communication/channels/message-thread-sidebar";
 import { PinnedMessagesSidebar } from "@/components/member/communication/channels/pinned-messages-sidebar";
 
@@ -46,6 +47,7 @@ function RouteComponent() {
         <Outlet />
       </Suspense>
       <MessageThreadSidebar channelId={id} />
+      <MessageMentionSidebar channelId={id} />
       <PinnedMessagesSidebar channelId={id} />
       <ChannelInfoSidebar channelId={id} />
     </div>

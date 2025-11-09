@@ -4,6 +4,7 @@ import { CornerUpLeft } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMentionDetection } from "@/hooks/communications/use-mention-detection";
 import { cn } from "@/lib/utils";
 import { useMessageList } from "@/stores/message-list-store";
 import { EmptyState } from "./empty-state";
@@ -15,6 +16,8 @@ export function MessageList({ className }: { className?: string }) {
   });
   const { orderedMessages, messagesEndRef, hasMore, loadMore } =
     useMessageList(channelId);
+
+  useMentionDetection({ messages: orderedMessages, channelId });
 
   const parentRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
