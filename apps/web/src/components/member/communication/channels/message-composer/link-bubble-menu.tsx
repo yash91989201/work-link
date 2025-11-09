@@ -1,16 +1,18 @@
 import type { Editor } from "@tiptap/core";
-import { ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, ExternalLink, Pencil, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface LinkBubbleMenuProps {
   editor: Editor;
@@ -19,7 +21,7 @@ interface LinkBubbleMenuProps {
 export function LinkBubbleMenu({ editor }: LinkBubbleMenuProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditPopoverOpen, setIsEditPopoverOpen] = useState(false);
   const [editUrl, setEditUrl] = useState("");
   const [currentUrl, setCurrentUrl] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
@@ -59,15 +61,15 @@ export function LinkBubbleMenu({ editor }: LinkBubbleMenuProps) {
 
   useEffect(() => {
     const handleUpdate = () => {
-      // Don't update position when dialog is open
-      if (!isEditDialogOpen) {
+      // Don't update position when popover is open
+      if (!isEditPopoverOpen) {
         updatePosition();
       }
     };
 
     const handleClickOutside = (e: MouseEvent) => {
-      // Don't close menu if clicking in dialog
-      if (isEditDialogOpen) return;
+      // Don't close menu if clicking in popover
+      if (isEditPopoverOpen) return;
       
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         const { view } = editor;
@@ -88,12 +90,7 @@ export function LinkBubbleMenu({ editor }: LinkBubbleMenuProps) {
       editor.off("focus", handleUpdate);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [editor, updatePosition, isEditDialogOpen]);
-
-  const handleEditLink = useCallback(() => {
-    setEditUrl(currentUrl || "");
-    setIsEditDialogOpen(true);
-  }, [currentUrl]);
+  }, [editor, updatePosition, isEditPopoverOpen]);
 
   const handleSaveEdit = useCallback(() => {
     if (editUrl) {
@@ -105,14 +102,14 @@ export function LinkBubbleMenu({ editor }: LinkBubbleMenuProps) {
         .run();
       setCurrentUrl(editUrl);
     }
-    setIsEditDialogOpen(false);
+    setIsEditPopoverOpen(false);
     setEditUrl("");
   }, [editor, editUrl]);
 
   const handleRemoveLink = useCallback(() => {
     editor.chain().focus().extendMarkRange("link").unsetLink().run();
     setIsVisible(false);
-    setIsEditDialogOpen(false);
+    setIsEditPopoverOpen(false);
   }, [editor]);
 
   const handleOpenLink = useCallback(
@@ -128,90 +125,99 @@ export function LinkBubbleMenu({ editor }: LinkBubbleMenuProps) {
 
   const handleCancelEdit = useCallback(() => {
     setEditUrl("");
-    setIsEditDialogOpen(false);
+    setIsEditPopoverOpen(false);
   }, []);
 
   if (!isVisible) return null;
 
   return (
-    <>
-      <div
-        className="absolute z-50"
-        ref={menuRef}
-        style={{
-          top: `${position.top}px`,
-          left: `${position.left}px`,
-        }}
-      >
-        <div className="flex items-center overflow-hidden rounded-lg border bg-background shadow-lg">
-          <Button
-            className="h-9 rounded-none border-r"
-            onClick={handleOpenLink}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-          <Button
-            className="h-9 rounded-none border-r"
-            onClick={handleEditLink}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            className="h-9 rounded-none"
-            onClick={handleRemoveLink}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      <Dialog onOpenChange={setIsEditDialogOpen} open={isEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Link</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-url">URL</Label>
-              <Input
+    <div
+      className="absolute z-50"
+      ref={menuRef}
+      style={{
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+      }}
+    >
+      <div className="flex items-center overflow-hidden rounded-lg border bg-background shadow-lg">
+        <Button
+          className="h-9 rounded-none border-r"
+          onClick={handleOpenLink}
+          size="sm"
+          title="Open link"
+          type="button"
+          variant="ghost"
+        >
+          <ExternalLink className="h-4 w-4" />
+        </Button>
+        <Popover onOpenChange={setIsEditPopoverOpen} open={isEditPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              className="h-9 rounded-none border-r"
+              onClick={() => {
+                setEditUrl(currentUrl || "");
+                setIsEditPopoverOpen(true);
+              }}
+              size="sm"
+              title="Edit link"
+              type="button"
+              variant="ghost"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-80 p-2">
+            <InputGroup>
+              <InputGroupInput
                 autoFocus
-                id="edit-url"
                 onChange={(e) => setEditUrl(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
                     handleSaveEdit();
                   }
+                  if (e.key === "Escape") {
+                    handleCancelEdit();
+                  }
                 }}
                 placeholder="https://example.com"
                 type="url"
                 value={editUrl}
               />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              onClick={handleCancelEdit}
-              type="button"
-              variant="outline"
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEdit} type="button">
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  onClick={handleCancelEdit}
+                  size="icon-xs"
+                  title="Cancel"
+                  type="button"
+                  variant="ghost"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </InputGroupButton>
+                <InputGroupButton
+                  onClick={handleSaveEdit}
+                  size="icon-xs"
+                  title="Save"
+                  type="button"
+                  variant="ghost"
+                >
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </PopoverContent>
+        </Popover>
+        <Button
+          className="h-9 rounded-none"
+          onClick={handleRemoveLink}
+          size="sm"
+          title="Remove link"
+          type="button"
+          variant="ghost"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
   );
 }

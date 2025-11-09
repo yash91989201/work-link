@@ -2,8 +2,8 @@ import type { MessageWithSenderType } from "@work-link/api/lib/types";
 import type { UserType } from "@work-link/db/lib/types";
 import DOMPurify from "dompurify";
 import parse from "html-react-parser";
-import { Download, FileIcon, Maximize2, Pause, Play } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Download, FileIcon, Maximize2 } from "lucide-react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 interface MessageContentProps {
@@ -30,82 +30,32 @@ function formatFileSize(bytes: number): string {
 }
 
 function AudioPlayer({ url }: { url: string }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
-    const handleEnded = () => setIsPlaying(false);
-
-    audio.addEventListener("timeupdate", updateTime);
-    audio.addEventListener("loadedmetadata", updateDuration);
-    audio.addEventListener("ended", handleEnded);
-
-    return () => {
-      audio.removeEventListener("timeupdate", updateTime);
-      audio.removeEventListener("loadedmetadata", updateDuration);
-      audio.removeEventListener("ended", handleEnded);
-    };
-  }, []);
-
-  const togglePlayback = () => {
-    if (!audioRef.current) return;
-
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const formatTime = (seconds: number) => {
-    if (!Number.isFinite(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex w-[480px] items-center gap-2 rounded-lg border bg-background p-2.5 shadow-sm">
       {/** biome-ignore lint/a11y/useMediaCaption: <track is not required here> */}
-      <audio className="hidden" ref={audioRef} src={url} />
-      <Button onClick={togglePlayback} size="icon-sm" variant="ghost">
-        {isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
+      <audio className="flex-1" controls ref={audioRef} src={url} />
+      <Button asChild className="shrink-0" size="icon-sm" variant="ghost">
+        <a
+          download
+          href={url}
+          rel="noopener noreferrer"
+          target="_blank"
+          title="Download audio"
+        >
+          <Download className="size-4" />
+        </a>
       </Button>
-      <div className="flex-1">
-        <div className="mb-1 h-1 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full bg-primary transition-all"
-            style={{
-              width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
-            }}
-          />
-        </div>
-        <p className="text-muted-foreground text-xs">
-          {formatTime(currentTime)} / {formatTime(duration)}
-        </p>
-      </div>
     </div>
   );
 }
 
-function VideoPlayer({ url, fileName }: { url: string; fileName: string }) {
+function VideoPlayer({ url }: { url: string }) {
   return (
     <div className="relative max-w-2xl overflow-hidden rounded-lg border shadow-sm">
       {/** biome-ignore lint/a11y/useMediaCaption: <track is not required here> */}
-      <video
-        className="w-full"
-        controls
-        preload="metadata"
-        src={url}
-      >
+      <video className="w-full" controls preload="metadata" src={url}>
         Your browser does not support the video tag.
       </video>
       <div className="absolute top-2 right-2">
@@ -136,7 +86,9 @@ function ImagePreview({ url, fileName }: { url: string; fileName: string }) {
       <img
         alt={fileName}
         className="max-h-96 w-full object-cover"
+        height={100}
         src={url}
+        width={100}
       />
       <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
         <Button
@@ -205,18 +157,12 @@ export function MessageContent({ message }: MessageContentProps) {
           }
 
           if (attachment.type === "video" && attachment.url) {
-            return (
-              <VideoPlayer
-                fileName={attachment.originalName}
-                key={attachment.id}
-                url={attachment.url}
-              />
-            );
+            return <VideoPlayer key={attachment.id} url={attachment.url} />;
           }
 
           return (
             <div
-              className="flex w-fit max-w-sm items-center gap-2 rounded-lg border bg-background p-2.5 shadow-sm transition-colors hover:bg-muted/50"
+              className="flex w-96 max-w-md items-center gap-2 rounded-lg border bg-background p-2.5 shadow-sm transition-colors hover:bg-muted/50"
               key={attachment.id}
             >
               <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10">
@@ -281,13 +227,7 @@ export function MessageContent({ message }: MessageContentProps) {
             }
 
             if (attachment.type === "video" && attachment.url) {
-              return (
-                <VideoPlayer
-                  fileName={attachment.originalName}
-                  key={attachment.id}
-                  url={attachment.url}
-                />
-              );
+              return <VideoPlayer key={attachment.id} url={attachment.url} />;
             }
 
             return (

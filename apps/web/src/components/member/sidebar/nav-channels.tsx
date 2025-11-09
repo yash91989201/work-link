@@ -59,13 +59,8 @@ export function NavChannels({
                   params={{ slug, id: channel.id }}
                   to="/org/$slug/communication/channels/$id"
                 >
-                  <span>
-                    {state === "collapsed" ? (
-                      <Hash className="size-4.5" />
-                    ) : (
-                      channel.name
-                    )}
-                  </span>
+                  <Hash className="size-4.5" />
+                  <span>{state === "expanded" && channel.name}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

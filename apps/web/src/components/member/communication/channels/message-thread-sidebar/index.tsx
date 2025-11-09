@@ -93,7 +93,7 @@ export function MessageThreadSidebar({ channelId }: { channelId: string }) {
       className={cn(
         "flex h-full min-w-0 shrink-0 flex-col overflow-hidden bg-background/95 backdrop-blur-sm transition-[width,opacity] duration-300 ease-in-out supports-backdrop-filter:bg-background/60",
         isThreadSidebarOpen
-          ? "w-full max-w-full border-l opacity-100 shadow-lg sm:w-[560px]"
+          ? "w-full max-w-full border-l opacity-100 shadow-lg sm:w-[640px]"
           : "w-0 max-w-0 opacity-0"
       )}
       data-testid="message-thread-sidebar"

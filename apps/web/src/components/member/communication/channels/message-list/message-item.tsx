@@ -116,13 +116,13 @@ export function MessageItem({
   return (
     <div
       className={cn(
-        "group relative rounded-lg px-4 transition-colors hover:bg-muted/30",
-        message.parentMessageId ? "py-2.5" : "py-2",
+        "group relative rounded-xl px-4 py-3 transition-all hover:bg-muted/40",
         isDeleting && "opacity-50",
-        isThreadRoot && "bg-primary/5 hover:bg-primary/10",
-        isThreadOrigin && "ring-1 ring-primary/40",
+        isThreadRoot &&
+          "bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/10",
+        isThreadOrigin && "shadow-sm ring-2 ring-primary/30",
         message.parentMessageId &&
-          "ml-2 border-primary/20 border-l-2 bg-muted/10 pl-4"
+          "ml-3 border-primary/30 border-l-[3px] bg-linear-to-r from-muted/20 to-transparent pl-4"
       )}
       data-message-id={message.id}
     >
@@ -140,50 +140,52 @@ export function MessageItem({
       {/** biome-ignore lint/a11y/noNoninteractiveElementInteractions: <div elements are required to be interactive because we cannot use button here> */}
       <div
         className={cn(
-          "flex items-center gap-2",
+          "flex items-start gap-3",
           isReply &&
-            "-mx-1 cursor-pointer rounded-md px-1 py-1 transition-colors hover:bg-muted/30"
+            "-mx-1 cursor-pointer rounded-lg px-1 py-1.5 transition-all hover:bg-muted/40"
         )}
         onClick={isReply ? handleViewThread : undefined}
       >
-        <Avatar className="h-10 w-10">
+        <Avatar className="h-10 w-10 ring-2 ring-border/50">
           <AvatarImage
             alt={message.sender.name}
             src={message.sender.image || undefined}
           />
-          <AvatarFallback className="bg-primary/10 font-semibold text-primary">
+          <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/10 font-semibold text-primary">
             {message.sender.name.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <div className="flex flex-1 items-baseline gap-2">
-          <span className="font-semibold text-foreground">
-            {message.sender.name}
-          </span>
-          <span className="text-muted-foreground text-xs">
-            {formatMessageDate(message.createdAt)}
-          </span>
-          {isReply && (
-            <Badge className="text-xs" variant="secondary">
-              <CornerUpLeft className="mr-1 h-3 w-3" />
-              Reply
-            </Badge>
-          )}
-          {message.isEdited && (
-            <Badge className="text-xs" variant="secondary">
-              Edited
-            </Badge>
-          )}
-          {message.isPinned && (
-            <Badge className="text-xs" variant="outline">
-              Pinned
-            </Badge>
-          )}
-          {!message.parentMessageId && (message.threadCount ?? 0) > 0 && (
-            <Badge className="text-xs" variant="secondary">
-              {message.threadCount}{" "}
-              {message.threadCount === 1 ? "reply" : "replies"}
-            </Badge>
-          )}
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-foreground text-sm">
+              {message.sender.name}
+            </span>
+            <span className="text-muted-foreground text-xs">
+              {formatMessageDate(message.createdAt)}
+            </span>
+            {isReply && (
+              <Badge className="h-5 gap-1 text-[11px]" variant="secondary">
+                <CornerUpLeft className="h-3 w-3" />
+                Reply
+              </Badge>
+            )}
+            {message.isEdited && (
+              <Badge className="h-5 text-[11px]" variant="secondary">
+                Edited
+              </Badge>
+            )}
+            {message.isPinned && (
+              <Badge className="h-5 text-[11px]" variant="outline">
+                📌 Pinned
+              </Badge>
+            )}
+            {!message.parentMessageId && (message.threadCount ?? 0) > 0 && (
+              <Badge className="h-5 gap-1 text-[11px]" variant="secondary">
+                💬 {message.threadCount}{" "}
+                {message.threadCount === 1 ? "reply" : "replies"}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
@@ -192,8 +194,9 @@ export function MessageItem({
       {/** biome-ignore lint/a11y/noNoninteractiveElementInteractions: <div elements are required to be interactive because we cannot use button here> */}
       <div
         className={cn(
-          "mt-2 rounded-xl bg-background/80 p-3 shadow-sm ring-1 ring-border/50 backdrop-blur-sm transition-colors",
-          isReply && "cursor-pointer hover:bg-background hover:shadow-md"
+          "mt-2 rounded-2xl bg-linear-to-br from-background/95 to-background/80 p-4 shadow-sm ring-1 ring-border/40 backdrop-blur-sm transition-all",
+          isReply &&
+            "cursor-pointer hover:bg-background hover:shadow-md hover:ring-border/60"
         )}
         onClick={isReply ? handleViewThread : undefined}
       >
@@ -224,12 +227,12 @@ export function MessageItem({
 
       {canShowThreadSummary && (
         <button
-          className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 font-medium text-primary text-xs transition-all hover:bg-primary/20 hover:shadow-sm"
+          className="mt-3 inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary/15 to-primary/10 px-5 py-2 font-medium text-primary text-xs shadow-sm ring-1 ring-primary/20 transition-all hover:from-primary/25 hover:to-primary/20 hover:shadow-md"
           onClick={handleViewThread}
           type="button"
         >
-          View thread
-          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-2 font-semibold text-[11px] text-primary-foreground">
+          <span className="font-semibold">View thread</span>
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-2 font-bold text-[10px] text-primary-foreground shadow-sm">
             {message.threadCount}
           </span>
         </button>

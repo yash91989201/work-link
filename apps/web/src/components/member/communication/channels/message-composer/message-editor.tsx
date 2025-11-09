@@ -8,6 +8,7 @@ import type { Editor } from "@tiptap/react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
+  ArrowRight,
   Bold,
   Code,
   Image as ImageIcon,
@@ -20,6 +21,7 @@ import {
   Strikethrough,
   Trash2,
   UnderlineIcon,
+  X,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Separator } from "@/components/ui/separator";
@@ -34,14 +36,16 @@ import "@/styles/tiptap.css";
 import z from "zod";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { supabase } from "@/lib/supabase";
 
 const URL_REGEX = /^[a-zA-Z]+:\/\//;
@@ -97,6 +101,7 @@ export function MessageEditor({
 
   const editorRef = useRef<Editor | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const linkToggleRef = useRef<HTMLButtonElement>(null);
   const handleImageUploadClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
@@ -257,21 +262,12 @@ export function MessageEditor({
     }
   }, [content, editor]);
 
-  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [isLinkPopoverOpen, setIsLinkPopoverOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
 
   const handleAddLink = useCallback(() => {
-    const { from, to } = editor.state.selection;
-    const text = editor.state.doc.textBetween(from, to, " ");
-
-    if (text) {
-      // User has selected text
-      setIsLinkDialogOpen(true);
-    } else {
-      // No text selected, just show dialog
-      setIsLinkDialogOpen(true);
-    }
-  }, [editor]);
+    setIsLinkPopoverOpen(true);
+  }, []);
 
   const handleSaveLink = useCallback(() => {
     if (linkUrl) {
@@ -303,7 +299,7 @@ export function MessageEditor({
       // Note: Preview will be auto-inserted by AutoLinkPreview extension
 
       setLinkUrl("");
-      setIsLinkDialogOpen(false);
+      setIsLinkPopoverOpen(false);
     }
   }, [editor, linkUrl]);
 
@@ -404,15 +400,64 @@ export function MessageEditor({
         </Toggle>
 
         <Separator className="mx-1 h-6" orientation="vertical" />
-        <Toggle
-          aria-label="Add a link"
-          onPressedChange={handleAddLink}
-          pressed={editor.isActive("link")}
-          size="sm"
-          title="Insert Link (Ctrl+K)"
-        >
-          <LinkIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-        </Toggle>
+        <Popover onOpenChange={setIsLinkPopoverOpen} open={isLinkPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Toggle
+              aria-label="Add a link"
+              onPressedChange={handleAddLink}
+              pressed={editor.isActive("link") || isLinkPopoverOpen}
+              ref={linkToggleRef}
+              size="sm"
+              title="Insert Link (Ctrl+K)"
+            >
+              <LinkIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Toggle>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-80 p-2">
+            <InputGroup>
+              <InputGroupInput
+                autoFocus
+                onChange={(e) => setLinkUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSaveLink();
+                  }
+                  if (e.key === "Escape") {
+                    setLinkUrl("");
+                    setIsLinkPopoverOpen(false);
+                  }
+                }}
+                placeholder="https://example.com"
+                type="url"
+                value={linkUrl}
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  onClick={() => {
+                    setLinkUrl("");
+                    setIsLinkPopoverOpen(false);
+                  }}
+                  size="icon-xs"
+                  title="Cancel"
+                  type="button"
+                  variant="ghost"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </InputGroupButton>
+                <InputGroupButton
+                  onClick={handleSaveLink}
+                  size="icon-xs"
+                  title="Insert Link"
+                  type="button"
+                  variant="ghost"
+                >
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </PopoverContent>
+        </Popover>
 
         <Toggle
           aria-label="Upload image"
@@ -469,48 +514,6 @@ export function MessageEditor({
           editor={editor}
         />
       </div>
-
-      <Dialog onOpenChange={setIsLinkDialogOpen} open={isLinkDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Insert Link</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="link-url">URL</Label>
-              <Input
-                autoFocus
-                id="link-url"
-                onChange={(e) => setLinkUrl(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleSaveLink();
-                  }
-                }}
-                placeholder="https://example.com"
-                type="url"
-                value={linkUrl}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              onClick={() => {
-                setLinkUrl("");
-                setIsLinkDialogOpen(false);
-              }}
-              type="button"
-              variant="outline"
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleSaveLink} type="button">
-              Insert Link
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
