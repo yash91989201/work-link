@@ -1,4 +1,3 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { ChevronDown, RefreshCw, User, Users } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,8 +14,7 @@ import {
   MultiSelect,
   type MultiSelectOption,
 } from "@/components/ui/multi-select";
-import { getAuthQueryKey } from "@/lib/auth/query-keys";
-import { authClient } from "@/lib/auth-client";
+import { useListOrgMembers } from "@/hooks/use-list-org-members";
 import type { CreateChannelFormType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -24,19 +22,9 @@ export const MembersSelect = () => {
   const form = useFormContext<CreateChannelFormType>();
   const channelType = form.watch("type");
 
-  const {
-    data: membersData,
-    refetch: refetchTeamMembers,
-    isRefetching,
-  } = useSuspenseQuery({
-    queryKey: getAuthQueryKey.organization.members("current"),
-    queryFn: async () => {
-      const result = await authClient.organization.listMembers();
-      return result.data?.members || [];
-    },
-  });
+  const { members, refetchTeamMembers, isRefetching } = useListOrgMembers();
 
-  const memberOptions: MultiSelectOption[] = membersData.map((member) => ({
+  const memberOptions: MultiSelectOption[] = members.map((member) => ({
     label: member.user.email,
     value: member.userId,
     icon: () => (

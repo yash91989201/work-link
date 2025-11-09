@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useMutationState,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { Building2, Calendar, MoreHorizontal, Users } from "lucide-react";
 import { CreateTeamForm } from "@/components/admin/team/create-team-form";
 import { Button } from "@/components/ui/button";
@@ -35,16 +31,6 @@ export const TeamList = () => {
       });
     },
   });
-
-  const variables = useMutationState({
-    filters: {
-      mutationKey: queryUtils.admin.team.deleteTeam.mutationKey(),
-      status: "pending",
-    },
-    select: (mutation) => mutation.state.variables,
-  });
-
-  console.log(variables);
 
   if (teams.length === 0) {
     return (

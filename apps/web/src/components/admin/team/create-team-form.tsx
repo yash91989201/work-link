@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { CreateTeamFormSchema } from "@/lib/schemas/admin/team";
 import type { CreateTeamFormType } from "@/lib/types";
+import { queryClient, queryUtils } from "@/utils/orpc";
 
 const baseModules = [
   { id: "communication", name: "Communication" },
@@ -54,6 +55,10 @@ export const CreateTeamForm = () => {
       if (data == null) {
         throw new Error("Failed to create team");
       }
+
+      queryClient.refetchQueries({
+        queryKey: queryUtils.admin.team.deleteTeam.mutationKey(),
+      });
 
       toast.success(`${data.name} team created successfully`);
       form.reset();
