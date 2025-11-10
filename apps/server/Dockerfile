@@ -43,31 +43,16 @@ RUN bun run --cwd packages/db build & \
   bun run --cwd packages/auth build & \
   bun run --cwd packages/api build & \
   wait && \
-  bun run --cwd apps/server build
+  bun run --cwd apps/server compile
 
 FROM oven/bun:1.3.2-slim AS runtime
 WORKDIR /app
 
-COPY --from=deps /app/node_modules /app/node_modules
-COPY --from=deps /app/package.json /app/
-
-COPY --from=builder /app/packages/db/dist /app/packages/db/dist
-COPY --from=builder /app/packages/db/package.json /app/packages/db/
-
-COPY --from=builder /app/packages/auth/dist /app/packages/auth/dist
-COPY --from=builder /app/packages/auth/package.json /app/packages/auth/
-
-COPY --from=builder /app/packages/api/dist /app/packages/api/dist
-COPY --from=builder /app/packages/api/package.json /app/packages/api/
-
-COPY --from=builder /app/apps/server/dist /app/apps/server/dist
-COPY --from=builder /app/apps/server/package.json /app/apps/server/
+COPY --from=builder /app/apps/server/server /app/server
 
 ARG PORT
 ENV PORT=$PORT
 
 EXPOSE $PORT
 
-WORKDIR /app/apps/server
-
-CMD ["bun", "run", "start"]
+CMD ["/app/server"]
