@@ -3,6 +3,7 @@ import type { db } from "@work-link/db";
 import { sql } from "drizzle-orm";
 
 const ELECTRIC_URL = process.env.ELECTRIC_URL ?? "http://localhost:5003";
+const ELECTRIC_SECRET = process.env.ELECTRIC_SECRET ?? "";
 
 /**
  * Prepares the Electric SQL proxy URL from a request URL
@@ -20,6 +21,8 @@ export function prepareElectricUrl(requestUrl: string): URL {
       originUrl.searchParams.set(key, value);
     }
   });
+
+  originUrl.searchParams.set("secret", ELECTRIC_SECRET);
 
   return originUrl;
 }
