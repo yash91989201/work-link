@@ -45,7 +45,7 @@ RUN bun run --cwd packages/db build & \
   wait && \
   bun run --cwd apps/server build
 
-FROM oven/bun:1.3.1-slim AS runtime
+FROM oven/bun:1.3.2-slim AS runtime
 WORKDIR /app
 
 COPY --from=deps /app/node_modules /app/node_modules

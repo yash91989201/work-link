@@ -203,6 +203,7 @@
         "@orpc/openapi": "^1.10.4",
         "@orpc/server": "^1.10.4",
         "@orpc/zod": "^1.10.4",
+        "@supabase/supabase-js": "^2.80.0",
         "@work-link/auth": "workspace:*",
         "@work-link/db": "workspace:*",
         "chokidar": "^4.0.3",
