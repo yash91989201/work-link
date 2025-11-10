@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/noNestedTernary: <Nested ternary is needed> */
 import { Mic, Paperclip, Send, Smile } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
