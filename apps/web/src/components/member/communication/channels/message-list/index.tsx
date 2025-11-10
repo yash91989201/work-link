@@ -1,8 +1,9 @@
 import { useParams } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { CornerUpLeft } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { ArrowDown, CornerUpLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMentionDetection } from "@/hooks/communications/use-mention-detection";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ export function MessageList({ className }: { className?: string }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
   const previousScrollHeight = useRef(0);
+  const [showNewerButton, setShowNewerButton] = useState(false);
 
   const virtualizer = useVirtualizer({
     count: orderedMessages.length,
@@ -89,6 +91,34 @@ export function MessageList({ className }: { className?: string }) {
     }
   }, [orderedMessages.length]);
 
+  // Track scroll position to show "newer messages" button
+  useEffect(() => {
+    const scrollElement = parentRef.current;
+    if (!scrollElement) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+
+      // Show button if scrolled up more than 80vh from bottom
+      const threshold = window.innerHeight * 0.8;
+      setShowNewerButton(distanceFromBottom > threshold);
+    };
+
+    scrollElement.addEventListener("scroll", handleScroll);
+    return () => scrollElement.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToBottom = () => {
+    const scrollElement = parentRef.current;
+    if (scrollElement) {
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  };
+
   const hasMessages = orderedMessages.length > 0;
 
   if (!hasMessages) {
@@ -107,7 +137,7 @@ export function MessageList({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex-1 overflow-hidden bg-linear-to-b from-background via-background to-muted/10",
+        "relative flex-1 overflow-hidden bg-linear-to-b from-background via-background to-muted/10",
         className
       )}
     >
@@ -148,6 +178,20 @@ export function MessageList({ className }: { className?: string }) {
           <div ref={messagesEndRef} />
         </div>
       </div>
+
+      {showNewerButton && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
+          <Button
+            className="pointer-events-auto shadow-lg"
+            onClick={scrollToBottom}
+            size="sm"
+            type="button"
+          >
+            <ArrowDown className="mr-2 h-4 w-4" />
+            Show newer messages
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
