@@ -2,6 +2,8 @@ import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
 import type { db } from "@work-link/db";
 import { sql } from "drizzle-orm";
 
+const ELECTRIC_URL = process.env.ELECTRIC_URL ?? "http://localhost:5003";
+
 /**
  * Prepares the Electric SQL proxy URL from a request URL
  * Copies over Electric-specific query params and adds auth if configured
@@ -10,8 +12,7 @@ import { sql } from "drizzle-orm";
  */
 export function prepareElectricUrl(requestUrl: string): URL {
   const url = new URL(requestUrl);
-  const electricUrl = "http://localhost:5003";
-  const originUrl = new URL(`${electricUrl}/v1/shape`);
+  const originUrl = new URL(`${ELECTRIC_URL}/v1/shape`);
 
   // Copy Electric-specific query params
   url.searchParams.forEach((value, key) => {
