@@ -190,7 +190,8 @@ export function MessageEditor({
         ),
       },
       handleKeyDown: (_, event) => {
-        if (event.key === "Enter" && event.shiftKey) {
+        // Enter sends message, Shift+Enter creates new line
+        if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
           onSubmit();
           return true;

@@ -44,7 +44,6 @@ electricRouter.get("/shapes/messages", requireAuth, async (c) => {
   originUrl.searchParams.set("table", "message");
 
   const res = await sendProxyResponse(c, originUrl);
-  console.log(res.headers);
   return res;
 });
 

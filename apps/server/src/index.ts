@@ -77,4 +77,9 @@ app.use("/*", async (c, next) => {
 
 app.get("/", (c) => c.text("OK"));
 
-export default app;
+export default {
+  fetch: app.fetch,
+  port: env.PORT,
+  // Electric SQL uses long-polling, so we need a longer timeout
+  idleTimeout: 255,
+};
