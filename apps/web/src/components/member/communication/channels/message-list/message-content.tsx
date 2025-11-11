@@ -81,6 +81,23 @@ function VideoPlayer({ url }: { url: string }) {
 }
 
 function ImagePreview({ url, fileName }: { url: string; fileName: string }) {
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Failed to download image:", error);
+    }
+  };
+
   return (
     <div className="group relative max-w-md overflow-hidden rounded-lg border shadow-sm">
       <img
@@ -107,20 +124,13 @@ function ImagePreview({ url, fileName }: { url: string; fileName: string }) {
           </a>
         </Button>
         <Button
-          asChild
           className="bg-background/80 backdrop-blur-sm hover:bg-background"
           size="icon-sm"
           variant="ghost"
+          onClick={handleDownload}
+          title="Download image"
         >
-          <a
-            download
-            href={url}
-            rel="noopener noreferrer"
-            target="_blank"
-            title="Download image"
-          >
-            <Download className="size-4" />
-          </a>
+          <Download className="size-4" />
         </Button>
       </div>
     </div>
