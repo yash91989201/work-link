@@ -28,6 +28,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@t3-oss/env-core": "^0.13.8",
     "dotenv": "^17.2.3",
     "drizzle-cuid2": "^2.1.0",
     "drizzle-orm": "^0.44.7",

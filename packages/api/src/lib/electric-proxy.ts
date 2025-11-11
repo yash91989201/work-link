@@ -1,9 +1,7 @@
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client";
 import type { db } from "@work-link/db";
 import { sql } from "drizzle-orm";
-
-const ELECTRIC_URL = process.env.ELECTRIC_URL ?? "http://localhost:5003";
-const ELECTRIC_SECRET = process.env.ELECTRIC_SECRET ?? "";
+import { env } from "@/env";
 
 /**
  * Prepares the Electric SQL proxy URL from a request URL
@@ -13,16 +11,15 @@ const ELECTRIC_SECRET = process.env.ELECTRIC_SECRET ?? "";
  */
 export function prepareElectricUrl(requestUrl: string): URL {
   const url = new URL(requestUrl);
-  const originUrl = new URL(`${ELECTRIC_URL}/v1/shape`);
+  const originUrl = new URL(`${env.ELECTRIC_URL}/v1/shape`);
 
-  // Copy Electric-specific query params
   url.searchParams.forEach((value, key) => {
     if (ELECTRIC_PROTOCOL_QUERY_PARAMS.includes(key)) {
       originUrl.searchParams.set(key, value);
     }
   });
 
-  originUrl.searchParams.set("secret", ELECTRIC_SECRET);
+  originUrl.searchParams.set("secret", env.ELECTRIC_SECRET);
 
   return originUrl;
 }

@@ -4,6 +4,7 @@ import * as authSchema from "@work-link/db/schema/auth";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
+import { env } from "@/env";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -11,7 +12,7 @@ export const auth = betterAuth({
     schema: authSchema,
     camelCase: true,
   }),
-  trustedOrigins: [process.env.CORS_ORIGIN as string, "work-link://"],
+  trustedOrigins: [...env.CORS_ORIGIN, "work-link://"],
   emailAndPassword: {
     enabled: true,
   },
