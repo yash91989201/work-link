@@ -1,5 +1,5 @@
 import { IconDotsVertical, IconLogout } from "@tabler/icons-react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useActiveOrgSlug } from "@/hooks/use-active-org-slug";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { authClient } from "@/lib/auth-client";
 
@@ -23,6 +24,7 @@ export function NavUser() {
   const navigate = useNavigate();
   const { isMobile } = useSidebar();
   const { user } = useAuthedSession();
+  const slug = useActiveOrgSlug();
 
   const logout = async () => {
     const signOutRes = await authClient.signOut();
@@ -73,8 +75,16 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Account</DropdownMenuItem>
-            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link params={{ slug: slug ?? "" }} to="/org/$slug/account">
+                Account
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link params={{ slug: slug ?? "" }} to="/org/$slug/settings">
+                Settings
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={logout}>
               <IconLogout />
               Log out

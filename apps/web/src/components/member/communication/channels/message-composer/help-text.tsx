@@ -10,7 +10,7 @@ export function HelpText() {
         </p>
         <span>•</span>
         <p className="flex items-center gap-1">
-          <Kbd>Enter</Kbd>
+          <Kbd>Shift+Enter</Kbd>
           new line
         </p>
         <span>•</span>
