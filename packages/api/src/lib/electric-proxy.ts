@@ -32,9 +32,11 @@ export function prepareElectricUrl(requestUrl: string): URL {
 export async function proxyElectricRequest(originUrl: URL): Promise<Response> {
   const response = await fetch(originUrl);
   const headers = new Headers(response.headers);
+
   headers.delete("content-encoding");
   headers.delete("content-length");
   headers.set("vary", "cookie");
+  headers.set("Access-Control-Allow-Origin", env.CORS_ORIGIN[0] ?? "");
 
   return new Response(response.body, {
     status: response.status,
