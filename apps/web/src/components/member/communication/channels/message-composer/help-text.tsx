@@ -5,7 +5,7 @@ export function HelpText() {
     <div className="flex items-center justify-between px-3 text-muted-foreground text-xs">
       <div className="flex items-center gap-3">
         <p className="flex items-center gap-1">
-          <Kbd>Shift+Enter</Kbd>
+          <Kbd>Enter</Kbd>
           to send
         </p>
         <span>•</span>
