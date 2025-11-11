@@ -32,6 +32,7 @@ export function prepareElectricUrl(requestUrl: string): URL {
 export async function proxyElectricRequest(originUrl: URL): Promise<Response> {
   const response = await fetch(originUrl);
   const headers = new Headers(response.headers);
+  console.log(response);
 
   headers.delete("content-encoding");
   headers.delete("content-length");

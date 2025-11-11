@@ -38,12 +38,14 @@ electricRouter.use("*", async (c, next) => {
   await next();
 });
 
-electricRouter.get("/shapes/messages", requireAuth, (c) => {
+electricRouter.get("/shapes/messages", requireAuth, async (c) => {
   const originUrl = prepareElectricUrl(c.req.url);
 
   originUrl.searchParams.set("table", "message");
 
-  return sendProxyResponse(c, originUrl);
+  const res = await sendProxyResponse(c, originUrl);
+  console.log(res.headers);
+  return res;
 });
 
 electricRouter.get("/shapes/users", requireAuth, (c) => {

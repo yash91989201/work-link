@@ -19,7 +19,7 @@ app.use(logger());
 app.use(
   "/*",
   cors({
-    origin: env.CORS_ORIGIN || "",
+    origin: env.CORS_ORIGIN,
     allowMethods: ["GET", "POST", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -27,6 +27,8 @@ app.use(
 );
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+
+app.route("/api/electric", electricRouter);
 
 export const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [
@@ -48,8 +50,6 @@ export const rpcHandler = new RPCHandler(appRouter, {
     }),
   ],
 });
-
-app.route("/api/electric", electricRouter);
 
 app.use("/*", async (c, next) => {
   const context = await createContext({ context: c });
