@@ -87,8 +87,8 @@ const radiusMap: Record<Radius, string> = {
 };
 
 const spacingMap: Record<Spacing, string> = {
-  compact: "0.15rem",
-  cozy: "0.2rem",
+  compact: "0.175rem",
+  cozy: "0.2125rem",
   normal: "0.25rem",
   comfortable: "0.3125rem",
   spacious: "0.375rem",

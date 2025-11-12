@@ -60,11 +60,7 @@ export function useTypingIndicator(channelId: string) {
           typingTimeoutsRef.current.delete(userId);
         }
       })
-      .subscribe((status) => {
-        console.log(
-          `Typing indicator connection status for ${channelId}: ${status}`
-        );
-      });
+      .subscribe();
 
     channelRef.current = channel;
 

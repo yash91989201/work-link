@@ -49,9 +49,6 @@ export function MessageList({ className }: { className?: string }) {
         // Use a small delay to ensure DOM is rendered
         setTimeout(() => {
           scrollElement.scrollTop = scrollElement.scrollHeight;
-          console.log(
-            `[MessageList] Scrolled to bottom: ${scrollElement.scrollHeight}px`
-          );
           isInitialMount.current = false;
         }, 100);
       }
