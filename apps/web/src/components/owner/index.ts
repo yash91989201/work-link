@@ -9,8 +9,6 @@ export { MemberListTable as MemberTable } from "./member-list-table";
 // Member management components
 export { MemberManagement } from "./member-management";
 // Organization overview
-export { OwnerDashboard } from "./owner-dashboard";
-export { RoleChangeDialog } from "./role-change-dialog";
 export { TeamDetailsDialog } from "./team-details-dialog";
 export { TeamList } from "./team-list";
 // Team management components
