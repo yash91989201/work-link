@@ -1,13 +1,11 @@
 import { createORPCClient } from "@orpc/client";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import type { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
   createRootRouteWithContext,
   HeadContent,
   Outlet,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import type { AppRouterClient } from "@work-link/api/routers/index";
 import { useState } from "react";
 import { ThemeProvider } from "@/components/shared/theme-provider";
@@ -26,29 +24,61 @@ export interface RouterAppContext {
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
-  head: () => ({
-    meta: [
-      {
-        title: "Work Link",
-      },
-      {
-        name: "description",
-        content:
-          "Work Link is a lightweight, white-label team collaboration platform with secure channels, user management, and real-time communication tools.",
-      },
-    ],
-    links: [
-      {
-        rel: "icon",
-        href: "/favicon.ico",
-      },
-    ],
-  }),
   beforeLoad: async () => {
     const session = await authClient.getSession();
 
     return {
       session: session.data,
+    };
+  },
+  loader: async () => {
+    const { data } = await authClient.organization.getFullOrganization();
+
+    return {
+      orgLogo: data?.logo ?? undefined,
+      orgName: data?.name ?? undefined,
+    };
+  },
+  head: ({ loaderData }) => {
+    const orgName = loaderData?.orgName ?? "Work Link";
+    const faviconLink =
+      loaderData?.orgLogo === undefined
+        ? {
+            rel: "icon",
+            href: "/favicon.ico",
+          }
+        : {
+            rel: "icon",
+            href: loaderData.orgLogo,
+          };
+
+    return {
+      meta: [
+        {
+          title: orgName,
+        },
+        {
+          name: "description",
+          content:
+            "Work Link is a lightweight, white-label team collaboration platform with secure channels, user management, and real-time communication tools.",
+        },
+      ],
+      links: [
+        faviconLink,
+        {
+          rel: "preconnect",
+          href: "https://fonts.googleapis.com",
+        },
+        {
+          rel: "preconnect",
+          href: "https://fonts.gstatic.com",
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;600;700&family=Lato:wght@300;400;700&family=Poppins:wght@300;400;500;600;700&family=Nunito:wght@300;400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap",
+        },
+      ],
     };
   },
   pendingComponent: () => <FullScreenLoader />,
@@ -71,8 +101,6 @@ function RootComponent() {
         <Outlet />
         <Toaster richColors />
       </ThemeProvider>
-      <TanStackRouterDevtools position="bottom-left" />
-      <ReactQueryDevtools buttonPosition="bottom-right" position="bottom" />
     </>
   );
 }
