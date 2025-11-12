@@ -4,7 +4,6 @@ import {
   channelJoinRequestTable,
   channelMemberTable,
   channelTable,
-  member,
   user as userTable,
 } from "@work-link/db/schema/index";
 import type { SQL } from "drizzle-orm";
@@ -46,21 +45,8 @@ export const channelRouter = {
         });
       }
 
-      const { txId, channel } = await db.transaction(async (tx) => {
-        const txId = await generateTxId(tx);
-        // Verify user is a member of the organization
-        const membership = await tx.query.member.findFirst({
-          where: and(
-            eq(member.organizationId, orgId),
-            eq(member.userId, user.id)
-          ),
-        });
-
-        if (!membership) {
-          throw new ORPCError("FORBIDDEN", {
-            message: "You are not a member of this organization.",
-          });
-        }
+      const { txid, channel } = await db.transaction(async (tx) => {
+        const txid = await generateTxId(tx);
 
         const [channel] = await tx
           .insert(channelTable)
@@ -81,11 +67,13 @@ export const channelRouter = {
 
         await tx.insert(channelMemberTable).values(channelMembers).returning();
 
-        return { txId, channel };
+        return { txid, channel };
       });
 
-      console.log("Created channel with txId:", txId);
-      return channel;
+      return {
+        txid,
+        channel,
+      };
     }),
 
   // Update a channel

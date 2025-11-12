@@ -14,7 +14,10 @@ export const CreateChannelInput = ChannelInsertSchema.extend({
   memberIds: z.array(z.string()).min(1, "At least one member is required"),
 });
 
-export const CreateChannelOutput = ChannelSchema.optional();
+export const CreateChannelOutput = z.object({
+  txid: z.number(),
+  channel: ChannelSchema,
+});
 
 // Update channel input
 export const UpdateChannelInput = z.object({
