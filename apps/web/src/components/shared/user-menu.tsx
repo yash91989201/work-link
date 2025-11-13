@@ -9,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useActiveOrgSlug } from "@/hooks/use-active-org-slug";
 import { useMemberRole } from "@/hooks/use-member-role";
 import { useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
@@ -18,8 +17,6 @@ export default function UserMenu() {
   const navigate = useNavigate();
   const session = useSession();
   const role = useMemberRole();
-
-  const slug = useActiveOrgSlug();
 
   if (!session) {
     return (
@@ -35,22 +32,21 @@ export default function UserMenu() {
         <Button variant="outline">{session.user.name}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="space-y-1.5 bg-card">
-        <DropdownMenuLabel className="space-x-1.5">
-          <span>My Account</span>
-          {role !== null ? <Badge>{role}</Badge> : null}
+        <DropdownMenuLabel className="space-y-1.5">
+          <div className="space-x-1.5">
+            <span>{session.user.name}</span>
+            {role !== null ? <Badge>{role}</Badge> : null}
+          </div>
+          <p className="max-w-[24ch] overflow-hidden text-ellipsis whitespace-nowrap">
+            {session.user.email}
+          </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
-
         <DropdownMenuItem asChild>
-          <Link params={{ slug: slug ?? "" }} to="/org/$slug/account">
-            Account
-          </Link>
+          <Link to="/settings/preferences">Preferences</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link params={{ slug: slug ?? "" }} to="/org/$slug/settings">
-            Settings
-          </Link>
+          <Link to="/settings/account/profile">Profile</Link>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {

@@ -17,10 +17,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { queryUtils } from "@/utils/orpc";
-import { CreateChannelForm } from "../create-channel-form";
-import { ChannelTips } from "./tips";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { queryUtils } from "@/utils/orpc";
+import { ChannelTips } from "./tips";
 
 export const ChannelsOverview = () => {
   const { data: channelListData } = useSuspenseQuery(
@@ -58,7 +57,6 @@ const RecentChannels = ({ channels }: ListChannelsOutputType) => {
             <p className="mb-4 text-muted-foreground">
               Create your first channel to start organizing team conversations.
             </p>
-            <CreateChannelForm />
           </CardContent>
         </Card>
       </div>
@@ -74,8 +72,6 @@ const RecentChannels = ({ channels }: ListChannelsOutputType) => {
           <ChannelCard channel={channel} key={channel.id} slug={slug} />
         ))}
       </div>
-
-      <CreateChannelForm />
     </div>
   );
 };

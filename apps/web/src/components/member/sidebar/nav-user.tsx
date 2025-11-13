@@ -16,7 +16,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useActiveOrgSlug } from "@/hooks/use-active-org-slug";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { authClient } from "@/lib/auth-client";
 
@@ -24,7 +23,6 @@ export function NavUser() {
   const navigate = useNavigate();
   const { isMobile } = useSidebar();
   const { user } = useAuthedSession();
-  const slug = useActiveOrgSlug();
 
   const logout = async () => {
     const signOutRes = await authClient.signOut();
@@ -76,14 +74,10 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link params={{ slug: slug ?? "" }} to="/org/$slug/account">
-                Account
-              </Link>
+              <Link to="/settings/account/profile">Profile</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link params={{ slug: slug ?? "" }} to="/org/$slug/settings">
-                Settings
-              </Link>
+              <Link to="/settings/preferences">Preferences</Link>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={logout}>
               <IconLogout />

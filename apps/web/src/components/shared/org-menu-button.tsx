@@ -67,4 +67,3 @@ export const OrgMenuButtonSkeleton = () => (
     </SidebarMenuButton>
   </SidebarMenuItem>
 );
-

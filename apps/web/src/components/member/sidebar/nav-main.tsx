@@ -4,7 +4,7 @@ import {
   IconCirclePlus,
 } from "@tabler/icons-react";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import { Clock, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -116,8 +116,6 @@ function MarkAttendanceButton() {
 }
 
 export function NavMain() {
-  const navigate = useNavigate();
-
   const { slug } = useParams({
     from: "/(authenticated)/org/$slug",
   });
@@ -133,16 +131,7 @@ export function NavMain() {
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                onClick={() => {
-                  navigate({
-                    to: item.url,
-                    params: { slug },
-                  });
-                }}
-                tooltip={item.title}
-              >
+              <SidebarMenuButton asChild tooltip={item.title}>
                 <Link params={{ slug }} to={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>

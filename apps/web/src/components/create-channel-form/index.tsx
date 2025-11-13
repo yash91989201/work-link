@@ -87,7 +87,7 @@ export const CreateChannelForm = () => {
       to: "/org/$slug/communication/channels/$id",
       params: {
         slug,
-        id: createChannelRes.id,
+        id: createChannelRes.channel.id,
       },
     });
     setDialogOpen(false);
