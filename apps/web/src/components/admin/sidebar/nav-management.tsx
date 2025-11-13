@@ -3,6 +3,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import { User } from "lucide-react";
 import {
   SidebarGroup,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
@@ -13,24 +14,26 @@ export function NavManagement() {
   const { slug } = useParams({ from: "/(authenticated)/org/$slug" });
 
   return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+    <SidebarGroup>
       <SidebarGroupLabel>Management</SidebarGroupLabel>
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <Link params={{ slug }} to="/org/$slug/dashboard/teams">
-              <IconBrandTeams />
-              <span>Teams</span>
-            </Link>
-          </SidebarMenuButton>
-          <SidebarMenuButton asChild>
-            <Link params={{ slug }} to="/org/$slug/dashboard/members">
-              <User />
-              <span>Members</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Teams Management">
+              <Link params={{ slug }} to="/org/$slug/dashboard/teams">
+                <IconBrandTeams />
+                <span>Teams</span>
+              </Link>
+            </SidebarMenuButton>
+            <SidebarMenuButton asChild tooltip="Members Management">
+              <Link params={{ slug }} to="/org/$slug/dashboard/members">
+                <User />
+                <span>Members</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
     </SidebarGroup>
   );
 }
