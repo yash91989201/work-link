@@ -44,6 +44,7 @@ import { Route as authenticatedOrgSlugownerManageSettingsAppearanceRouteImport }
 import { Route as authenticatedOrgSlugmemberbaseModulesCommunicationChannelsRouteRouteImport } from './routes/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/route'
 import { Route as authenticatedOrgSlugmemberTeamIdModuleIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$id/module/index'
 import { Route as authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/index'
+import { Route as authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/communication/channels/index'
 import { Route as authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIdRouteRouteImport } from './routes/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/route'
 import { Route as authenticatedOrgSlugmemberTeamIdModuleSlugIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/team/$id/module/$slug/index'
 import { Route as authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIdIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/index'
@@ -254,6 +255,14 @@ const authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIndexRoute =
         authenticatedOrgSlugmemberbaseModulesCommunicationChannelsRouteRoute,
     } as any,
   )
+const authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute =
+  authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRouteImport.update(
+    {
+      id: '/communication/channels/',
+      path: '/communication/channels/',
+      getParentRoute: () => authenticatedOrgSlugadminDashboardRouteRoute,
+    } as any,
+  )
 const authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIdRouteRoute =
   authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIdRouteRouteImport.update(
     {
@@ -322,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/org/$slug/team/$id': typeof authenticatedOrgSlugmemberTeamIdIndexRoute
   '/org/$slug/manage/settings/': typeof authenticatedOrgSlugownerManageSettingsIndexRoute
   '/org/$slug/communication/channels/$id': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIdRouteRouteWithChildren
+  '/org/$slug/dashboard/communication/channels': typeof authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute
   '/org/$slug/communication/channels/': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIndexRoute
   '/org/$slug/team/$id/module': typeof authenticatedOrgSlugmemberTeamIdModuleIndexRoute
   '/org/$slug/communication/channels/$id/': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIdIndexRoute
@@ -355,6 +365,7 @@ export interface FileRoutesByTo {
   '/org/$slug/attendance': typeof authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute
   '/org/$slug/team/$id': typeof authenticatedOrgSlugmemberTeamIdIndexRoute
   '/org/$slug/manage/settings': typeof authenticatedOrgSlugownerManageSettingsIndexRoute
+  '/org/$slug/dashboard/communication/channels': typeof authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute
   '/org/$slug/communication/channels': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIndexRoute
   '/org/$slug/team/$id/module': typeof authenticatedOrgSlugmemberTeamIdModuleIndexRoute
   '/org/$slug/communication/channels/$id': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIdIndexRoute
@@ -398,6 +409,7 @@ export interface FileRoutesById {
   '/(authenticated)/org/$slug/(member)/team/$id/': typeof authenticatedOrgSlugmemberTeamIdIndexRoute
   '/(authenticated)/org/$slug/(owner)/manage/settings/': typeof authenticatedOrgSlugownerManageSettingsIndexRoute
   '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIdRouteRouteWithChildren
+  '/(authenticated)/org/$slug/(admin)/dashboard/communication/channels/': typeof authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute
   '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIndexRoute
   '/(authenticated)/org/$slug/(member)/team/$id/module/': typeof authenticatedOrgSlugmemberTeamIdModuleIndexRoute
   '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/': typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIdIndexRoute
@@ -438,6 +450,7 @@ export interface FileRouteTypes {
     | '/org/$slug/team/$id'
     | '/org/$slug/manage/settings/'
     | '/org/$slug/communication/channels/$id'
+    | '/org/$slug/dashboard/communication/channels'
     | '/org/$slug/communication/channels/'
     | '/org/$slug/team/$id/module'
     | '/org/$slug/communication/channels/$id/'
@@ -471,6 +484,7 @@ export interface FileRouteTypes {
     | '/org/$slug/attendance'
     | '/org/$slug/team/$id'
     | '/org/$slug/manage/settings'
+    | '/org/$slug/dashboard/communication/channels'
     | '/org/$slug/communication/channels'
     | '/org/$slug/team/$id/module'
     | '/org/$slug/communication/channels/$id'
@@ -513,6 +527,7 @@ export interface FileRouteTypes {
     | '/(authenticated)/org/$slug/(member)/team/$id/'
     | '/(authenticated)/org/$slug/(owner)/manage/settings/'
     | '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id'
+    | '/(authenticated)/org/$slug/(admin)/dashboard/communication/channels/'
     | '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/'
     | '/(authenticated)/org/$slug/(member)/team/$id/module/'
     | '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/'
@@ -776,6 +791,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsIndexRouteImport
       parentRoute: typeof authenticatedOrgSlugmemberbaseModulesCommunicationChannelsRouteRoute
     }
+    '/(authenticated)/org/$slug/(admin)/dashboard/communication/channels/': {
+      id: '/(authenticated)/org/$slug/(admin)/dashboard/communication/channels/'
+      path: '/communication/channels'
+      fullPath: '/org/$slug/dashboard/communication/channels'
+      preLoaderRoute: typeof authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRouteImport
+      parentRoute: typeof authenticatedOrgSlugadminDashboardRouteRoute
+    }
     '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id': {
       id: '/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id'
       path: '/$id'
@@ -962,6 +984,7 @@ interface authenticatedOrgSlugadminDashboardRouteRouteChildren {
   authenticatedOrgSlugadminDashboardIndexRoute: typeof authenticatedOrgSlugadminDashboardIndexRoute
   authenticatedOrgSlugadminDashboardMembersIndexRoute: typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
   authenticatedOrgSlugadminDashboardTeamsIndexRoute: typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
+  authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute: typeof authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute
 }
 
 const authenticatedOrgSlugadminDashboardRouteRouteChildren: authenticatedOrgSlugadminDashboardRouteRouteChildren =
@@ -972,6 +995,8 @@ const authenticatedOrgSlugadminDashboardRouteRouteChildren: authenticatedOrgSlug
       authenticatedOrgSlugadminDashboardMembersIndexRoute,
     authenticatedOrgSlugadminDashboardTeamsIndexRoute:
       authenticatedOrgSlugadminDashboardTeamsIndexRoute,
+    authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute:
+      authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute,
   }
 
 const authenticatedOrgSlugadminDashboardRouteRouteWithChildren =
