@@ -1,4 +1,3 @@
-import { SwatchBook, User } from "lucide-react";
 import type * as React from "react";
 import { Suspense } from "react";
 import {
@@ -28,7 +27,7 @@ export function SettingsSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={items} />
+        <NavMain />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
@@ -36,16 +35,3 @@ export function SettingsSidebar({
     </Sidebar>
   );
 }
-
-const items = [
-  {
-    title: "Preferences",
-    icon: SwatchBook,
-    url: "/settings/preferences",
-  },
-  {
-    title: "Profile",
-    icon: User,
-    url: "/settings/account/profile",
-  },
-];

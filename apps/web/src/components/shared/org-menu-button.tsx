@@ -6,7 +6,6 @@ import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActiveMemberRole } from "@/hooks/use-active-member-role";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
-import { cn } from "@/lib/utils";
 
 export const OrgMenuButton = () => {
   const role = useActiveMemberRole();
@@ -33,15 +32,7 @@ export const OrgMenuButton = () => {
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        className={cn(
-          "min-w-8 data-[slot=sidebar-menu-button]:p-1.5!",
-          // Override the collapsed behavior to maintain proper spacing
-          "group-data-[collapsible=icon]:p-0!"
-        )}
-        tooltip={activeOrganization.name}
-      >
+      <SidebarMenuButton asChild tooltip={activeOrganization.name}>
         <Link params={{ slug: activeOrganization.slug }} to={to}>
           <Image
             alt={activeOrganization.name}
