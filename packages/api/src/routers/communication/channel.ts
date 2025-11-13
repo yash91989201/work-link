@@ -4,18 +4,21 @@ import {
   channelJoinRequestTable,
   channelMemberTable,
   channelTable,
+  notificationTable,
+  teamMember,
   user as userTable,
 } from "@work-link/db/schema/index";
 import type { SQL } from "drizzle-orm";
-import { and, eq, getTableColumns } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray } from "drizzle-orm";
 import { protectedProcedure } from "@/index";
 import { generateTxId } from "@/lib/electric-proxy";
 import {
-  AddChannelMembersInput,
   ChannelJoinRequestInput,
   ChannelJoinRequestOutput,
   CreateChannelInput,
   CreateChannelOutput,
+  DeleteChannelInput,
+  DeletechannelOutput,
   GetChannelInput,
   GetChannelOutput,
   IsChannelMemberInput,
@@ -26,6 +29,7 @@ import {
   ListChannelsOutput,
   ListJoinRequestInput,
   ListJoinRequestOutput,
+  ModifyChannelMembersInput,
   SuccessOutput,
   UpdateChannelInput,
 } from "@/lib/schemas/channel";
@@ -35,48 +39,81 @@ export const channelRouter = {
     .input(CreateChannelInput)
     .output(CreateChannelOutput)
     .handler(async ({ input, context }) => {
-      const { db, session } = context;
-      const user = session.user;
-      const orgId = session.session.activeOrganizationId;
+      try {
+        const { db, session } = context;
+        const orgId = session.session.activeOrganizationId;
 
-      if (!orgId) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Organization not found.",
-        });
-      }
-
-      const { txid, channel } = await db.transaction(async (tx) => {
-        const txid = await generateTxId(tx);
-
-        const [channel] = await tx
-          .insert(channelTable)
-          .values(input)
-          .returning();
-
-        if (!channel) {
-          throw new ORPCError("INTERNAL_SERVER_ERROR", {
-            message: "Failed to create channel.",
+        if (!orgId) {
+          throw new ORPCError("NOT_FOUND", {
+            message: "Organization not found.",
           });
         }
 
-        const channelMembers = input.memberIds.map((memberId) => ({
-          channelId: channel.id,
-          userId: memberId,
-          role: memberId === user.id ? "admin" : "member",
-        }));
+        const { txid, channel } = await db.transaction(async (tx) => {
+          const txid = await generateTxId(tx);
 
-        await tx.insert(channelMemberTable).values(channelMembers).returning();
+          const [channel] = await tx
+            .insert(channelTable)
+            .values({
+              ...input,
+              organizationId: orgId,
+            })
+            .returning();
 
-        return { txid, channel };
-      });
+          if (!channel) {
+            throw new ORPCError("INTERNAL_SERVER_ERROR", {
+              message: "Failed to create channel.",
+            });
+          }
 
-      return {
-        txid,
-        channel,
-      };
+          if (input.type === "team" && input.teamId) {
+            const teamMemberIds = await tx.query.teamMember.findMany({
+              where: eq(teamMember.teamId, input.teamId),
+              columns: {
+                userId: true,
+              },
+            });
+
+            const channelMembers = teamMemberIds.map((member) => ({
+              channelId: channel.id,
+              userId: member.userId,
+              role: "member",
+            }));
+
+            await tx
+              .insert(channelMemberTable)
+              .values(channelMembers)
+              .returning();
+
+            return { txid, channel };
+          }
+
+          const channelMembers = input.memberIds.map((memberId) => ({
+            channelId: channel.id,
+            userId: memberId,
+            role: "member",
+          }));
+
+          await tx
+            .insert(channelMemberTable)
+            .values(channelMembers)
+            .returning();
+
+          return { txid, channel };
+        });
+
+        return {
+          txid,
+          channel,
+        };
+      } catch (error) {
+        console.log(error);
+        throw new ORPCError("INTERNAL_SERVER_ERROR", {
+          message: "An error occurred while creating the channel.",
+        });
+      }
     }),
 
-  // Update a channel
   update: protectedProcedure
     .input(UpdateChannelInput)
     .output(ChannelSchema)
@@ -187,7 +224,7 @@ export const channelRouter = {
     }),
 
   addMembers: protectedProcedure
-    .input(AddChannelMembersInput)
+    .input(ModifyChannelMembersInput)
     .output(SuccessOutput)
     .handler(async ({ context, input }) => {
       const channelMembers = input.memberIds.map((memberId) => ({
@@ -196,6 +233,20 @@ export const channelRouter = {
       }));
 
       await context.db.insert(channelMemberTable).values(channelMembers);
+
+      return {
+        success: true,
+        message: "Members added to channel",
+      };
+    }),
+
+  removeMembers: protectedProcedure
+    .input(ModifyChannelMembersInput)
+    .output(SuccessOutput)
+    .handler(async ({ context, input }) => {
+      await context.db
+        .delete(channelMemberTable)
+        .where(inArray(channelMemberTable.userId, input.memberIds));
 
       return {
         success: true,
@@ -236,5 +287,48 @@ export const channelRouter = {
       });
 
       return joinRequests;
+    }),
+
+  delete: protectedProcedure
+    .input(DeleteChannelInput)
+    .output(DeletechannelOutput)
+    .handler(async ({ input, context }) => {
+      const { db, session } = context;
+      const orgId = session.session.activeOrganizationId;
+
+      if (!orgId) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Organization not found.",
+        });
+      }
+
+      const { txid } = await db.transaction(async (tx) => {
+        const txid = await generateTxId(tx);
+
+        const channel = await tx.query.channelTable.findFirst({
+          where: and(
+            eq(channelTable.id, input.channelId),
+            eq(channelTable.organizationId, orgId)
+          ),
+        });
+
+        if (!channel) {
+          throw new ORPCError("NOT_FOUND", {
+            message: "Channel not found or you do not have access to it.",
+          });
+        }
+
+        await tx
+          .delete(notificationTable)
+          .where(eq(notificationTable.entityId, input.channelId));
+
+        await tx
+          .delete(channelTable)
+          .where(eq(channelTable.id, input.channelId));
+
+        return { txid };
+      });
+
+      return { txid };
     }),
 };

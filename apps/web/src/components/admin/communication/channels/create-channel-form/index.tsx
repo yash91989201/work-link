@@ -1,6 +1,5 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate, useParams } from "@tanstack/react-router";
 import { Loader, Plus } from "lucide-react";
 import { Suspense, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
@@ -38,13 +37,12 @@ import { CreateChannelFormSchema } from "@/lib/schemas/memeber/channel";
 import type { CreateChannelFormType } from "@/lib/types";
 import { queryClient, queryUtils } from "@/utils/orpc";
 import { MembersSelect, MembersSelectSkeleton } from "./members-select";
+import { TeamSelect, TeamSelectSkeleton } from "./team-select";
 
 export const CreateChannelForm = () => {
-  const navigate = useNavigate();
-  const { slug } = useParams({ from: "/(authenticated)/org/$slug" });
-
-  const { session, user } = useAuthedSession();
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const { user } = useAuthedSession();
 
   const form = useForm({
     resolver: standardSchemaResolver(CreateChannelFormSchema),
@@ -53,9 +51,9 @@ export const CreateChannelForm = () => {
       description: "",
       isPublic: true,
       type: "team",
+      teamId: undefined,
       memberIds: [],
       createdBy: user.id,
-      organizationId: session.activeOrganizationId ?? "",
     },
   });
 
@@ -67,6 +65,7 @@ export const CreateChannelForm = () => {
             input: {},
           }),
         });
+
         toast.success("Channel created successfully");
         form.reset();
       },
@@ -79,17 +78,12 @@ export const CreateChannelForm = () => {
     })
   );
 
+  const channelType = form.watch("type");
+
   const onSubmit: SubmitHandler<CreateChannelFormType> = async (formData) => {
     const createChannelRes = await createChannel(formData);
     if (createChannelRes == null) return;
 
-    navigate({
-      to: "/org/$slug/communication/channels/$id",
-      params: {
-        slug,
-        id: createChannelRes.channel.id,
-      },
-    });
     setDialogOpen(false);
   };
 
@@ -105,7 +99,7 @@ export const CreateChannelForm = () => {
   return (
     <Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full rounded-sm" size="lg" variant="outline">
+        <Button>
           <Plus />
           <span>Create new channel</span>
         </Button>
@@ -203,9 +197,15 @@ export const CreateChannelForm = () => {
               )}
             />
 
-            <Suspense fallback={<MembersSelectSkeleton />}>
-              <MembersSelect />
-            </Suspense>
+            {channelType === "team" ? (
+              <Suspense fallback={<TeamSelectSkeleton />}>
+                <TeamSelect />
+              </Suspense>
+            ) : (
+              <Suspense fallback={<MembersSelectSkeleton />}>
+                <MembersSelect />
+              </Suspense>
+            )}
 
             <DialogFooter className="flex-row">
               <Button type="reset" variant="outline">

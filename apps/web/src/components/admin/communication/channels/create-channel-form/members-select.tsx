@@ -37,9 +37,6 @@ export const MembersSelect = () => {
     ),
   }));
 
-  const filteredOptions =
-    channelType === "direct" ? memberOptions : memberOptions;
-
   return (
     <FormField
       control={form.control}
@@ -79,12 +76,8 @@ export const MembersSelect = () => {
               className="w-full"
               maxCount={1}
               onValueChange={field.onChange}
-              options={filteredOptions}
-              placeholder={
-                channelType === "direct"
-                  ? "Select team member"
-                  : "Select channel members"
-              }
+              options={memberOptions}
+              placeholder="Select channel members"
               value={field.value}
             />
           </FormControl>
@@ -132,9 +125,7 @@ export function MembersSelectSkeleton() {
           <FormControl className="animate-pulse">
             <div className="flex h-10 cursor-progress items-center justify-between rounded-md border px-3">
               <p className="text-muted-foreground text-sm">
-                {channelType === "direct"
-                  ? "Select a member"
-                  : "Select channel members"}
+                Select channel members
               </p>
               <ChevronDown className="size-4" />
             </div>

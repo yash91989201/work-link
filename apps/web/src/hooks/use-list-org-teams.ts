@@ -2,22 +2,27 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getAuthQueryKey } from "@/lib/auth/query-keys";
 import { authClient } from "@/lib/auth-client";
 
-export function useListOrgMembers() {
+export function useListOrgTeams() {
   const {
-    data: members,
-    refetch: refetchTeamMembers,
+    data: teams,
+    refetch: refetchTeams,
     isRefetching,
   } = useSuspenseQuery({
     queryKey: getAuthQueryKey.organization.members("current"),
     queryFn: async () => {
-      const result = await authClient.organization.listMembers();
-      return result.data?.members || [];
+      const { data, error } = await authClient.organization.listTeams();
+
+      if (error !== null) {
+        return [];
+      }
+
+      return data;
     },
   });
 
   return {
-    members: members.filter((m) => m.role === "member"),
-    refetchTeamMembers,
+    teams,
+    refetchTeams,
     isRefetching,
   };
 }

@@ -8,29 +8,49 @@ export const CreateChannelFormSchema = z
     isPublic: z.boolean().default(true),
     memberIds: z.array(z.string()),
     createdBy: z.string(),
-    organizationId: z.string(),
+    teamId: z.string().optional(),
   })
   .refine(
     (data) => {
-      if (data.type === "team" || data.type === "group") {
-        return data.memberIds.length >= 1;
+      if (data.type === "team") {
+        return typeof data.teamId === "string" && data.teamId.trim().length > 0;
       }
+
       return true;
     },
     {
-      message: "Team and group channels must have at least one member",
-      path: ["members"],
+      message: "Team channels must include a teamId",
+      path: ["teamId"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.type === "group") {
+        return data.memberIds.length >= 2;
+      }
+
+      return true;
+    },
+    {
+      message: "Group channels must include at least two members",
+      path: ["memberIds"],
     }
   )
   .refine(
     (data) => {
       if (data.type === "direct") {
-        return data.memberIds.length === 1;
+        return data.memberIds.length === 2;
       }
+
       return true;
     },
     {
-      message: "Direct channels can only have one member",
-      path: ["members"],
+      message: "Direct channels must include exactly two members",
+      path: ["memberIds"],
     }
   );
+
+export const ModifyChannelMembersSchema = z.object({
+  channelId: z.string(),
+  memberIds: z.array(z.string()).min(1),
+});

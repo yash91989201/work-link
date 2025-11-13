@@ -1,5 +1,4 @@
 import { Hash, Lock } from "lucide-react";
-import { AddMemberForm } from "@/components/member/communication/channels/add-member-form";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -57,10 +56,6 @@ export const ChannelInfoSidebar = ({ channelId }: { channelId: string }) => {
 
         <ScrollArea className="h-0 flex-1">
           <div className="space-y-4 p-4">
-            <div className="space-y-2">
-              <AddMemberForm channelId={channelId} />
-            </div>
-
             <Separator className="bg-border/50" />
 
             <Members members={channelMembers} />

@@ -8,10 +8,13 @@ import {
 import { z } from "zod";
 
 // Create channel input
-export const CreateChannelInput = ChannelInsertSchema.extend({
+export const CreateChannelInput = ChannelInsertSchema.omit({
+  organizationId: true,
+}).extend({
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
-  memberIds: z.array(z.string()).min(1, "At least one member is required"),
+  teamId: z.string().optional(),
+  memberIds: z.array(z.string()),
 });
 
 export const CreateChannelOutput = z.object({
@@ -61,7 +64,7 @@ export const ListChannelsOutput = z.object({
 });
 
 // Add channel member input
-export const AddChannelMembersInput = z.object({
+export const ModifyChannelMembersInput = z.object({
   channelId: z.string(),
   memberIds: z.array(z.string()),
 });
@@ -116,6 +119,10 @@ export const ArchiveChannelInput = z.object({
 // Delete channel input
 export const DeleteChannelInput = z.object({
   channelId: z.string(),
+});
+
+export const DeletechannelOutput = z.object({
+  txid: z.number(),
 });
 
 // Channel output schema
