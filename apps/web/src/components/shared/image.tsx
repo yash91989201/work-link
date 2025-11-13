@@ -2,6 +2,7 @@ import type React from "react";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { cn } from "@/lib/utils";
+import { env } from "@/env";
 
 type ImageProps = {
   src: string;
@@ -41,7 +42,7 @@ const buildImageUrl = (options: {
   // Skip transformation for external URLs, data URLs, or in development
   if (
     !src.startsWith("/") ||
-    process.env.NODE_ENV === "development" ||
+    env.VITE_ENV === "development" ||
     src.startsWith("data:")
   ) {
     return src;
@@ -52,8 +53,7 @@ const buildImageUrl = (options: {
   params.set("quality", quality.toString());
   params.set("format", format);
 
-  // Assuming your transformation service URL is in env
-  const baseUrl = process.env.VITE_IMAGE_TRANSFORMATION_URL || "";
+  const baseUrl = env.VITE_IMAGE_TRANSFORMATION_URL || "";
   const encodedSrc = encodeURIComponent(`${window.location.origin}${src}`);
 
   return `${baseUrl}/image/${encodedSrc}?${params}`;
