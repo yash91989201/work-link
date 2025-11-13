@@ -1,4 +1,4 @@
-import { IconChartBar, IconDashboard, IconUsers } from "@tabler/icons-react";
+import { IconDashboard } from "@tabler/icons-react";
 import { Suspense } from "react";
 import {
   OrgMenuButton,
@@ -11,7 +11,9 @@ import {
   SidebarHeader,
   SidebarMenu,
 } from "@/components/ui/sidebar";
+import { NavCommunication } from "./nav-communication";
 import { NavMain } from "./nav-main";
+import { NavManagement } from "./nav-management";
 import { NavUser } from "./nav-user";
 
 const data = {
@@ -20,16 +22,6 @@ const data = {
       title: "Dashboard",
       url: "/org/$slug/dashboard",
       icon: IconDashboard,
-    },
-    {
-      title: "Teams",
-      url: "/org/$slug/dashboard/teams",
-      icon: IconUsers,
-    },
-    {
-      title: "Members",
-      url: "/org/$slug/dashboard/members",
-      icon: IconChartBar,
     },
   ],
 };
@@ -48,6 +40,8 @@ export function AdminSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <NavManagement />
+        <NavCommunication />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

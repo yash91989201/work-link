@@ -41,7 +41,7 @@ import { MembersSelect, MembersSelectSkeleton } from "./members-select";
 
 export const CreateChannelForm = () => {
   const navigate = useNavigate();
-  const { slug } = useParams({ from: "/(authenticated)/org/$slug/(member)" });
+  const { slug } = useParams({ from: "/(authenticated)/org/$slug" });
 
   const { session, user } = useAuthedSession();
   const [dialogOpen, setDialogOpen] = useState(false);

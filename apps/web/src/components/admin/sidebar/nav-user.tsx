@@ -1,18 +1,10 @@
-"use client";
-
-import {
-  IconDotsVertical,
-  IconLogout,
-  IconSettings,
-  IconUserCircle,
-} from "@tabler/icons-react";
-import { useNavigate } from "@tanstack/react-router";
+import { IconDotsVertical, IconLogout } from "@tabler/icons-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -46,14 +38,11 @@ export function NavUser() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              size="lg"
-            >
+            <SidebarMenuButton size="lg">
               <Avatar className="h-8 w-8 rounded-lg grayscale">
                 <AvatarImage alt={user.name} src={user.image ?? undefined} />
                 <AvatarFallback className="rounded-lg">
-                  {user.name.charAt(0).toUpperCase()}
+                  {user.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -75,9 +64,7 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage alt={user.name} src={user.image ?? undefined} />
-                  <AvatarFallback className="rounded-lg">
-                    {user.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
+                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
@@ -88,17 +75,12 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconSettings />
-                Settings
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/settings/account/profile">Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/settings/preferences">Preferences</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={logout}>
               <IconLogout />
               Log out
@@ -109,4 +91,3 @@ export function NavUser() {
     </SidebarMenu>
   );
 }
-
