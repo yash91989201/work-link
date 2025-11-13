@@ -1,8 +1,8 @@
 import type React from "react";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
-import { cn } from "@/lib/utils";
 import { env } from "@/env";
+import { cn } from "@/lib/utils";
 
 type ImageProps = {
   src: string;

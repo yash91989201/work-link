@@ -131,22 +131,22 @@
         "@t3-oss/env-core": "^0.13.8",
         "@tabler/icons-react": "^3.35.0",
         "@tailwindcss/vite": "^4.1.17",
-        "@tanstack/electric-db-collection": "^0.1.44",
-        "@tanstack/react-db": "^0.1.43",
-        "@tanstack/react-form": "^1.23.8",
-        "@tanstack/react-query": "^5.90.7",
+        "@tanstack/electric-db-collection": "^0.2.0",
+        "@tanstack/react-db": "^0.1.44",
+        "@tanstack/react-form": "^1.23.9",
+        "@tanstack/react-query": "^5.90.8",
         "@tanstack/react-router": "^1.135.2",
         "@tanstack/react-table": "^8.21.3",
         "@tanstack/react-virtual": "^3.13.12",
-        "@tiptap/extension-bubble-menu": "^3.10.5",
-        "@tiptap/extension-image": "^3.10.5",
-        "@tiptap/extension-mention": "^3.10.5",
-        "@tiptap/extension-placeholder": "^3.10.5",
-        "@tiptap/extension-underline": "^3.10.5",
-        "@tiptap/pm": "^3.10.5",
-        "@tiptap/react": "^3.10.5",
-        "@tiptap/starter-kit": "^3.10.5",
-        "@tiptap/suggestion": "^3.10.5",
+        "@tiptap/extension-bubble-menu": "^3.10.7",
+        "@tiptap/extension-image": "^3.10.7",
+        "@tiptap/extension-mention": "^3.10.7",
+        "@tiptap/extension-placeholder": "^3.10.7",
+        "@tiptap/extension-underline": "^3.10.7",
+        "@tiptap/pm": "^3.10.7",
+        "@tiptap/react": "^3.10.7",
+        "@tiptap/starter-kit": "^3.10.7",
+        "@tiptap/suggestion": "^3.10.7",
         "@uidotdev/usehooks": "^2.4.1",
         "@work-link/api": "workspace:*",
         "@work-link/auth": "workspace:*",
@@ -186,7 +186,7 @@
         "@tanstack/router-plugin": "^1.135.2",
         "@tauri-apps/cli": "^2.9.4",
         "@types/node": "^24.10.1",
-        "@types/react": "~19.2.3",
+        "@types/react": "~19.2.4",
         "@types/react-dom": "~19.2.3",
         "@types/react-lazy-load-image-component": "^1.6.4",
         "@vitejs/plugin-react": "^5.1.1",
@@ -199,25 +199,25 @@
     "packages/api": {
       "name": "@work-link/api",
       "dependencies": {
-        "@electric-sql/client": "latest",
-        "@orpc/client": "latest",
-        "@orpc/openapi": "latest",
-        "@orpc/server": "latest",
-        "@orpc/zod": "latest",
-        "@supabase/supabase-js": "latest",
-        "@t3-oss/env-core": "latest",
+        "@electric-sql/client": "^1.1.3",
+        "@orpc/client": "^1.11.2",
+        "@orpc/openapi": "^1.11.2",
+        "@orpc/server": "^1.11.2",
+        "@orpc/zod": "^1.11.2",
+        "@supabase/supabase-js": "^2.81.1",
+        "@t3-oss/env-core": "^0.13.8",
         "@work-link/auth": "workspace:*",
         "@work-link/db": "workspace:*",
-        "chokidar": "latest",
-        "dotenv": "latest",
-        "hono": "latest",
-        "zod": "latest",
+        "chokidar": "^4.0.3",
+        "dotenv": "^17.2.3",
+        "hono": "^4.10.5",
+        "zod": "^4.1.12",
       },
       "devDependencies": {
-        "tsdown": "latest",
+        "tsdown": "^0.16.4",
       },
       "peerDependencies": {
-        "typescript": "latest",
+        "typescript": "^5.9.3",
       },
     },
     "packages/auth": {
@@ -1179,13 +1179,13 @@
 
     "@tailwindcss/vite": ["@tailwindcss/vite@4.1.17", "", { "dependencies": { "@tailwindcss/node": "4.1.17", "@tailwindcss/oxide": "4.1.17", "tailwindcss": "4.1.17" }, "peerDependencies": { "vite": "^5.2.0 || ^6 || ^7" } }, "sha512-4+9w8ZHOiGnpcGI6z1TVVfWaX/koK7fKeSYF3qlYg2xpBtbteP2ddBxiarL+HVgfSJGeK5RIxRQmKm4rTJJAwA=="],
 
-    "@tanstack/db": ["@tanstack/db@0.4.20", "", { "dependencies": { "@standard-schema/spec": "^1.0.0", "@tanstack/db-ivm": "0.1.12", "@tanstack/pacer": "^0.1.0" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-D5cCW9O+bjaIiLEY00djhEUnsdw7ARdezXr917jt95VNkQ8RX816oBoAsWAgphMcIoNvpB2nI1ccyLSCrztW6A=="],
+    "@tanstack/db": ["@tanstack/db@0.5.0", "", { "dependencies": { "@standard-schema/spec": "^1.0.0", "@tanstack/db-ivm": "0.1.13", "@tanstack/pacer": "^0.1.0" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-3AA8xiNhezH18TZ0Dq8FrakAVsRnidTVIRus2vGjFiiVLOmJFiogIVRB16xChAcF4hws12juRl5om8YKK042Hg=="],
 
-    "@tanstack/db-ivm": ["@tanstack/db-ivm@0.1.12", "", { "dependencies": { "fractional-indexing": "^3.2.0", "sorted-btree": "^1.8.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-QTs2dgrjTCkATZh12nb854K/Of80QyyR6URYyxnGPnJgXFchvw25Ve3TtFW51fHR5hheQltkbtpPgBjSZvoMVA=="],
+    "@tanstack/db-ivm": ["@tanstack/db-ivm@0.1.13", "", { "dependencies": { "fractional-indexing": "^3.2.0", "sorted-btree": "^1.8.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-sBOWGY4tqMEym2ewjdWrDb5c5c8akvgnEbGVPAtkfFS3QVV0zfVb5RJAkAc8GSxb3ByVfYjyaShVr0kMJhMuow=="],
 
     "@tanstack/devtools-event-client": ["@tanstack/devtools-event-client@0.3.5", "", {}, "sha512-RL1f5ZlfZMpghrCIdzl6mLOFLTuhqmPNblZgBaeKfdtk5rfbjykurv+VfYydOFXj0vxVIoA2d/zT7xfD7Ph8fw=="],
 
-    "@tanstack/electric-db-collection": ["@tanstack/electric-db-collection@0.1.44", "", { "dependencies": { "@electric-sql/client": "^1.1.0", "@standard-schema/spec": "^1.0.0", "@tanstack/db": "0.4.20", "@tanstack/store": "^0.8.0", "debug": "^4.4.3" } }, "sha512-y5JcmH81m9h6OcmqGDFxd9ekzT7FA5hwHA9sw751NQLlbcysWsaRKbNVt+jr5EY6KGrmDbg/UUVjZfoAR11BGg=="],
+    "@tanstack/electric-db-collection": ["@tanstack/electric-db-collection@0.2.0", "", { "dependencies": { "@electric-sql/client": "^1.1.0", "@standard-schema/spec": "^1.0.0", "@tanstack/db": "0.5.0", "@tanstack/store": "^0.8.0", "debug": "^4.4.3" } }, "sha512-AQYhVfT2nUVlXxCSR3EdMEF0dP03GQfA94JSUsCkNTqBYy3vJDF5Vg+R6NuFKKX6bkntEcTD8hwDIdXZZ+6Rjw=="],
 
     "@tanstack/form-core": ["@tanstack/form-core@1.24.5", "", { "dependencies": { "@tanstack/devtools-event-client": "^0.3.5", "@tanstack/pacer": "^0.15.3", "@tanstack/store": "^0.7.7" } }, "sha512-Vdd7wIFFFbWc0U+DUu//wq4GifRsBaD+eTVbwlDATnbfvrVkr8YnAyFPtIEJxg9D9kcZIGOdMrnhvWu6O173iA=="],
 
@@ -3401,8 +3401,6 @@
 
     "@tanstack/pacer/@tanstack/store": ["@tanstack/store@0.7.7", "", {}, "sha512-xa6pTan1bcaqYDS9BDpSiS63qa6EoDkPN9RsRaxHuDdVDNntzq3xNwR5YKTU/V3SkSyC9T4YVOPh2zRQN0nhIQ=="],
 
-    "@tanstack/react-db/@tanstack/db": ["@tanstack/db@0.5.0", "", { "dependencies": { "@standard-schema/spec": "^1.0.0", "@tanstack/db-ivm": "0.1.13", "@tanstack/pacer": "^0.1.0" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-3AA8xiNhezH18TZ0Dq8FrakAVsRnidTVIRus2vGjFiiVLOmJFiogIVRB16xChAcF4hws12juRl5om8YKK042Hg=="],
-
     "@tanstack/react-router/@tanstack/react-store": ["@tanstack/react-store@0.8.0", "", { "dependencies": { "@tanstack/store": "0.8.0", "use-sync-external-store": "^1.6.0" }, "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-1vG9beLIuB7q69skxK9r5xiLN3ztzIPfSQSs0GfeqWGO2tGIyInZx0x1COhpx97RKaONSoAb8C3dxacWksm1ow=="],
 
     "@tanstack/react-store/@tanstack/store": ["@tanstack/store@0.7.7", "", {}, "sha512-xa6pTan1bcaqYDS9BDpSiS63qa6EoDkPN9RsRaxHuDdVDNntzq3xNwR5YKTU/V3SkSyC9T4YVOPh2zRQN0nhIQ=="],
@@ -3782,10 +3780,6 @@
     "@react-native/codegen/hermes-parser/hermes-estree": ["hermes-estree@0.32.0", "", {}, "sha512-KWn3BqnlDOl97Xe1Yviur6NbgIZ+IP+UVSpshlZWkq+EtoHg6/cwiDj/osP9PCEgFE15KBm1O55JRwbMEm5ejQ=="],
 
     "@react-native/community-cli-plugin/@react-native/dev-middleware/@react-native/debugger-frontend": ["@react-native/debugger-frontend@0.82.1", "", {}, "sha512-a2O6M7/OZ2V9rdavOHyCQ+10z54JX8+B+apYKCQ6a9zoEChGTxUMG2YzzJ8zZJVvYf1ByWSNxv9Se0dca1hO9A=="],
-
-    "@tanstack/react-db/@tanstack/db/@tanstack/db-ivm": ["@tanstack/db-ivm@0.1.13", "", { "dependencies": { "fractional-indexing": "^3.2.0", "sorted-btree": "^1.8.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-sBOWGY4tqMEym2ewjdWrDb5c5c8akvgnEbGVPAtkfFS3QVV0zfVb5RJAkAc8GSxb3ByVfYjyaShVr0kMJhMuow=="],
-
-    "@tanstack/react-db/@tanstack/db/@tanstack/pacer": ["@tanstack/pacer@0.1.0", "", {}, "sha512-QVzkGO5clvGj/qdX8H2wUj0QCXCLZ/pwPMnfSqhoYfpzDRkRHDj+3D+VzdcehBIVnE+GCd1D/P1tGMzfjmfrzQ=="],
 
     "@tanstack/router-plugin/chokidar/readdirp": ["readdirp@3.6.0", "", { "dependencies": { "picomatch": "^2.2.1" } }, "sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA=="],
 
