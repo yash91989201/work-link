@@ -1,6 +1,5 @@
 import { Edit3, Pin, Reply, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -20,8 +19,6 @@ interface MessageActionsProps {
   onDelete: () => void;
   onPin?: () => void;
   onReact?: (emoji: string) => void;
-  isDeleting?: boolean;
-  isPinning?: boolean;
 }
 
 export function MessageActions({
@@ -33,8 +30,6 @@ export function MessageActions({
   onDelete,
   onPin,
   onReact,
-  isDeleting,
-  isPinning,
 }: MessageActionsProps) {
   const { user } = useAuthedSession();
   const isOwnMessage = user.id === senderId;
@@ -92,17 +87,12 @@ export function MessageActions({
           <Button
             aria-label={isPinned ? "Unpin" : "Pin"}
             className={cn("size-7", isPinned && "text-primary")}
-            disabled={isPinning}
             onClick={onPin}
             size="icon"
             type="button"
             variant="ghost"
           >
-            {isPinning ? (
-              <Spinner className="size-3.5" />
-            ) : (
-              <Pin className={cn("size-3.5", isPinned && "fill-current")} />
-            )}
+            <Pin className={cn("size-3.5", isPinned && "fill-current")} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>{isPinned ? "Unpin" : "Pin"}</TooltipContent>
@@ -112,24 +102,17 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              aria-label={isDeleting ? "Deleting" : "Delete"}
+              aria-label="Delete Message"
               className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              disabled={isDeleting}
               onClick={onDelete}
               size="icon"
               type="button"
               variant="ghost"
             >
-              {isDeleting ? (
-                <Spinner className="size-3.5" />
-              ) : (
-                <Trash2 className="h-3.5 w-3.5" />
-              )}
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            {isDeleting ? "Deleting..." : "Delete"}
-          </TooltipContent>
+          <TooltipContent>Delete Message</TooltipContent>
         </Tooltip>
       )}
     </div>

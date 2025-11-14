@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer } from "react";
+import { useCallback, useReducer } from "react";
 import { useMessageList } from "@/stores/message-list-store";
 
 type MessageState = { mode: "view" } | { mode: "editing" };
@@ -34,38 +34,24 @@ export function useMessageItem({
     handleDelete: deleteMessage,
     handleEdit: editMessage,
     handlePin: pinMessage,
-    isDeletingMessage,
-    isPinningMessage,
-    deletingMessageId,
-    pinningMessageId,
   } = useMessageList(channelId);
 
   const [state, dispatch] = useReducer(messageReducer, { mode: "view" });
 
-  const isDeleting = useMemo(
-    () => isDeletingMessage && deletingMessageId === messageId,
-    [isDeletingMessage, deletingMessageId, messageId]
-  );
-
-  const isPinning = useMemo(
-    () => isPinningMessage && pinningMessageId === messageId,
-    [isPinningMessage, pinningMessageId, messageId]
-  );
-
-  const handleDelete = useCallback(async () => {
-    await deleteMessage(messageId);
+  const handleDelete = useCallback(() => {
+    deleteMessage(messageId);
   }, [messageId, deleteMessage]);
 
   const handleEdit = useCallback(
-    async (id: string, content: string, mentions?: string[]) => {
-      await editMessage(id, content, mentions);
+    (id: string, content: string, mentions?: string[]) => {
+      editMessage(id, content, mentions);
       dispatch({ type: "CANCEL" });
     },
     [editMessage]
   );
 
-  const handlePin = useCallback(async () => {
-    await pinMessage(messageId, isPinned);
+  const handlePin = useCallback(() => {
+    pinMessage(messageId, isPinned);
   }, [messageId, isPinned, pinMessage]);
 
   const startEditing = useCallback(() => {
@@ -79,8 +65,6 @@ export function useMessageItem({
   return {
     channelId,
     state,
-    isDeleting,
-    isPinning,
     handleDelete,
     handleEdit,
     handlePin,

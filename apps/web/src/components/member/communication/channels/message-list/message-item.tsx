@@ -40,7 +40,7 @@ export function MessageItem({
 
   const { openThread, closeThread } = useMessageListActions();
 
-  const { isDeleting, isPinning, handleDelete, handlePin } = useMessageItem({
+  const { handleDelete, handlePin } = useMessageItem({
     channelId,
     messageId: message.id,
     isPinned: message.isPinned,
@@ -117,7 +117,6 @@ export function MessageItem({
     <div
       className={cn(
         "group relative rounded-xl px-4 py-3 transition-all hover:bg-muted/40",
-        isDeleting && "opacity-50",
         isThreadRoot &&
           "bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/10",
         isThreadOrigin && "shadow-sm ring-2 ring-primary/30",
@@ -212,9 +211,7 @@ export function MessageItem({
 
       {/* Action buttons */}
       <MessageActions
-        isDeleting={isDeleting}
         isPinned={message.isPinned}
-        isPinning={isPinning}
         messageId={message.id}
         messageType={message.type}
         onDelete={handleDelete}
