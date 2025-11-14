@@ -31,7 +31,6 @@ export const ChannelsOverview = () => {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-6xl space-y-8">
           <RecentChannels channels={channelListData.channels.slice(0, 6)} />
-
           <GettingStarted />
           <ChannelTypes />
           <ChannelFeatures />

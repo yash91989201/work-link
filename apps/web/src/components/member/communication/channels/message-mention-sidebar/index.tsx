@@ -1,20 +1,17 @@
 import { AtSign, X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { MessageItem } from "@/components/member/communication/channels/message-list/message-item";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { MessageWithParent } from "@/stores/message-list-store";
 import {
   useMessageList,
   useMessageListActions,
 } from "@/stores/message-list-store";
 import { formatMessageDate } from "@/utils/message-utils";
-import { MessageItem } from "../message-list/message-item";
 
 export function MessageMentionSidebar({ channelId }: { channelId: string }) {
-  const {
-    isMentionSidebarOpen,
-    mentionMessage,
-    shouldPlayMentionSound,
-  } = useMessageList(channelId);
+  const { isMentionSidebarOpen, mentionMessage, shouldPlayMentionSound } =
+    useMessageList(channelId);
 
   const { closeMentionSidebar, acknowledgeMentionSound } =
     useMessageListActions();
@@ -53,11 +50,7 @@ export function MessageMentionSidebar({ channelId }: { channelId: string }) {
   return (
     <>
       {/** biome-ignore lint/a11y/useMediaCaption: <Audio notification does not require captions> */}
-      <audio
-        ref={audioRef}
-        src="/assets/sounds/mention.webm"
-        preload="auto"
-      />
+      <audio preload="auto" ref={audioRef} src="/assets/sounds/mention.webm" />
       <div
         aria-hidden={!isMentionSidebarOpen}
         className={cn(
@@ -81,10 +74,10 @@ export function MessageMentionSidebar({ channelId }: { channelId: string }) {
                       You were mentioned
                     </div>
                     <div className="text-muted-foreground text-xs">
-                      by {mentionMessage?.sender.name}
+                      by {mentionMessage.sender.name}
                     </div>
                     <div className="font-medium text-primary text-xs">
-                      {mentionMessage?.createdAt
+                      {mentionMessage.createdAt
                         ? formatMessageDate(mentionMessage.createdAt)
                         : null}
                     </div>
@@ -95,14 +88,15 @@ export function MessageMentionSidebar({ channelId }: { channelId: string }) {
                   </p>
                 )}
               </div>
-              <button
+              <Button
                 aria-label="Close mention"
-                className="rounded-lg p-1.5 opacity-70 ring-offset-background transition-all hover:bg-destructive/10 hover:text-destructive hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
                 onClick={closeMentionSidebar}
+                size="icon"
                 type="button"
+                variant="outline"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
 
             <div
@@ -110,30 +104,20 @@ export function MessageMentionSidebar({ channelId }: { channelId: string }) {
               ref={scrollContainerRef}
             >
               {hasMentionMessage ? (
-                <MentionMessageItem message={mentionMessage} />
+                <MessageItem
+                  message={mentionMessage}
+                  showParentPreview={false}
+                  showThreadSummary={false}
+                />
               ) : (
                 <div className="flex h-full items-center justify-center px-4 text-center text-muted-foreground text-sm">
                   No mention to display.
                 </div>
               )}
             </div>
-
-            <div className="border-t px-4 py-3 text-center text-muted-foreground text-xs">
-              Close this panel to continue.
-            </div>
           </div>
         )}
       </div>
     </>
-  );
-}
-
-function MentionMessageItem({ message }: { message: MessageWithParent }) {
-  return (
-    <MessageItem
-      message={message}
-      showParentPreview={false}
-      showThreadSummary={false}
-    />
   );
 }
