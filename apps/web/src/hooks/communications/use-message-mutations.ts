@@ -125,11 +125,67 @@ export function useMessageMutations() {
     },
   });
 
+  const addReaction = createOptimisticAction({
+    onMutate: ({ messageId, emoji }: { messageId: string; emoji: string }) => {
+      messagesCollection.update(messageId, (draft) => {
+        const reactions = draft.reactions || [];
+        const userReaction = reactions.find(
+          (r) => r.reaction === emoji && r.userId === user.id
+        );
+
+        if (userReaction) return;
+
+        draft.reactions = [
+          ...reactions,
+          {
+            reaction: emoji,
+            userId: user.id,
+            createdAt: new Date().toISOString(),
+          },
+        ];
+      });
+    },
+    mutationFn: async ({
+      messageId,
+      emoji,
+    }: { messageId: string; emoji: string }) => {
+      const { txid } = await orpcClient.communication.message.addReaction({
+        messageId,
+        emoji,
+      });
+
+      await messagesCollection.utils.awaitTxId(txid);
+    },
+  });
+
+  const removeReaction = createOptimisticAction({
+    onMutate: ({ messageId, emoji }: { messageId: string; emoji: string }) => {
+      messagesCollection.update(messageId, (draft) => {
+        draft.reactions = (draft.reactions || []).filter(
+          (r) => !(r.reaction === emoji && r.userId === user.id)
+        );
+      });
+    },
+    mutationFn: async ({
+      messageId,
+      emoji,
+    }: { messageId: string; emoji: string }) => {
+      const { txid } = await orpcClient.communication.message.removeReaction({
+        messageId,
+        emoji,
+      });
+
+      await messagesCollection.utils.awaitTxId(txid);
+    },
+  });
+
   return {
     createMessage,
     updateMessage,
     deleteMessage,
     pinMessage,
     unPinMessage,
+    addReaction,
+    removeReaction,
   };
 }

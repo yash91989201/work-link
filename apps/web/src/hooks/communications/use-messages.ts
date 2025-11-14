@@ -1,4 +1,4 @@
-import { and, eq, useLiveSuspenseQuery } from "@tanstack/react-db";
+import { and, eq, isNull, useLiveSuspenseQuery } from "@tanstack/react-db";
 import { useCallback, useMemo, useState } from "react";
 import {
   attachmentsCollection,
@@ -26,7 +26,11 @@ export function useMessages({ channelId }: { channelId: string }) {
           ({ message, attachment }) => eq(attachment.messageId, message.id)
         )
         .where(({ message }) =>
-          and(eq(message.channelId, channelId), eq(message.isDeleted, false))
+          and(
+            eq(message.channelId, channelId),
+            eq(message.isDeleted, false),
+            isNull(message.parentMessageId)
+          )
         )
         .orderBy(({ message }) => message.createdAt)
         .limit(loadedCount + 1)

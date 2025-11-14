@@ -2,7 +2,6 @@ import { Spool, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
 import { cn } from "@/lib/utils";
-import type { MessageWithParent } from "@/stores/message-list-store";
 import {
   useMessageList,
   useMessageListActions,
@@ -34,12 +33,6 @@ export function MessageThreadSidebar({ channelId }: { channelId: string }) {
       acknowledgeThreadComposerFocus();
     }
   }, [shouldFocusThreadComposer, acknowledgeThreadComposerFocus]);
-
-  useEffect(() => {
-    if (isThreadSidebarOpen && !threadParentMessage) {
-      closeThread();
-    }
-  }, [isThreadSidebarOpen, threadParentMessage, closeThread]);
 
   useEffect(() => {
     if (!isThreadSidebarOpen) return;
@@ -77,6 +70,8 @@ export function MessageThreadSidebar({ channelId }: { channelId: string }) {
   const repliesCount = replies.length;
 
   const shouldRenderContent = isThreadSidebarOpen || hasParentMessage;
+
+  console.log(hasParentMessage);
 
   const handleMaximizedReply = useCallback(() => {
     setShowMaximizedComposer(true);
@@ -145,14 +140,19 @@ export function MessageThreadSidebar({ channelId }: { channelId: string }) {
           >
             {hasParentMessage ? (
               <>
-                <ThreadMessageItem message={threadParentMessage} />
+                <MessageItem message={threadParentMessage} />
                 {replies.length === 0 ? (
                   <div className="mx-2 mt-2 rounded-lg border bg-muted/40 p-3 text-muted-foreground text-sm">
                     Start the conversation by replying to this message.
                   </div>
                 ) : (
                   replies.map((reply) => (
-                    <ThreadMessageItem key={reply.id} message={reply} />
+                    <MessageItem
+                      key={reply.id}
+                      message={reply}
+                      showParentPreview={false}
+                      showThreadSummary={false}
+                    />
                   ))
                 )}
               </>
@@ -194,15 +194,5 @@ export function MessageThreadSidebar({ channelId }: { channelId: string }) {
         </div>
       )}
     </div>
-  );
-}
-
-function ThreadMessageItem({ message }: { message: MessageWithParent }) {
-  return (
-    <MessageItem
-      message={message}
-      showParentPreview={false}
-      showThreadSummary={false}
-    />
   );
 }

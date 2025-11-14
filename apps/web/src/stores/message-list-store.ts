@@ -4,10 +4,6 @@ import { create } from "zustand";
 import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
 import { useMessages } from "@/hooks/communications/use-messages";
 
-export type MessageWithParent = MessageWithSenderType & {
-  parentMessage?: MessageWithSenderType | null;
-};
-
 interface ThreadState {
   parentMessageId: string | null;
   originMessageId: string | null;
@@ -26,7 +22,7 @@ interface MessageListState {
   isPinnedMessagesSidebarOpen: boolean;
   isMentionSidebarOpen: boolean;
   openThread: (
-    message: MessageWithParent,
+    message: MessageWithSenderType,
     options?: { focusComposer?: boolean }
   ) => void;
   closeThread: () => void;
@@ -54,7 +50,7 @@ const useMessageListStore = create<MessageListState>((set) => ({
   isMentionSidebarOpen: false,
 
   openThread: (message, options) => {
-    const parentMessageId = message.parentMessage?.id ?? message.id;
+    const parentMessageId = message.parentMessageId ?? message.id;
     const composerFocusKey = Date.now();
     set({
       threadState: {
@@ -139,8 +135,15 @@ export function useMessageList(channelId: string) {
     channelId,
   });
 
-  const { deleteMessage, updateMessage, pinMessage, unPinMessage } =
-    useMessageMutations();
+  const {
+    deleteMessage,
+    updateMessage,
+    pinMessage,
+    unPinMessage,
+    addReaction,
+    removeReaction,
+    createMessage,
+  } = useMessageMutations();
 
   const threadState = useMessageListStore((state) => state.threadState);
   const mentionState = useMessageListStore((state) => state.mentionState);
@@ -151,20 +154,23 @@ export function useMessageList(channelId: string) {
   const threadParentMessage = useMemo(() => {
     if (!threadState.parentMessageId) return null;
 
-    return (
+    const found =
       messages.find((message) => message.id === threadState.parentMessageId) ??
-      null
-    );
+      null;
+
+    return found;
   }, [messages, threadState.parentMessageId]);
 
   const threadMessages = useMemo(() => {
     if (!threadState.parentMessageId) return [];
 
-    return messages.filter(
+    const filtered = messages.filter(
       (message) =>
         message.id === threadState.parentMessageId ||
         message.parentMessageId === threadState.parentMessageId
     );
+
+    return filtered;
   }, [messages, threadState.parentMessageId]);
 
   const mentionMessage = useMemo(() => {
@@ -216,6 +222,9 @@ export function useMessageList(channelId: string) {
     handleDelete,
     handleEdit,
     handlePin,
+    addReaction,
+    removeReaction,
+    createMessage,
     messagesEndRef,
     hasMore,
     loadMore,

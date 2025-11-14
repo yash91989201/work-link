@@ -225,7 +225,7 @@ export function MessageComposer({
       const uploadedAttachments =
         uploadPromises.length > 0 ? await Promise.all(uploadPromises) : [];
 
-      const tx = createMessage({
+      createMessage({
         message: {
           channelId,
           content: textToSend,
@@ -236,8 +236,6 @@ export function MessageComposer({
             uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
         },
       });
-
-      await tx.isPersisted.promise;
 
       onSendSuccess?.();
     } catch (error) {
