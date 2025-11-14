@@ -4,7 +4,6 @@ import {
   UserSchema,
 } from "@work-link/db/lib/schemas/db-tables";
 import { z } from "zod";
-import { SuccessOutput } from "./channel";
 
 // Message types enum
 export const MessageTypeSchema = MessageSchema.shape.type;
@@ -47,8 +46,11 @@ export const UpdateMessageInput = z.object({
   mentions: z.array(z.string()).optional(),
 });
 
-export const UpdateMessageOutput = MessageSchema.extend({
-  sender: UserSchema,
+export const UpdateMessageOutput = z.object({
+  txid: z.number(),
+  message: MessageSchema.extend({
+    sender: UserSchema,
+  }),
 });
 
 export const MessageWithSenderSchema = MessageSchema.extend({
@@ -81,6 +83,10 @@ export const GetThreadMessagesInput = z.object({
 // Delete message input
 export const DeleteMessageInput = z.object({
   messageId: z.string(),
+});
+
+export const DeleteMessageOutput = z.object({
+  txid: z.number(),
 });
 
 // Add reaction input
@@ -231,13 +237,17 @@ export const PinMessageInput = z.object({
   messageId: z.string(),
 });
 
-export const PinMessageOutput = SuccessOutput;
+export const PinMessageOutput = z.object({
+  txid: z.number(),
+});
 
 export const UnPinMessageInput = z.object({
   messageId: z.string(),
 });
 
-export const UnPinMessageOutput = SuccessOutput;
+export const UnPinMessageOutput = z.object({
+  txid: z.number(),
+});
 
 export const GetPinnedMessagesInput = z.object({
   channelId: z.string(),

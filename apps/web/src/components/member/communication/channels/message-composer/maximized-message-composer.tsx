@@ -52,13 +52,11 @@ export function MaximizedMessageComposer({
 
   const [text, setText] = useState(initialContent);
 
-  const { createMessage, isCreatingMessage, updateMessage, isUpdatingMessage } =
-    useMessageMutations({ channelId });
+  const { createMessage, updateMessage } = useMessageMutations({ channelId });
 
   const { typingUsers, broadcastTyping } = useTypingIndicator(channelId);
 
   const isEditing = mode === "edit" && !!messageId;
-  const isLoading = isCreatingMessage || isUpdatingMessage;
 
   const dialogSizeClasses = cn("flex flex-col overflow-y-auto p-0", {
     "h-screen w-screen max-w-none rounded-none": isMobile,
@@ -115,8 +113,8 @@ export function MaximizedMessageComposer({
     [handleTypingBroadcast]
   );
 
-  const handleSubmit = useCallback(async () => {
-    if (!text.trim() || isLoading) return;
+  const handleSubmit = useCallback(() => {
+    if (!text.trim()) return;
 
     try {
       const mentionRegex =
@@ -131,17 +129,22 @@ export function MaximizedMessageComposer({
       }
 
       if (isEditing && messageId) {
-        await updateMessage({
-          messageId,
-          content: text.trim(),
-          mentions: mentionUserIds.length ? mentionUserIds : undefined,
+        updateMessage({
+          message: {
+            messageId,
+            content: text.trim(),
+            mentions: mentionUserIds.length ? mentionUserIds : undefined,
+          },
         });
       } else {
-        await createMessage({
-          channelId,
-          content: text.trim(),
-          mentions: mentionUserIds.length ? mentionUserIds : undefined,
-          parentMessageId,
+        createMessage({
+          message: {
+            channelId,
+            content: text.trim(),
+            mentions: mentionUserIds.length ? mentionUserIds : undefined,
+            parentMessageId,
+            type: "text",
+          },
         });
       }
 
@@ -160,7 +163,6 @@ export function MaximizedMessageComposer({
     }
   }, [
     text,
-    isLoading,
     isEditing,
     messageId,
     channelId,
@@ -213,7 +215,7 @@ export function MaximizedMessageComposer({
           <div className="flex flex-1 flex-col overflow-hidden">
             <MessageEditor
               content={text}
-              disabled={isLoading}
+              disabled={false}
               fetchUsers={fetchUsers}
               isInMaximizedComposer={true}
               isMaximized

@@ -3,7 +3,6 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 
 export const AutoLinkPreview = Extension.create({
   name: "autoLinkPreview",
-
   addProseMirrorPlugins() {
     return [
       new Plugin({

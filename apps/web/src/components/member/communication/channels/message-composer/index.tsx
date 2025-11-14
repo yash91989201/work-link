@@ -1,4 +1,3 @@
-import { Paperclip } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
@@ -49,7 +48,6 @@ export function MessageComposer({
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [text, setText] = useState(initialContent);
-  const [isDragging, setIsDragging] = useState(false);
   const [showMaximizedComposer, setShowMaximizedComposer] = useState(false);
   const [attachments, setAttachments] = useState<AttachmentPreview[]>([]);
 
@@ -63,10 +61,7 @@ export function MessageComposer({
     cancelRecording,
   } = useAudioRecorder();
 
-  const { createMessage, isCreatingMessage } = useMessageMutations({
-    channelId,
-  });
-
+  const { createMessage } = useMessageMutations();
   const { typingUsers, broadcastTyping } = useTypingIndicator(channelId);
 
   const fetchUsers = useCallback(
@@ -126,7 +121,6 @@ export function MessageComposer({
     const hasAudio = audioBlob !== null;
 
     if (!(hasText || hasAttachments || hasAudio)) return;
-    if (isCreatingMessage) return;
 
     // Clear UI immediately for better UX
     const textToSend = hasText ? text.trim() : undefined;
@@ -231,15 +225,19 @@ export function MessageComposer({
       const uploadedAttachments =
         uploadPromises.length > 0 ? await Promise.all(uploadPromises) : [];
 
-      await createMessage({
-        channelId,
-        content: textToSend,
-        mentions: mentionUserIds.length > 0 ? mentionUserIds : undefined,
-        parentMessageId,
-        type: messageType,
-        attachments:
-          uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
+      const tx = createMessage({
+        message: {
+          channelId,
+          content: textToSend,
+          mentions: mentionUserIds.length > 0 ? mentionUserIds : undefined,
+          parentMessageId,
+          type: messageType,
+          attachments:
+            uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
+        },
       });
+
+      await tx.isPersisted.promise;
 
       onSendSuccess?.();
     } catch (error) {
@@ -254,7 +252,6 @@ export function MessageComposer({
     channelId,
     createMessage,
     broadcastTyping,
-    isCreatingMessage,
     user.name,
     user.id,
     parentMessageId,
@@ -329,29 +326,6 @@ export function MessageComposer({
     cancelRecording();
   }, [cancelRecording]);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        handleFileUpload(files);
-      }
-    },
-    [handleFileUpload]
-  );
-
   const handleMaximize = useCallback(() => {
     if (onMaximize) {
       onMaximize();
@@ -384,25 +358,7 @@ export function MessageComposer({
         type="file"
       />
 
-      {/** biome-ignore lint/a11y/noNoninteractiveElementInteractions: <required here> */}
-      {/** biome-ignore lint/a11y/noStaticElementInteractions: <required here> */}
-      <div
-        className={cn("relative border-t bg-background", className)}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        {isDragging && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/5">
-            <div className="text-center">
-              <Paperclip className="mx-auto h-12 w-12 text-primary" />
-              <p className="mt-2 font-medium text-primary">
-                Drop files to upload
-              </p>
-            </div>
-          </div>
-        )}
-
+      <div className={cn("relative border-t bg-background", className)}>
         <div>
           <div className="relative">
             {typingUsers.length > 0 && (
@@ -434,7 +390,7 @@ export function MessageComposer({
 
             <MessageEditor
               content={text}
-              disabled={isCreatingMessage || isRecording || audioUrl !== null}
+              disabled={isRecording || audioUrl !== null}
               fetchUsers={fetchUsers}
               isMaximized={onMaximize ? false : showMaximizedComposer}
               onChange={handleMarkdownChange}
@@ -452,7 +408,7 @@ export function MessageComposer({
                 hasAttachments={attachments.length > 0}
                 hasAudio={audioUrl !== null}
                 hasText={text.trim().length > 0}
-                isCreatingMessage={isCreatingMessage}
+                isCreatingMessage={false}
                 isRecording={isRecording}
                 onEmojiSelect={handleEmojiSelect}
                 onFileUpload={() => fileInputRef.current?.click()}

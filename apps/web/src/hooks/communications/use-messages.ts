@@ -6,11 +6,13 @@ import {
   usersCollection,
 } from "@/db/collections";
 import { buildMessageWithAttachments } from "@/lib/communications/message";
+import { useMessageScroll } from "./use-message-scroll";
 
 const MESSAGES_PER_PAGE = 50;
 
 export function useMessages({ channelId }: { channelId: string }) {
   const [loadedCount, setLoadedCount] = useState(MESSAGES_PER_PAGE);
+  const { messagesEndRef } = useMessageScroll();
 
   const { data: rowsWithExtra } = useLiveSuspenseQuery(
     (q) =>
@@ -26,7 +28,7 @@ export function useMessages({ channelId }: { channelId: string }) {
         .where(({ message }) =>
           and(eq(message.channelId, channelId), eq(message.isDeleted, false))
         )
-        .orderBy(({ message }) => message.createdAt, "desc")
+        .orderBy(({ message }) => message.createdAt)
         .limit(loadedCount + 1)
         .select(({ message, sender, attachment }) => ({
           message,
@@ -76,6 +78,7 @@ export function useMessages({ channelId }: { channelId: string }) {
 
   return {
     messages,
+    messagesEndRef,
     hasMore,
     loadMore,
   };

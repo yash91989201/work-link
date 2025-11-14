@@ -24,6 +24,7 @@ import {
   CreateMessageInput,
   CreateMessageOutput,
   DeleteMessageInput,
+  DeleteMessageOutput,
   GetChannelMessagesInput,
   GetChannelMessagesOutput,
   GetMenionUsersInput,
@@ -151,37 +152,71 @@ export const messageRouter = {
   update: protectedProcedure
     .input(UpdateMessageInput)
     .output(UpdateMessageOutput)
-    .handler(async ({ input, context }) => {
-      const [updatedMessage] = await context.db
-        .update(messageTable)
-        .set({
-          content: input.content,
-          mentions: input.mentions,
-          isEdited: true,
-          editedAt: new Date(),
-        })
-        .where(eq(messageTable.id, input.messageId))
-        .returning();
-
-      if (!updatedMessage) {
-        throw new ORPCError("BAD_REQUEST", {
-          message: "Failed to update message.",
-        });
-      }
-
-      return {
-        ...updatedMessage,
-        sender: {
-          name: context.session.user.name,
-          email: context.session.user.email,
-          createdAt: context.session.user.createdAt,
-          emailVerified: context.session.user.emailVerified,
-          id: context.session.user.id,
-          updatedAt: context.session.user.updatedAt,
-          image: context.session.user.image ?? null,
+    .handler(
+      async ({
+        context: {
+          db,
+          session: { user },
         },
-      };
-    }),
+        input,
+      }) => {
+        const { txid, message } = await db.transaction(async (tx) => {
+          const txid = await generateTxId(tx);
+
+          const [updatedMessage] = await tx
+            .update(messageTable)
+            .set({
+              content: input.content,
+              mentions: input.mentions,
+              isEdited: true,
+              editedAt: new Date(),
+            })
+            .where(eq(messageTable.id, input.messageId))
+            .returning();
+
+          if (!updatedMessage) {
+            throw new ORPCError("BAD_REQUEST", {
+              message: "Failed to update message.",
+            });
+          }
+
+          if (input.mentions && input.mentions.length > 0) {
+            const mentionNotifications = input.mentions.map(
+              (mentionedUserId) => ({
+                userId: mentionedUserId,
+                type: "mention" as const,
+                title: `${user.name || user.email} mentioned you`,
+                message:
+                  input.content?.slice(0, 200) ||
+                  "You were mentioned in a message",
+                entityId: updatedMessage.id,
+                entityType: "message",
+              })
+            );
+
+            await tx.insert(notificationTable).values(mentionNotifications);
+          }
+
+          return { txid, message: updatedMessage };
+        });
+
+        return {
+          txid,
+          message: {
+            ...message,
+            sender: {
+              name: user.name,
+              email: user.email,
+              createdAt: user.createdAt,
+              emailVerified: user.emailVerified,
+              id: user.id,
+              updatedAt: user.updatedAt,
+              image: user.image ?? null,
+            },
+          },
+        };
+      }
+    ),
 
   getChannelMessages: protectedProcedure
     .input(GetChannelMessagesInput)
@@ -216,13 +251,12 @@ export const messageRouter = {
 
   delete: protectedProcedure
     .input(DeleteMessageInput)
-    .output(SuccessOutput)
+    .output(DeleteMessageOutput)
     .handler(async ({ input, context }) => {
       const { db } = context;
 
-      // Use a transaction to ensure atomicity
-      await db.transaction(async (tx) => {
-        // First check if the message exists and user has permission
+      const { txid } = await db.transaction(async (tx) => {
+        const txid = await generateTxId(tx);
         const message = await tx.query.messageTable.findFirst({
           where: eq(messageTable.id, input.messageId),
           columns: { id: true, senderId: true },
@@ -323,11 +357,12 @@ export const messageRouter = {
             ) AS parent_ids)
           )
         `);
+
+        return { txid };
       });
 
       return {
-        success: true,
-        message: "Message deleted successfully.",
+        txid,
       };
     }),
 
@@ -449,37 +484,59 @@ export const messageRouter = {
   pin: protectedProcedure
     .input(PinMessageInput)
     .output(PinMessageOutput)
-    .handler(async ({ context, input }) => {
-      await context.db
-        .update(messageTable)
-        .set({
-          isPinned: true,
-          pinnedAt: new Date(),
-          pinnedBy: context.session.user.id,
-        })
-        .where(eq(messageTable.id, input.messageId))
-        .returning();
+    .handler(
+      async ({
+        context: {
+          db,
+          session: { user },
+        },
+        input,
+      }) => {
+        const { txid } = await db.transaction(async (tx) => {
+          const txid = await generateTxId(tx);
 
-      return {
-        success: true,
-        message: "Message pinned successfully.",
-      };
-    }),
+          await tx
+            .update(messageTable)
+            .set({
+              isPinned: true,
+              pinnedAt: new Date(),
+              pinnedBy: user.id,
+            })
+            .where(eq(messageTable.id, input.messageId))
+            .returning();
+
+          return { txid };
+        });
+
+        return {
+          txid,
+          success: true,
+          message: "Message pinned successfully.",
+        };
+      }
+    ),
   unPin: protectedProcedure
     .input(UnPinMessageInput)
     .output(UnPinMessageOutput)
-    .handler(async ({ context, input }) => {
-      await context.db
-        .update(messageTable)
-        .set({
-          isPinned: false,
-          pinnedAt: null,
-          pinnedBy: null,
-        })
-        .where(eq(messageTable.id, input.messageId))
-        .returning();
+    .handler(async ({ context: { db }, input }) => {
+      const { txid } = await db.transaction(async (tx) => {
+        const txid = await generateTxId(tx);
+
+        await tx
+          .update(messageTable)
+          .set({
+            isPinned: false,
+            pinnedAt: null,
+            pinnedBy: null,
+          })
+          .where(eq(messageTable.id, input.messageId))
+          .returning();
+
+        return { txid };
+      });
 
       return {
+        txid,
         success: true,
         message: "Message unpinned successfully.",
       };

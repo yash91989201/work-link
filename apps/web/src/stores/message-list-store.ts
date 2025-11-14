@@ -1,9 +1,8 @@
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
 import { useMemo } from "react";
-import { toast } from "sonner";
 import { create } from "zustand";
+import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
 import { useMessages } from "@/hooks/communications/use-messages";
-import { useMessagesOld } from "@/hooks/communications/use-messages-old";
 
 export type MessageWithParent = MessageWithSenderType & {
   parentMessage?: MessageWithSenderType | null;
@@ -126,7 +125,7 @@ const useMessageListStore = create<MessageListState>((set) => ({
   },
 
   setMentionMessage: (messageId) => {
-    set((state) => ({
+    set(() => ({
       mentionState: {
         messageId,
         shouldPlaySound: false,
@@ -136,33 +135,17 @@ const useMessageListStore = create<MessageListState>((set) => ({
 }));
 
 export function useMessageList(channelId: string) {
-  const { messages, hasMore, loadMore } = useMessages({ channelId });
-  const {
-    deletingMessageId,
-    updatingMessageId,
-    pinningMessageId,
-    isPinningMessage,
-    isDeletingMessage,
-    isUpdatingMessage,
-    deleteMessage,
-    updateMessage,
-    messagesEndRef,
-    pinMessage,
-    unpinMessage,
-  } = useMessagesOld(channelId);
+  const { messages, messagesEndRef, hasMore, loadMore } = useMessages({
+    channelId,
+  });
+
+  const { deleteMessage, updateMessage, pinMessage, unPinMessage } =
+    useMessageMutations();
 
   const threadState = useMessageListStore((state) => state.threadState);
   const mentionState = useMessageListStore((state) => state.mentionState);
   const isMentionSidebarOpen = useMessageListStore(
     (state) => state.isMentionSidebarOpen
-  );
-
-  const orderedMessages = useMemo<MessageWithParent[]>(
-    () =>
-      [...messages].sort(
-        (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
-      ),
-    [messages]
   );
 
   const threadParentMessage = useMemo(() => {
@@ -177,12 +160,12 @@ export function useMessageList(channelId: string) {
   const threadMessages = useMemo(() => {
     if (!threadState.parentMessageId) return [];
 
-    return orderedMessages.filter(
+    return messages.filter(
       (message) =>
         message.id === threadState.parentMessageId ||
         message.parentMessageId === threadState.parentMessageId
     );
-  }, [orderedMessages, threadState.parentMessageId]);
+  }, [messages, threadState.parentMessageId]);
 
   const mentionMessage = useMemo(() => {
     if (!mentionState.messageId) return null;
@@ -192,51 +175,35 @@ export function useMessageList(channelId: string) {
     );
   }, [messages, mentionState.messageId]);
 
-  const handleDelete = async (messageId: string) => {
-    try {
-      await deleteMessage({ messageId });
-      toast("Message deleted successfully");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to delete message";
-      toast(message);
-    }
+  const handleDelete = (messageId: string) => {
+    deleteMessage({ messageId });
   };
 
-  const handleEdit = async (
+  const handleEdit = (
     messageId: string,
     content: string,
     mentions?: string[]
   ) => {
-    try {
-      await updateMessage({ messageId, content, mentions });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to update message";
-      toast(message);
-      throw error;
-    }
+    updateMessage({
+      message: {
+        messageId,
+        content,
+        mentions,
+      },
+    });
   };
 
-  const handlePin = async (messageId: string, isPinned: boolean) => {
-    try {
-      if (isPinned) {
-        await unpinMessage({ messageId });
-      } else {
-        await pinMessage({ messageId });
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to pin message";
-      toast(message);
-      throw error;
+  const handlePin = (messageId: string, isPinned: boolean) => {
+    if (isPinned) {
+      unPinMessage({ messageId });
+    } else {
+      pinMessage({ messageId });
     }
   };
 
   return {
     channelId,
     messages,
-    orderedMessages,
     threadMessages,
     threadParentMessage,
     threadOriginMessageId: threadState.originMessageId,
@@ -249,12 +216,6 @@ export function useMessageList(channelId: string) {
     handleDelete,
     handleEdit,
     handlePin,
-    isDeletingMessage,
-    isUpdatingMessage,
-    isPinningMessage,
-    deletingMessageId,
-    updatingMessageId,
-    pinningMessageId,
     messagesEndRef,
     hasMore,
     loadMore,
