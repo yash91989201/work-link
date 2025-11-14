@@ -1,4 +1,4 @@
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { create } from "zustand";
 import { useChannelPresence } from "@/hooks/communications/use-channel-presence";
@@ -30,7 +30,7 @@ export function useChannel(channelId: string) {
     queryUtils.communication.channel.get.queryOptions({ input: { channelId } })
   );
 
-  const { data: membersList = [], isLoading } = useQuery(
+  const { data: membersList = [], isLoading } = useSuspenseQuery(
     queryUtils.communication.channel.listMembers.queryOptions({
       input: {
         channelId,
@@ -64,9 +64,11 @@ export function useChannelSidebar() {
   const showChannelInfoSidebar = useChannelStore(
     (state) => state.showChannelInfoSidebar
   );
+
   const setShowChannelInfoSidebar = useChannelStore(
     (state) => state.setShowChannelInfoSidebar
   );
+
   const toggleChannelInfoSidebar = useChannelStore(
     (state) => state.toggleChannelInfoSidebar
   );

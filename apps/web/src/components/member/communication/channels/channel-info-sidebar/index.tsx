@@ -5,7 +5,6 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useChannel, useChannelSidebar } from "@/stores/channel-store";
 import { ChannelInfo } from "./channel-info";
-import { JoinRequests } from "./join-requests";
 import { Members } from "./members";
 
 export const ChannelInfoSidebar = ({ channelId }: { channelId: string }) => {
@@ -57,15 +56,8 @@ export const ChannelInfoSidebar = ({ channelId }: { channelId: string }) => {
         <ScrollArea className="h-0 flex-1">
           <div className="space-y-4 p-4">
             <Separator className="bg-border/50" />
-
             <Members members={channelMembers} />
-
             <Separator className="bg-border/50" />
-
-            <JoinRequests channelId={channelId} />
-
-            <Separator className="bg-border/50" />
-
             <ChannelInfo
               channelDescription={channel.description ?? ""}
               createdAt={channel.createdAt}

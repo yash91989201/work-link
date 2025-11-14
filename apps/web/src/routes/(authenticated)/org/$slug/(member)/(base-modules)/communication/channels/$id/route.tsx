@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { ChannelInfoSidebar } from "@/components/member/communication/channels/channel-info-sidebar";
-import { MessageListSkeleton } from "@/components/member/communication/channels/message-list";
+import { MessageListSkeleton } from "@/components/member/communication/channels/message-list/message-list-skeleton";
 import { MessageMentionSidebar } from "@/components/member/communication/channels/message-mention-sidebar";
 import { MessageThreadSidebar } from "@/components/member/communication/channels/message-thread-sidebar";
 import { PinnedMessagesSidebar } from "@/components/member/communication/channels/pinned-messages-sidebar";
