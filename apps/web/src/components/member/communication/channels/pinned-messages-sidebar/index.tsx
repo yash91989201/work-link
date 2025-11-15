@@ -12,9 +12,10 @@ export function PinnedMessagesSidebar() {
   const { id: channelId } = useParams({
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
+
   const {
-    isPinnedMessagesSidebarOpen: isOpen,
-    closePinnedMessagesSidebar: onClose,
+    isOpen,
+    closePinnedMessages: onClose,
   } = usePinnedMessagesSidebar();
 
   const { pinnedMessages } = usePinnedMessages({ channelId });

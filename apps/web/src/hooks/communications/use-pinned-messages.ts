@@ -1,4 +1,4 @@
-import { and, eq, isNull, useLiveSuspenseQuery } from "@tanstack/react-db";
+import { and, eq, useLiveSuspenseQuery } from "@tanstack/react-db";
 import {
   attachmentsCollection,
   messagesCollection,
@@ -19,11 +19,7 @@ export function usePinnedMessages({ channelId }: { channelId: string }) {
           ({ message, attachment }) => eq(attachment.messageId, message.id)
         )
         .where(({ message }) =>
-          and(
-            eq(message.channelId, channelId),
-            eq(message.isPinned, true),
-            isNull(message.isDeleted)
-          )
+          and(eq(message.channelId, channelId), eq(message.isPinned, true))
         )
         .orderBy(({ message }) => message.pinnedAt, "desc")
         .select(({ message, sender, attachment }) => ({

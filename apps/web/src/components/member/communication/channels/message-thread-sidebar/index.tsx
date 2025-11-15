@@ -19,12 +19,9 @@ export function MessageThreadSidebar() {
   const [showMaximizedComposer, setShowMaximizedComposer] = useState(false);
   const [threadComposerText, setThreadComposerText] = useState("");
 
-  const {
-    parentMessageId: messageId,
-    composerFocusKey,
-    originMessageId,
-    shouldFocusComposer,
-  } = useMessageListStore((state) => state.threadState);
+  const { messageId, isOpen } = useMessageListStore(
+    (state) => state.messageThread
+  );
 
   const { id: channelId } = useParams({
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
@@ -35,25 +32,17 @@ export function MessageThreadSidebar() {
       messageId: messageId ?? "",
     });
 
-  const { acknowledgeThreadComposerFocus, closeThread } =
-    useMessageListActions();
+  const { closeMessageThread } = useMessageListActions();
 
-  const isThreadSidebarOpen = Boolean(messageId);
   const repliesCount = threadMessages.length;
-
-  useEffect(() => {
-    if (shouldFocusComposer) {
-      acknowledgeThreadComposerFocus();
-    }
-  }, [shouldFocusComposer, acknowledgeThreadComposerFocus]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Need to track message count changes
   useEffect(() => {
-    if (isThreadSidebarOpen) {
+    if (isOpen) {
       isInitialMount.current = true;
       previousScrollHeight.current = 0;
     }
-  }, [isThreadSidebarOpen, messageId]);
+  }, [isOpen, messageId]);
 
   useEffect(() => {
     if (isInitialMount.current && threadMessages.length > 0) {
@@ -101,17 +90,17 @@ export function MessageThreadSidebar() {
   }, [threadMessages.length]);
 
   useEffect(() => {
-    if (!(isThreadSidebarOpen && originMessageId)) return;
+    if (!(isOpen && messageId)) return;
 
     const container = scrollContainerRef.current;
     if (!container) return;
 
     const target = container.querySelector<HTMLElement>(
-      `[data-message-id="${originMessageId}"]`
+      `[data-message-id="${messageId}"]`
     );
 
     target?.scrollIntoView({ block: "center" });
-  }, [originMessageId, isThreadSidebarOpen]);
+  }, [messageId, isOpen]);
 
   const handleMaximizedReply = useCallback(() => {
     setShowMaximizedComposer(true);
@@ -122,7 +111,7 @@ export function MessageThreadSidebar() {
     setShowMaximizedComposer(false);
   }, []);
 
-  if (!isThreadSidebarOpen) {
+  if (!isOpen) {
     return (
       <div
         aria-hidden
@@ -175,7 +164,7 @@ export function MessageThreadSidebar() {
           <button
             aria-label="Close thread"
             className="rounded-lg p-1.5 opacity-70 ring-offset-background transition-all hover:bg-destructive/10 hover:text-destructive hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
-            onClick={closeThread}
+            onClick={closeMessageThread}
             type="button"
           >
             <X className="h-4 w-4" />
@@ -209,7 +198,7 @@ export function MessageThreadSidebar() {
           <MessageComposer
             channelId={channelId}
             initialContent={threadComposerText}
-            key={`${message.id}-${composerFocusKey}`}
+            key={`${message.id}-${Date.now()}`}
             onMaximize={handleMaximizedReply}
             parentMessageId={message.id}
             placeholder="Reply in thread..."

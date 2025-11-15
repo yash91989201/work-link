@@ -13,16 +13,28 @@ interface ChannelMember {
 }
 
 interface ChannelState {
-  showChannelInfoSidebar: boolean;
-  setShowChannelInfoSidebar: (show: boolean) => void;
-  toggleChannelInfoSidebar: () => void;
+  infoSidebar: {
+    isOpen: boolean;
+  };
+  openInfoSidebar: () => void;
+  closeInfoSidebar: () => void;
 }
 
 const useChannelStore = create<ChannelState>((set) => ({
-  showChannelInfoSidebar: false,
-  setShowChannelInfoSidebar: (show) => set({ showChannelInfoSidebar: show }),
-  toggleChannelInfoSidebar: () =>
-    set((state) => ({ showChannelInfoSidebar: !state.showChannelInfoSidebar })),
+  infoSidebar: { isOpen: false },
+
+  openInfoSidebar: () =>
+    set({
+      infoSidebar: {
+        isOpen: true,
+      },
+    }),
+  closeInfoSidebar: () =>
+    set({
+      infoSidebar: {
+        isOpen: false,
+      },
+    }),
 }));
 
 export function useChannel(channelId: string) {
@@ -60,24 +72,25 @@ export function useChannel(channelId: string) {
   };
 }
 
-export function useChannelSidebar() {
-  const showChannelInfoSidebar = useChannelStore(
-    (state) => state.showChannelInfoSidebar
-  );
+export function useChannelInfoSidebar() {
+  const isOpen = useChannelStore((state) => state.infoSidebar.isOpen);
 
-  const setShowChannelInfoSidebar = useChannelStore(
-    (state) => state.setShowChannelInfoSidebar
-  );
+  const openInfoSidebar = useChannelStore((state) => state.openInfoSidebar);
 
-  const toggleChannelInfoSidebar = useChannelStore(
-    (state) => state.toggleChannelInfoSidebar
-  );
+  const closeInfoSidebar = useChannelStore((state) => state.closeInfoSidebar);
+
+  const toggleInfoSidebar = () => {
+    if (isOpen) {
+      closeInfoSidebar();
+    } else {
+      openInfoSidebar();
+    }
+  };
 
   return {
-    showChannelInfoSidebar,
-    setShowChannelInfoSidebar,
-    toggleChannelInfoSidebar,
+    isOpen,
+    openInfoSidebar,
+    closeInfoSidebar,
+    toggleInfoSidebar,
   };
 }
-
-export type { ChannelMember, ChannelState };

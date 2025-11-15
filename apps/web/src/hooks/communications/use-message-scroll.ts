@@ -3,8 +3,8 @@ import { useCallback, useRef } from "react";
 export function useMessageScroll() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   const scrollToTop = useCallback(() => {

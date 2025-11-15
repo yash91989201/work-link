@@ -1,6 +1,6 @@
 import { useParams } from "@tanstack/react-router";
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,11 +38,9 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
 
   const { user } = useAuthedSession();
 
-  const { openThread, closeThread } = useMessageListActions();
+  const { openMessageThread, closeMessageThread } = useMessageListActions();
 
-  const threadState = useMessageListStore((state) => state.threadState);
-
-  const isThreadSidebarOpen = threadState.parentMessageId !== null;
+  const { messageId } = useMessageListStore((state) => state.messageThread);
 
   const handleDelete = () => {
     deleteMessage({ messageId: message.id });
@@ -72,29 +70,22 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
     setShowEditDialog(false);
   };
 
-  const isThreadRoot = useMemo(
-    () => threadState.parentMessageId === message.id,
-    [threadState.parentMessageId, message.id]
+  const isThreadActive = useMemo(
+    () => messageId === message.id,
+    [messageId, message.id]
   );
 
-  const isThreadOrigin = useMemo(
-    () => isThreadSidebarOpen && threadState.originMessageId === message.id,
-    [isThreadSidebarOpen, threadState.originMessageId, message.id]
-  );
-
-  const handleReplyClick = useCallback(() => {
-    const parentId = message.parentMessageId ?? message.id;
-
-    if (threadState.parentMessageId === parentId) {
-      closeThread();
+  const handleReplyClick = () => {
+    if (messageId === message.id) {
+      closeMessageThread();
     } else {
-      openThread(message, { focusComposer: true });
+      openMessageThread(message.id);
     }
-  }, [message, openThread, closeThread, threadState.parentMessageId]);
+  };
 
-  const handleViewThread = useCallback(() => {
-    openThread(message);
-  }, [message, openThread]);
+  const handleViewThread = () => {
+    openMessageThread(message.id);
+  };
 
   return (
     <div
@@ -102,8 +93,7 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
         "group relative space-y-6 rounded-xl p-3 transition-all hover:bg-muted/40",
         {
           "bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/10":
-            isThreadRoot,
-          "shadow-sm ring-2 ring-primary/30": isThreadOrigin,
+            isThreadActive,
         }
       )}
       data-message-id={message.id}
@@ -166,7 +156,7 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
           size="sm"
           variant="secondary"
         >
-          <span className="font-semibold">View thread</span>
+          View thread
         </Button>
       )}
 
@@ -175,7 +165,6 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
         description="Make changes to your message. Click save when you're done."
         initialContent={message.content || ""}
         messageId={message.id}
-        mode="edit"
         onOpenChange={setShowEditDialog}
         onSendSuccess={handleEditSave}
         open={showEditDialog}

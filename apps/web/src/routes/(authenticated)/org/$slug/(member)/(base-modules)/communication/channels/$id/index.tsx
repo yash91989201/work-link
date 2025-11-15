@@ -31,7 +31,7 @@ function RouteComponent() {
     <div className="flex min-h-0 flex-1 flex-col bg-background shadow-sm">
       <ChannelHeader />
       <div className="flex min-h-0 flex-1 flex-col">
-        <MessageList className="flex-1" />
+        <MessageList />
         <div className="shrink-0 border-t bg-linear-to-b from-background to-muted/20">
           <MessageComposer channelId={id} />
         </div>
