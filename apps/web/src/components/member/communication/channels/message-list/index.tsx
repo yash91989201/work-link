@@ -3,7 +3,6 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useMentionDetection } from "@/hooks/communications/use-mention-detection";
 import { cn } from "@/lib/utils";
 import { useMessageList } from "@/stores/message-list-store";
 import { EmptyState } from "./empty-state";
@@ -21,8 +20,6 @@ export function MessageList({ className }: { className?: string }) {
 
   const { messages, messagesEndRef, hasMore, loadMore } =
     useMessageList(channelId);
-
-  useMentionDetection({ messages, channelId });
 
   const virtualizer = useVirtualizer({
     count: messages.length,

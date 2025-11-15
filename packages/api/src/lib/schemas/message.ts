@@ -95,11 +95,22 @@ export const AddReactionInput = z.object({
   emoji: z.string().min(1).max(10),
 });
 
+// Reaction output
+export const ReactionOutput = z.object({
+  txid: z.number(),
+  success: z.boolean(),
+  message: z.string().optional(),
+});
+
+export const AddReactionOutput = ReactionOutput;
+
 // Remove reaction input
 export const RemoveReactionInput = z.object({
   messageId: z.string(),
   emoji: z.string().min(1).max(10),
 });
+
+export const RemoveReactionOutput = ReactionOutput;
 
 // Mark message as read input
 export const MarkMessageAsReadInput = z.object({

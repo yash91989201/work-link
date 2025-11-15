@@ -1,3 +1,4 @@
+import { useParams } from "@tanstack/react-router";
 import { AtSign, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { MessageItem } from "@/components/member/communication/channels/message-list/message-item";
@@ -9,7 +10,11 @@ import {
 } from "@/stores/message-list-store";
 import { formatMessageDate } from "@/utils/message-utils";
 
-export function MessageMentionSidebar({ channelId }: { channelId: string }) {
+export function MessageMentionSidebar() {
+  const { id: channelId } = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+  });
+
   const { isMentionSidebarOpen, mentionMessage, shouldPlayMentionSound } =
     useMessageList(channelId);
 
@@ -104,11 +109,7 @@ export function MessageMentionSidebar({ channelId }: { channelId: string }) {
               ref={scrollContainerRef}
             >
               {hasMentionMessage ? (
-                <MessageItem
-                  message={mentionMessage}
-                  showParentPreview={false}
-                  showThreadSummary={false}
-                />
+                <MessageItem message={mentionMessage} />
               ) : (
                 <div className="flex h-full items-center justify-center px-4 text-center text-muted-foreground text-sm">
                   No mention to display.

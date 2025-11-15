@@ -61,7 +61,7 @@ export function MessageComposer({
     cancelRecording,
   } = useAudioRecorder();
 
-  const { createMessage } = useMessageMutations();
+  const { createMessage, replyMessage } = useMessageMutations();
   const { typingUsers, broadcastTyping } = useTypingIndicator(channelId);
 
   const fetchUsers = useCallback(
@@ -225,17 +225,21 @@ export function MessageComposer({
       const uploadedAttachments =
         uploadPromises.length > 0 ? await Promise.all(uploadPromises) : [];
 
-      createMessage({
-        message: {
-          channelId,
-          content: textToSend,
-          mentions: mentionUserIds.length > 0 ? mentionUserIds : undefined,
-          parentMessageId,
-          type: messageType,
-          attachments:
-            uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
-        },
-      });
+      const messageData = {
+        channelId,
+        content: textToSend,
+        mentions: mentionUserIds.length > 0 ? mentionUserIds : undefined,
+        parentMessageId,
+        type: messageType,
+        attachments:
+          uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
+      };
+
+      if (parentMessageId) {
+        replyMessage({ message: messageData });
+      } else {
+        createMessage({ message: messageData });
+      }
 
       onSendSuccess?.();
     } catch (error) {
@@ -249,6 +253,7 @@ export function MessageComposer({
     audioBlob,
     channelId,
     createMessage,
+    replyMessage,
     broadcastTyping,
     user.name,
     user.id,
@@ -426,7 +431,6 @@ export function MessageComposer({
         <MaximizedMessageComposer
           channelId={channelId}
           initialContent={text}
-          mode="create"
           onOpenChange={setShowMaximizedComposer}
           onSendSuccess={handleMaximizedSubmit}
           open={showMaximizedComposer}

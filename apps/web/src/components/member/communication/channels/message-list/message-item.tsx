@@ -1,18 +1,16 @@
 import { useParams } from "@tanstack/react-router";
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
-import { CornerUpLeft } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useMessageItem } from "@/hooks/communications/use-message-item";
+import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { cn } from "@/lib/utils";
 import {
-  useMessageList,
   useMessageListActions,
+  useMessageListStore,
 } from "@/stores/message-list-store";
-import { formatMessageDate } from "@/utils/message-utils";
 import { MaximizedMessageComposer } from "../message-composer/maximized-message-composer";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
@@ -20,99 +18,83 @@ import { MessageReactions } from "./message-reactions";
 
 interface MessageItemProps {
   message: MessageWithSenderType;
-  showParentPreview?: boolean;
-  showThreadSummary?: boolean;
+  canReply?: boolean;
 }
 
-export function MessageItem({
-  message,
-  showThreadSummary = true,
-}: MessageItemProps) {
+export function MessageItem({ message, canReply = true }: MessageItemProps) {
   const { id: channelId } = useParams({
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
 
-  const { user } = useAuthedSession();
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   const {
-    threadOriginMessageId,
-    threadParentMessage,
-    isThreadSidebarOpen,
+    deleteMessage,
+    pinMessage,
+    unPinMessage,
     addReaction,
     removeReaction,
-  } = useMessageList(channelId);
+  } = useMessageMutations();
+
+  const { user } = useAuthedSession();
 
   const { openThread, closeThread } = useMessageListActions();
 
-  const { handleDelete, handlePin } = useMessageItem({
-    channelId,
-    messageId: message.id,
-    isPinned: message.isPinned,
-  });
+  const threadState = useMessageListStore((state) => state.threadState);
 
-  const handleReact = useCallback(
-    (emoji: string) => {
-      addReaction({ messageId: message.id, emoji });
-    },
-    [addReaction, message.id]
-  );
+  const isThreadSidebarOpen = threadState.parentMessageId !== null;
 
-  const handleReactionClick = useCallback(
-    (emoji: string) => {
-      removeReaction({ messageId: message.id, emoji });
-    },
-    [removeReaction, message.id]
-  );
+  const handleDelete = () => {
+    deleteMessage({ messageId: message.id });
+  };
 
-  const handleEditDialog = useCallback(() => {
+  const handlePin = () => {
+    if (message.isPinned) {
+      unPinMessage({ messageId: message.id });
+    } else {
+      pinMessage({ messageId: message.id });
+    }
+  };
+
+  const handleReact = (emoji: string) => {
+    addReaction({ messageId: message.id, emoji });
+  };
+
+  const handleReactionClick = (emoji: string) => {
+    removeReaction({ messageId: message.id, emoji });
+  };
+
+  const handleEditDialog = () => {
     setShowEditDialog(true);
-  }, []);
+  };
 
-  const handleEditSave = useCallback(() => {
+  const handleEditSave = () => {
     setShowEditDialog(false);
-  }, []);
+  };
 
   const isThreadRoot = useMemo(
-    () =>
-      isThreadSidebarOpen && threadParentMessage
-        ? threadParentMessage.id === message.id
-        : false,
-    [isThreadSidebarOpen, threadParentMessage, message.id]
+    () => threadState.parentMessageId === message.id,
+    [threadState.parentMessageId, message.id]
   );
 
   const isThreadOrigin = useMemo(
-    () =>
-      isThreadSidebarOpen && threadOriginMessageId
-        ? threadOriginMessageId === message.id
-        : false,
-    [isThreadSidebarOpen, threadOriginMessageId, message.id]
+    () => isThreadSidebarOpen && threadState.originMessageId === message.id,
+    [isThreadSidebarOpen, threadState.originMessageId, message.id]
   );
 
   const handleReplyClick = useCallback(() => {
     const parentId = message.parentMessageId ?? message.id;
 
-    if (isThreadSidebarOpen && threadParentMessage?.id === parentId) {
+    if (threadState.parentMessageId === parentId) {
       closeThread();
     } else {
       openThread(message, { focusComposer: true });
     }
-  }, [
-    message,
-    openThread,
-    closeThread,
-    isThreadSidebarOpen,
-    threadParentMessage,
-  ]);
+  }, [message, openThread, closeThread, threadState.parentMessageId]);
 
   const handleViewThread = useCallback(() => {
     openThread(message);
   }, [message, openThread]);
-
-  const canShowThreadSummary =
-    showThreadSummary && !message.parentMessageId && message.threadCount > 0;
-
-  const isReply = Boolean(message.parentMessageId);
 
   return (
     <div
@@ -142,34 +124,13 @@ export function MessageItem({
             <span className="font-semibold text-foreground text-sm">
               {message.sender.name}
             </span>
-            <span className="text-muted-foreground text-xs">
-              {formatMessageDate(message.createdAt)}
-            </span>
 
-            {isReply && (
-              <Badge className="h-5 gap-1 text-[11px]" variant="secondary">
-                <CornerUpLeft className="h-3 w-3" />
-                Reply
-              </Badge>
-            )}
+            {message.isEdited && <Badge variant="secondary">Edited</Badge>}
 
-            {message.isEdited && (
-              <Badge className="h-5 text-[11px]" variant="secondary">
-                Edited
-              </Badge>
-            )}
+            {message.isPinned && <Badge variant="outline">📌</Badge>}
 
-            {message.isPinned && (
-              <Badge className="h-5 text-[11px]" variant="outline">
-                📌 Pinned
-              </Badge>
-            )}
-
-            {!message.parentMessageId && (message.threadCount ?? 0) > 0 && (
-              <Badge className="h-5 gap-1 text-[11px]" variant="secondary">
-                💬 {message.threadCount}{" "}
-                {message.threadCount === 1 ? "reply" : "replies"}
-              </Badge>
+            {message.threadCount > 0 && (
+              <Badge variant="secondary">{message.threadCount} 💬</Badge>
             )}
           </div>
         </div>
@@ -177,6 +138,7 @@ export function MessageItem({
 
       <MessageActions
         canEdit={user.id === message.senderId && message.type === "text"}
+        canReply={canReply}
         isOwnMessage={user.id === message.senderId}
         isPinned={message.isPinned}
         onDelete={handleDelete}
@@ -197,12 +159,12 @@ export function MessageItem({
         reactions={message.reactions || []}
       />
 
-      {canShowThreadSummary && (
+      {message.threadCount > 0 && (
         <Button
           className="rounded-full"
           onClick={handleViewThread}
           size="sm"
-          variant="outline"
+          variant="secondary"
         >
           <span className="font-semibold">View thread</span>
         </Button>

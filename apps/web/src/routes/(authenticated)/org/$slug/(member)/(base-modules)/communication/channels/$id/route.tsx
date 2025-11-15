@@ -28,7 +28,6 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
   return (
     <div className="flex min-h-0 flex-1 bg-muted/10">
       <Suspense
@@ -46,10 +45,10 @@ function RouteComponent() {
       >
         <Outlet />
       </Suspense>
-      <MessageThreadSidebar channelId={id} />
-      <MessageMentionSidebar channelId={id} />
-      <PinnedMessagesSidebar channelId={id} />
-      <ChannelInfoSidebar channelId={id} />
+      <MessageThreadSidebar />
+      <MessageMentionSidebar />
+      <PinnedMessagesSidebar />
+      <ChannelInfoSidebar />
     </div>
   );
 }

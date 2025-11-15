@@ -8,6 +8,7 @@ interface MessageActionsProps {
   canEdit: boolean;
   isPinned: boolean;
   isOwnMessage: boolean;
+  canReply?: boolean;
   onEdit: () => void;
   onReply: () => void;
   onDelete: () => void;
@@ -19,6 +20,7 @@ export function MessageActions({
   isOwnMessage,
   canEdit,
   isPinned,
+  canReply = true,
   onEdit,
   onReply,
   onDelete,
@@ -27,15 +29,17 @@ export function MessageActions({
 }: MessageActionsProps) {
   return (
     <ButtonGroup className="pointer-events-none absolute top-3 right-3 z-10 rounded-lg bg-popover/95 opacity-0 backdrop-blur transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 supports-backdrop-filter:bg-popover/75">
-      <Button
-        aria-label="Reply"
-        onClick={onReply}
-        size="icon-sm"
-        title="Reply to Message"
-        variant="ghost"
-      >
-        <Reply className="h-3.5 w-3.5" />
-      </Button>
+      {canReply && (
+        <Button
+          aria-label="Reply"
+          onClick={onReply}
+          size="icon-sm"
+          title="Reply to Message"
+          variant="ghost"
+        >
+          <Reply className="h-3.5 w-3.5" />
+        </Button>
+      )}
 
       <ReactionPicker onSelectEmoji={onReact} />
 

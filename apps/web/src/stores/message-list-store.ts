@@ -35,7 +35,7 @@ interface MessageListState {
   setMentionMessage: (messageId: string) => void;
 }
 
-const useMessageListStore = create<MessageListState>((set) => ({
+export const useMessageListStore = create<MessageListState>((set) => ({
   threadState: {
     parentMessageId: null,
     originMessageId: null,

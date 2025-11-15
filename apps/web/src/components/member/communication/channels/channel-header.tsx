@@ -34,8 +34,10 @@ export function ChannelHeader() {
   );
 
   const { toggleChannelInfoSidebar } = useChannelSidebar();
+
   const { openPinnedMessagesSidebar, openMentionSidebar, closeMentionSidebar } =
     useMessageListActions();
+
   const { isMentionSidebarOpen, mentionMessage } = useMessageList(channelId);
 
   const handleMentionClick = () => {

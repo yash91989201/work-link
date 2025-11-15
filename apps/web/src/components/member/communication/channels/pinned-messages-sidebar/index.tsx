@@ -1,3 +1,4 @@
+import { useParams } from "@tanstack/react-router";
 import { Pin, X } from "lucide-react";
 import { useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,10 @@ import { cn } from "@/lib/utils";
 import { usePinnedMessagesSidebar } from "@/stores/message-list-store";
 import { MessageItem } from "../message-list/message-item";
 
-export function PinnedMessagesSidebar({ channelId }: { channelId: string }) {
+export function PinnedMessagesSidebar() {
+  const { id: channelId } = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+  });
   const {
     isPinnedMessagesSidebarOpen: isOpen,
     closePinnedMessagesSidebar: onClose,
@@ -77,12 +81,7 @@ export function PinnedMessagesSidebar({ channelId }: { channelId: string }) {
             </div>
           ) : (
             orderedPinnedMessages.map((message) => (
-              <MessageItem
-                key={message.id}
-                message={message}
-                showParentPreview={false}
-                showThreadSummary={false}
-              />
+              <MessageItem key={message.id} message={message} />
             ))
           )}
         </div>

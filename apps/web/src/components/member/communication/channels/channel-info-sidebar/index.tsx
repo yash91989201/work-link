@@ -1,3 +1,4 @@
+import { useParams } from "@tanstack/react-router";
 import { Hash, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,7 +8,11 @@ import { useChannel, useChannelSidebar } from "@/stores/channel-store";
 import { ChannelInfo } from "./channel-info";
 import { Members } from "./members";
 
-export const ChannelInfoSidebar = ({ channelId }: { channelId: string }) => {
+export const ChannelInfoSidebar = () => {
+  const { id: channelId } = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+  });
+
   const { channel, channelMembers, onlineUsersCount } = useChannel(channelId);
   const { showChannelInfoSidebar, setShowChannelInfoSidebar } =
     useChannelSidebar();

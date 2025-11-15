@@ -64,6 +64,67 @@ export function useMessageMutations() {
     },
   });
 
+  const replyMessage = createOptimisticAction({
+    onMutate: ({ message }: { message: CreateMessageInputType }) => {
+      const messageId = crypto.randomUUID().toString();
+
+      messagesCollection.insert({
+        id: messageId,
+        channelId: message.channelId,
+        content: message.content ?? null,
+        type: message.type,
+        parentMessageId: message.parentMessageId ?? null,
+        isEdited: false,
+        isDeleted: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        editedAt: null,
+        isPinned: false,
+        mentions: null,
+        pinnedAt: null,
+        pinnedBy: null,
+        reactions: null,
+        receiverId: null,
+        senderId: user.id,
+        threadCount: 0,
+      });
+
+      if (message.attachments) {
+        for (const attachment of message.attachments) {
+          attachmentsCollection.insert({
+            id: crypto.randomUUID().toString(),
+            fileName: attachment.fileName,
+            fileSize: attachment.fileSize,
+            mimeType: attachment.mimeType,
+            originalName: attachment.originalName,
+            type: attachment.type,
+            url: attachment.url,
+            isPublic: true,
+            messageId,
+            thumbnailUrl: null,
+            uploadedBy: user.id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+
+        // TODO: Implement parent message thread count increment atomically using transactions
+        // if (message.parentMessageId !== undefined) {
+        //   messagesCollection.update(message.parentMessageId, (draft) => {
+        //     draft.threadCount += 1;
+        //   });
+        // }
+      }
+    },
+    mutationFn: async ({ message }: { message: CreateMessageInputType }) => {
+      const { txid } = await orpcClient.communication.message.create(message);
+
+      await messagesCollection.utils.awaitTxId(txid);
+      await attachmentsCollection.utils.awaitTxId(txid);
+    },
+  });
+
   const updateMessage = createOptimisticAction({
     onMutate: ({ message }: { message: UpdateMessageInputType }) => {
       messagesCollection.update(message.messageId, (draft) => {
@@ -148,7 +209,10 @@ export function useMessageMutations() {
     mutationFn: async ({
       messageId,
       emoji,
-    }: { messageId: string; emoji: string }) => {
+    }: {
+      messageId: string;
+      emoji: string;
+    }) => {
       const { txid } = await orpcClient.communication.message.addReaction({
         messageId,
         emoji,
@@ -169,7 +233,10 @@ export function useMessageMutations() {
     mutationFn: async ({
       messageId,
       emoji,
-    }: { messageId: string; emoji: string }) => {
+    }: {
+      messageId: string;
+      emoji: string;
+    }) => {
       const { txid } = await orpcClient.communication.message.removeReaction({
         messageId,
         emoji,
@@ -187,5 +254,6 @@ export function useMessageMutations() {
     unPinMessage,
     addReaction,
     removeReaction,
+    replyMessage,
   };
 }

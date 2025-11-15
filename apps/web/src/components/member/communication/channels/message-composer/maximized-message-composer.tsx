@@ -28,7 +28,6 @@ interface MaximizedMessageComposerProps {
   title?: string;
   description?: string;
   onSendSuccess?: (content: string) => void;
-  mode?: "create" | "edit";
 }
 
 export function MaximizedMessageComposer({
@@ -43,26 +42,18 @@ export function MaximizedMessageComposer({
   title,
   description,
   onSendSuccess,
-  mode = "create",
 }: MaximizedMessageComposerProps) {
+  const isEditing = !!messageId;
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const { user } = useAuthedSession();
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [text, setText] = useState(initialContent);
 
-  const { createMessage, updateMessage } = useMessageMutations({ channelId });
+  const { createMessage, replyMessage, updateMessage } = useMessageMutations();
 
   const { typingUsers, broadcastTyping } = useTypingIndicator(channelId);
-
-  const isEditing = mode === "edit" && !!messageId;
-
-  const dialogSizeClasses = cn("flex flex-col overflow-y-auto p-0", {
-    "h-screen w-screen max-w-none rounded-none": isMobile,
-    "max-h-[90vh] sm:max-w-[90vw] sm:max-w-[95vw]": isTablet,
-    "h-[90vh] sm:max-w-[90vw] lg:h-[80vh] lg:max-w-[80vw]": isDesktop,
-  });
 
   const fetchUsers = useCallback(
     async (query: string) => {
@@ -128,7 +119,7 @@ export function MaximizedMessageComposer({
         mentionUserIds.push(match[1]);
       }
 
-      if (isEditing && messageId) {
+      if (isEditing) {
         updateMessage({
           message: {
             messageId,
@@ -137,15 +128,19 @@ export function MaximizedMessageComposer({
           },
         });
       } else {
-        createMessage({
-          message: {
-            channelId,
-            content: text.trim(),
-            mentions: mentionUserIds.length ? mentionUserIds : undefined,
-            parentMessageId,
-            type: "text",
-          },
-        });
+        const messageData = {
+          channelId,
+          content: text.trim(),
+          mentions: mentionUserIds.length ? mentionUserIds : undefined,
+          parentMessageId,
+          type: "text" as const,
+        };
+
+        if (parentMessageId) {
+          replyMessage({ message: messageData });
+        } else {
+          createMessage({ message: messageData });
+        }
       }
 
       setText("");
@@ -172,6 +167,7 @@ export function MaximizedMessageComposer({
     onSendSuccess,
     updateMessage,
     createMessage,
+    replyMessage,
     broadcastTyping,
   ]);
 
@@ -184,7 +180,15 @@ export function MaximizedMessageComposer({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent
-        className={cn(dialogSizeClasses, className)}
+        className={cn(
+          "flex flex-col overflow-y-auto p-0",
+          {
+            "h-screen w-screen max-w-none rounded-none": isMobile,
+            "max-h-[90vh] sm:max-w-[90vw]": isTablet,
+            "h-[90vh] sm:max-w-[90vw] lg:h-[80vh] lg:max-w-[80vw]": isDesktop,
+          },
+          className
+        )}
         onInteractOutside={(e) => e.preventDefault()}
         showCloseButton={false}
       >
@@ -227,14 +231,6 @@ export function MaximizedMessageComposer({
             />
           </div>
         </div>
-
-        <input
-          className="hidden"
-          multiple
-          onChange={() => toast.info("File upload not implemented yet")}
-          ref={fileInputRef}
-          type="file"
-        />
       </DialogContent>
     </Dialog>
   );
