@@ -12,16 +12,38 @@ interface ChannelMember {
   isOnline: boolean;
 }
 
+interface MessageThreadState {
+  messageId: string | null;
+  isOpen: boolean;
+}
+
+interface PinnedMessagesState {
+  isOpen: boolean;
+}
+
 interface ChannelState {
   infoSidebar: {
     isOpen: boolean;
   };
+  messageThread: MessageThreadState;
+  pinnedMessages: PinnedMessagesState;
   openInfoSidebar: () => void;
   closeInfoSidebar: () => void;
+  openMessageThread: (messageId: string) => void;
+  closeMessageThread: () => void;
+  openPinnedMessages: () => void;
+  closePinnedMessages: () => void;
 }
 
 const useChannelStore = create<ChannelState>((set) => ({
   infoSidebar: { isOpen: false },
+  pinnedMessages: {
+    isOpen: false,
+  },
+  messageThread: {
+    messageId: null,
+    isOpen: false,
+  },
 
   openInfoSidebar: () =>
     set({
@@ -35,6 +57,36 @@ const useChannelStore = create<ChannelState>((set) => ({
         isOpen: false,
       },
     }),
+  openMessageThread: (messageId) => {
+    set({
+      messageThread: {
+        messageId,
+        isOpen: true,
+      },
+    });
+  },
+  closeMessageThread: () => {
+    set({
+      messageThread: {
+        messageId: null,
+        isOpen: false,
+      },
+    });
+  },
+  openPinnedMessages: () => {
+    set({
+      pinnedMessages: {
+        isOpen: true,
+      },
+    });
+  },
+  closePinnedMessages: () => {
+    set({
+      pinnedMessages: {
+        isOpen: false,
+      },
+    });
+  },
 }));
 
 export function useChannel(channelId: string) {
@@ -64,7 +116,6 @@ export function useChannel(channelId: string) {
   const onlineUsersCount = onlineUserIds.length;
 
   return {
-    channelId,
     channel,
     channelMembers,
     onlineUsersCount,
@@ -92,5 +143,43 @@ export function useChannelInfoSidebar() {
     openInfoSidebar,
     closeInfoSidebar,
     toggleInfoSidebar,
+  };
+}
+
+export function usePinnedMessagesSidebar() {
+  const isOpen = useChannelStore((state) => state.pinnedMessages.isOpen);
+
+  const openPinnedMessages = useChannelStore(
+    (state) => state.openPinnedMessages
+  );
+
+  const closePinnedMessages = useChannelStore(
+    (state) => state.closePinnedMessages
+  );
+
+  return {
+    isOpen,
+    openPinnedMessages,
+    closePinnedMessages,
+  };
+}
+
+export function useMessageThreadSidebar() {
+  const isOpen = useChannelStore((state) => state.messageThread.isOpen);
+  const messageId = useChannelStore(
+    (state) => state.messageThread.messageId
+  ) as string;
+
+  const openMessageThread = useChannelStore((state) => state.openMessageThread);
+
+  const closeMessageThread = useChannelStore(
+    (state) => state.closeMessageThread
+  );
+
+  return {
+    isOpen,
+    messageId,
+    openMessageThread,
+    closeMessageThread,
   };
 }

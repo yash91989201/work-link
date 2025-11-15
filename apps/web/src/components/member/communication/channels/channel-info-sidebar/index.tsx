@@ -56,7 +56,6 @@ export const ChannelInfoSidebar = () => {
 
         <ScrollArea className="h-0 flex-1">
           <div className="space-y-4 p-4">
-            <Separator className="bg-border/50" />
             <Members members={channelMembers} />
             <Separator className="bg-border/50" />
             <ChannelInfo

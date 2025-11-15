@@ -3,10 +3,7 @@ import { Spool, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
 import { useMessageThread } from "@/hooks/communications/use-message-thread";
-import {
-  useMessageListActions,
-  useMessageListStore,
-} from "@/stores/message-list-store";
+import { useMessageThreadSidebar } from "@/stores/channel-store";
 import { formatMessageDate } from "@/utils/message-utils";
 import { MessageComposer } from "../message-composer";
 import { HelpText } from "../message-composer/help-text";
@@ -19,20 +16,16 @@ export function MessageThreadSidebar() {
   const [showMaximizedComposer, setShowMaximizedComposer] = useState(false);
   const [threadComposerText, setThreadComposerText] = useState("");
 
-  const { messageId, isOpen } = useMessageListStore(
-    (state) => state.messageThread
-  );
-
   const { id: channelId } = useParams({
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
 
+  const { messageId, isOpen, closeMessageThread } = useMessageThreadSidebar();
+
   const { message, threadMessages, messagesEndRef, hasMore, loadMore } =
     useMessageThread({
-      messageId: messageId ?? "",
+      messageId,
     });
-
-  const { closeMessageThread } = useMessageListActions();
 
   const repliesCount = threadMessages.length;
 

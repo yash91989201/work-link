@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePinnedMessages } from "@/hooks/communications/use-pinned-messages";
 import { cn } from "@/lib/utils";
-import { usePinnedMessagesSidebar } from "@/stores/message-list-store";
+import { usePinnedMessagesSidebar } from "@/stores/channel-store";
 import { MessageItem } from "../message-list/message-item";
 
 export function PinnedMessagesSidebar() {

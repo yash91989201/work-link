@@ -17,8 +17,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useChannelInfoSidebar } from "@/stores/channel-store";
-import { useMessageListActions } from "@/stores/message-list-store";
+import {
+  useChannelInfoSidebar,
+  usePinnedMessagesSidebar,
+} from "@/stores/channel-store";
 import { queryUtils } from "@/utils/orpc";
 
 export function ChannelHeader() {
@@ -31,8 +33,7 @@ export function ChannelHeader() {
   );
 
   const { toggleInfoSidebar } = useChannelInfoSidebar();
-
-  const { openPinnedMessages } = useMessageListActions();
+  const { openPinnedMessages } = usePinnedMessagesSidebar();
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur-sm transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height) supports-backdrop-filter:bg-background/60">

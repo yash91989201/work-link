@@ -7,10 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { cn } from "@/lib/utils";
-import {
-  useMessageListActions,
-  useMessageListStore,
-} from "@/stores/message-list-store";
+import { useMessageThreadSidebar } from "@/stores/channel-store";
 import { MaximizedMessageComposer } from "../message-composer/maximized-message-composer";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
@@ -38,9 +35,8 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
 
   const { user } = useAuthedSession();
 
-  const { openMessageThread, closeMessageThread } = useMessageListActions();
-
-  const { messageId } = useMessageListStore((state) => state.messageThread);
+  const { messageId, openMessageThread, closeMessageThread } =
+    useMessageThreadSidebar();
 
   const handleDelete = () => {
     deleteMessage({ messageId: message.id });
