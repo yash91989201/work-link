@@ -18,8 +18,9 @@ export function NavChannels({
 }: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { state } = useSidebar();
   const { channels } = useUserChannels();
-  const { id } = useParams({
+  const params = useParams({
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+    shouldThrow: false,
   });
 
   const slug = useActiveOrgSlug();
@@ -59,7 +60,7 @@ export function NavChannels({
             <SidebarMenuItem key={channel.id}>
               <SidebarMenuButton
                 asChild
-                isActive={channel.id === id}
+                isActive={channel.id === params?.id}
                 tooltip={channel.name}
               >
                 <Link
