@@ -127,8 +127,6 @@ export function MessageThreadSidebar() {
     );
   }
 
-  console.log(message);
-
   return (
     <div
       className="flex h-full w-full min-w-0 max-w-full shrink-0 flex-col overflow-hidden border-l bg-background/95 opacity-100 shadow-lg backdrop-blur-sm transition-[width,opacity] duration-300 ease-in-out supports-backdrop-filter:bg-background/60 sm:w-[640px]"
@@ -181,7 +179,7 @@ export function MessageThreadSidebar() {
             </div>
           ) : (
             threadMessages.map((reply) => (
-              <MessageItem canReply={false} key={reply.id} message={reply} />
+              <MessageItem key={reply.id} message={reply} />
             ))
           )}
           <div ref={messagesEndRef} />

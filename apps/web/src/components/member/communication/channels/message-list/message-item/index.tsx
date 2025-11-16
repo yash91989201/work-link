@@ -1,6 +1,6 @@
 import { useParams } from "@tanstack/react-router";
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
-import { useMemo, useState } from "react";
+import { Activity, useState } from "react";
 import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +15,9 @@ import { MessageReactions } from "./message-reactions";
 
 interface MessageItemProps {
   message: MessageWithSenderType;
-  canReply?: boolean;
 }
 
-export function MessageItem({ message, canReply = true }: MessageItemProps) {
+export function MessageItem({ message }: MessageItemProps) {
   const { id: channelId } = useParams({
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
@@ -35,8 +34,10 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
 
   const { user } = useAuthedSession();
 
-  const { messageId, openMessageThread, closeMessageThread } =
+  const { isOpen, messageId, openMessageThread, closeMessageThread } =
     useMessageThreadSidebar();
+
+  const isMessageThreadActive = messageId === message.id;
 
   const handleDelete = () => {
     deleteMessage({ messageId: message.id });
@@ -66,21 +67,12 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
     setShowEditDialog(false);
   };
 
-  const isThreadActive = useMemo(
-    () => messageId === message.id,
-    [messageId, message.id]
-  );
-
-  const handleReplyClick = () => {
-    if (messageId === message.id) {
+  const toggleMessageThread = () => {
+    if (isMessageThreadActive) {
       closeMessageThread();
     } else {
       openMessageThread(message.id);
     }
-  };
-
-  const handleViewThread = () => {
-    openMessageThread(message.id);
   };
 
   return (
@@ -89,7 +81,7 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
         "group relative space-y-6 rounded-xl p-3 transition-all hover:bg-muted/40",
         {
           "bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/10":
-            isThreadActive,
+            isMessageThreadActive,
         }
       )}
       data-message-id={message.id}
@@ -124,14 +116,14 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
 
       <MessageActions
         canEdit={user.id === message.senderId && message.type === "text"}
-        canReply={canReply}
+        canReply={!isOpen}
         isOwnMessage={user.id === message.senderId}
         isPinned={message.isPinned}
         onDelete={handleDelete}
         onEdit={handleEditDialog}
         onPin={handlePin}
         onReact={handleReact}
-        onReply={handleReplyClick}
+        onReply={toggleMessageThread}
       />
 
       <div className="rounded-2xl bg-linear-to-br from-background/95 to-background/80 p-4 shadow-sm ring-1 ring-border/40 backdrop-blur-sm transition-all">
@@ -145,16 +137,16 @@ export function MessageItem({ message, canReply = true }: MessageItemProps) {
         reactions={message.reactions || []}
       />
 
-      {message.threadCount > 0 && (
+      <Activity mode={message.threadCount > 0 ? "visible" : "hidden"}>
         <Button
           className="rounded-full"
-          onClick={handleViewThread}
+          onClick={toggleMessageThread}
           size="sm"
           variant="secondary"
         >
-          View thread
+          {isMessageThreadActive ? "Close Thread" : "View Thread"}
         </Button>
-      )}
+      </Activity>
 
       <MaximizedMessageComposer
         channelId={channelId}
