@@ -16,9 +16,13 @@ import { MessageReactions } from "./message-reactions";
 
 interface MessageItemProps {
   message: MessageWithSenderType;
+  isThreadMessage?: boolean;
 }
 
-export function MessageItem({ message }: MessageItemProps) {
+export function MessageItem({
+  message,
+  isThreadMessage = false,
+}: MessageItemProps) {
   const {
     deleteMessage,
     pinMessage,
@@ -29,7 +33,7 @@ export function MessageItem({ message }: MessageItemProps) {
 
   const { user } = useAuthedSession();
 
-  const { isOpen, messageId, openMessageThread, closeMessageThread } =
+  const { messageId, openMessageThread, closeMessageThread } =
     useMessageThreadSidebar();
 
   const isMessageThreadActive = messageId === message.id;
@@ -112,8 +116,7 @@ export function MessageItem({ message }: MessageItemProps) {
 
       <MessageActions
         canEdit={user.id === message.senderId && message.type === "text"}
-        // TODO: Fix this so that user cannot reply to a message that it itself a reply, in a thread
-        canReply={!isOpen}
+        canReply={!isThreadMessage}
         isOwnMessage={user.id === message.senderId}
         isPinned={message.isPinned}
         onDelete={handleDelete}

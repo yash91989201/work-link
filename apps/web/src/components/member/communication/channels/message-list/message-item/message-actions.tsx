@@ -8,7 +8,7 @@ interface MessageActionsProps {
   canEdit: boolean;
   isPinned: boolean;
   isOwnMessage: boolean;
-  canReply?: boolean;
+  canReply: boolean;
   onEdit: () => void;
   onReply: () => void;
   onDelete: () => void;
@@ -20,7 +20,7 @@ export function MessageActions({
   isOwnMessage,
   canEdit,
   isPinned,
-  canReply = true,
+  canReply,
   onEdit,
   onReply,
   onDelete,

@@ -193,7 +193,11 @@ export function MessageThreadSidebar() {
             </div>
           ) : (
             threadMessages.map((reply) => (
-              <MessageItem key={reply.id} message={reply} />
+              <MessageItem
+                isThreadMessage={true}
+                key={reply.id}
+                message={reply}
+              />
             ))
           )}
           <div ref={messagesEndRef} />

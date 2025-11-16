@@ -25,6 +25,9 @@
   "extends": ["ultracite/core", "ultracite/react"],
   "linter": {
     "rules": {
+      "complexity": {
+        "noForEach": "off"
+      },
       "nursery": {
         "noShadow": "off"
       },

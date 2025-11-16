@@ -57,7 +57,9 @@ export function useMessageMutations() {
       }
 
       if (message.parentMessageId) {
-        // TODO: Update parent message's thread count atomically in a transaction
+        messagesCollection.update(message.parentMessageId, (draft) => {
+          draft.threadCount += 1;
+        });
       }
     },
     mutationFn: async ({ message }: { message: CreateMessageInputType }) => {
@@ -85,7 +87,37 @@ export function useMessageMutations() {
 
   const deleteMessage = createOptimisticAction({
     onMutate: ({ messageId }: { messageId: string }) => {
+      const message = messagesCollection.get(messageId);
+
+      if (message?.parentMessageId) {
+        messagesCollection.update(message.parentMessageId, (draft) => {
+          draft.threadCount = Math.max(0, draft.threadCount - 1);
+        });
+      }
+
+      const attachmentsToDelete: string[] = [];
+      attachmentsCollection.forEach((attachment) => {
+        if (attachment.messageId === messageId) {
+          attachmentsToDelete.push(attachment.id);
+        }
+      });
+
+      const childMessagesToDelete: string[] = [];
+      messagesCollection.forEach((msg) => {
+        if (msg.parentMessageId === messageId) {
+          childMessagesToDelete.push(msg.id);
+        }
+      });
+
       messagesCollection.delete(messageId);
+
+      if (childMessagesToDelete.length > 0) {
+        messagesCollection.delete(childMessagesToDelete);
+      }
+
+      if (attachmentsToDelete.length > 0) {
+        attachmentsCollection.delete(attachmentsToDelete);
+      }
     },
     mutationFn: async ({ messageId }: { messageId: string }) => {
       const { txid } = await orpcClient.communication.message.delete({
