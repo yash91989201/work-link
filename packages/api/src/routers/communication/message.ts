@@ -267,9 +267,10 @@ export const messageRouter = {
 
       const { txid } = await db.transaction(async (tx) => {
         const txid = await generateTxId(tx);
+
         const message = await tx.query.messageTable.findFirst({
           where: eq(messageTable.id, input.messageId),
-          columns: { id: true, senderId: true },
+          columns: { id: true, senderId: true, parentMessageId: true },
           with: {
             attachments: {
               columns: {
@@ -286,14 +287,6 @@ export const messageRouter = {
           });
         }
 
-        // Check if user is the sender or has admin privileges (you may want to add role-based checks)
-        if (message.senderId !== context.session.user.id) {
-          throw new ORPCError("FORBIDDEN", {
-            message: "You can only delete your own messages.",
-          });
-        }
-
-        // Delete attachments from Supabase storage
         if (message.attachments && message.attachments.length > 0) {
           for (const attachment of message.attachments) {
             const bucket =
@@ -314,59 +307,17 @@ export const messageRouter = {
           }
         }
 
-        // Recursively soft delete the message and all its descendants
-        await tx.execute(sql`
-          WITH RECURSIVE message_tree AS (
-            -- Start with the root message to delete
-            SELECT id, "parentMessageId", 1 as depth
-            FROM message
-            WHERE id = ${input.messageId}
-            
-            UNION ALL
-            
-            -- Find all child message recursively
-            SELECT m.id, m."parentMessageId", mt.depth + 1
-            FROM message m
-            INNER JOIN message_tree mt ON m."parentMessageId" = mt.id
-            WHERE m."isDeleted" = false
-          )
-          UPDATE message 
-          SET 
-            "isDeleted" = true, 
-            "deletedAt" = NOW(),
-            -- Clear thread information for deleted message
-            "threadCount" = 0
-          WHERE id IN (SELECT id FROM message_tree)
-        `);
+        await tx
+          .delete(messageTable)
+          .where(eq(messageTable.id, input.messageId));
 
-        // update parent message thread counts
-        await tx.execute(sql`
-          UPDATE message
-          SET "threadCount" = (
-            SELECT COUNT(*) 
-            FROM message
-            WHERE "parentMessageId" = message.id AND "isDeleted" = false
-          )
-          WHERE id IN (
-            SELECT DISTINCT "parentMessageId" 
-            FROM message
-            WHERE "parentMessageId" IS NOT NULL 
-            AND id IN (SELECT id FROM (
-              WITH RECURSIVE message_tree AS (
-                SELECT id, "parentMessageId"
-                FROM message
-                WHERE id = ${input.messageId}
-                UNION ALL
-                SELECT m.id, m."parentMessageId"
-                FROM message m
-                INNER JOIN message_tree mt ON m."parentMessageId" = mt.id
-              )
-              SELECT "parentMessageId" 
-              FROM message_tree 
-              WHERE "parentMessageId" IS NOT NULL
-            ) AS parent_ids)
-          )
-        `);
+        await tx
+          .delete(attachmentTable)
+          .where(eq(attachmentTable.messageId, input.messageId));
+
+        await tx
+          .delete(messageTable)
+          .where(eq(messageTable.parentMessageId, input.messageId));
 
         return { txid };
       });
@@ -520,8 +471,6 @@ export const messageRouter = {
 
         return {
           txid,
-          success: true,
-          message: "Message pinned successfully.",
         };
       }
     ),
@@ -547,8 +496,6 @@ export const messageRouter = {
 
       return {
         txid,
-        success: true,
-        message: "Message unpinned successfully.",
       };
     }),
   getPinnedMessages: protectedProcedure

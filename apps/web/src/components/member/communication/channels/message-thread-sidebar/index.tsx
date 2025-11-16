@@ -1,6 +1,7 @@
 import { useParams } from "@tanstack/react-router";
 import { Spool, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useMessageThread } from "@/hooks/communications/use-message-thread";
 import {
   useMaximizedMessageComposerActions,
@@ -29,6 +30,13 @@ export function MessageThreadSidebar() {
     });
 
   const repliesCount = threadMessages.length;
+
+  useEffect(() => {
+    console.log(messageId);
+    if (messageId === undefined) {
+      closeMessageThread();
+    }
+  }, [messageId, closeMessageThread]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Need to track message count changes
   useEffect(() => {
@@ -134,8 +142,11 @@ export function MessageThreadSidebar() {
         className="flex h-full w-full max-w-full border-l opacity-100 shadow-lg sm:w-[640px]"
         data-testid="message-thread-sidebar"
       >
-        <div className="flex h-full flex-1 items-center justify-center px-4 text-center text-muted-foreground text-sm">
-          Loading thread...
+        <div className="flex h-full flex-1 flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground text-sm">
+          <p>Message might be deleted</p>
+          <Button className="rounded-full" onClick={closeMessageThread}>
+            Close thread
+          </Button>
         </div>
       </div>
     );

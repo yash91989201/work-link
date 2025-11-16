@@ -99,7 +99,6 @@ export function useMessages() {
     getScrollElement: () => parentRef.current,
     estimateSize: () => 150,
     overscan: 5,
-    gap: 12,
   });
 
   const virtualItems = virtualizer.getVirtualItems();

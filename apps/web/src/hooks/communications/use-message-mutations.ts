@@ -150,6 +150,8 @@ export function useMessageMutations() {
     onMutate: ({ messageId }: { messageId: string }) => {
       messagesCollection.update(messageId, (draft) => {
         draft.isPinned = false;
+        draft.pinnedAt = null;
+        draft.pinnedBy = null;
       });
     },
     mutationFn: async ({ messageId }: { messageId: string }) => {

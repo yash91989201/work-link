@@ -53,7 +53,7 @@ export function MessageList() {
                   left: 0,
                   width: "100%",
                   transform: `translateY(${virtualItem.start}px)`,
-                  paddingBottom: "16px",
+                  paddingBottom: "0.75rem",
                 }}
               >
                 <MessageItem message={messages[virtualItem.index]} />
