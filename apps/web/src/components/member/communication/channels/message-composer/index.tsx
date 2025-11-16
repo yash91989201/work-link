@@ -12,9 +12,9 @@ import { AttachmentPreviewList } from "./attachment-preview-list";
 import { AudioRecorder } from "./audio-recorder";
 import { ComposerActions } from "./composer-actions";
 import { HelpText } from "./help-text";
-import { MaximizedMessageComposer } from "./maximized-message-composer";
 import { MessageEditor } from "./message-editor";
 import { TypingIndicator } from "./typing-indicator";
+import { useMaximizedMessageComposerActions } from "@/stores/channel-store";
 
 interface AttachmentPreview {
   file: File;
@@ -29,7 +29,7 @@ interface MessageComposerProps {
   placeholder?: string;
   showHelpText?: boolean;
   onSendSuccess?: () => void;
-  onMaximize?: () => void;
+  onMaximize?: (content: string) => void;
   initialContent?: string;
 }
 
@@ -37,7 +37,6 @@ export function MessageComposer({
   channelId,
   className,
   parentMessageId,
-  placeholder = "Type a message...",
   showHelpText = true,
   onSendSuccess,
   onMaximize,
@@ -48,8 +47,9 @@ export function MessageComposer({
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [text, setText] = useState(initialContent);
-  const [showMaximizedComposer, setShowMaximizedComposer] = useState(false);
+  const [isEditorMaximized, setIsEditorMaximized] = useState(false);
   const [attachments, setAttachments] = useState<AttachmentPreview[]>([]);
+  const { openMaximizedMessageComposer } = useMaximizedMessageComposerActions();
 
   const {
     isRecording,
@@ -61,7 +61,7 @@ export function MessageComposer({
     cancelRecording,
   } = useAudioRecorder();
 
-  const { createMessage, replyMessage } = useMessageMutations();
+  const { createMessage } = useMessageMutations();
   const { typingUsers, broadcastTyping } = useTypingIndicator(channelId);
 
   const fetchUsers = useCallback(
@@ -235,11 +235,7 @@ export function MessageComposer({
           uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
       };
 
-      if (parentMessageId) {
-        replyMessage({ message: messageData });
-      } else {
-        createMessage({ message: messageData });
-      }
+      createMessage({ message: messageData });
 
       onSendSuccess?.();
     } catch (error) {
@@ -253,7 +249,6 @@ export function MessageComposer({
     audioBlob,
     channelId,
     createMessage,
-    replyMessage,
     broadcastTyping,
     user.name,
     user.id,
@@ -331,19 +326,43 @@ export function MessageComposer({
 
   const handleMaximize = useCallback(() => {
     if (onMaximize) {
-      onMaximize();
-    } else {
-      setShowMaximizedComposer(true);
+      onMaximize(text);
+      return;
     }
-  }, [onMaximize]);
 
-  const handleMaximizedSubmit = useCallback(
-    async (content: string) => {
-      setText(content);
-      await handleSubmit();
-    },
-    [handleSubmit]
-  );
+    setIsEditorMaximized(true);
+    openMaximizedMessageComposer({
+      content: text,
+      parentMessageId: parentMessageId ?? null,
+      onComplete: (result) => {
+        setIsEditorMaximized(false);
+
+        if (result.action === "cancel") {
+          if (typeof result.content === "string") {
+            setText(result.content);
+            handleTypingBroadcast(result.content);
+          }
+          return;
+        }
+
+        setText("");
+        setAttachments([]);
+        cancelRecording();
+        if (user?.name) {
+          broadcastTyping(false, user.name);
+        }
+      },
+    });
+  }, [
+    onMaximize,
+    text,
+    openMaximizedMessageComposer,
+    parentMessageId,
+    handleTypingBroadcast,
+    cancelRecording,
+    user?.name,
+    broadcastTyping,
+  ]);
 
   // Sync text when initialContent changes (for thread replies)
   useEffect(() => {
@@ -395,15 +414,10 @@ export function MessageComposer({
               content={text}
               disabled={isRecording || audioUrl !== null}
               fetchUsers={fetchUsers}
-              isMaximized={onMaximize ? false : showMaximizedComposer}
+              isMaximized={onMaximize ? false : isEditorMaximized}
               onChange={handleMarkdownChange}
               onMaximize={handleMaximize}
               onSubmit={handleSubmit}
-              placeholder={
-                isRecording || audioUrl
-                  ? "Audio message recorded. Clear audio to type..."
-                  : placeholder
-              }
             />
 
             <div className="border-t p-3">
@@ -426,18 +440,6 @@ export function MessageComposer({
           {showHelpText && <HelpText />}
         </div>
       </div>
-
-      {!onMaximize && (
-        <MaximizedMessageComposer
-          channelId={channelId}
-          initialContent={text}
-          onOpenChange={setShowMaximizedComposer}
-          onSendSuccess={handleMaximizedSubmit}
-          open={showMaximizedComposer}
-          parentMessageId={parentMessageId}
-          placeholder={placeholder}
-        />
-      )}
     </>
   );
 }

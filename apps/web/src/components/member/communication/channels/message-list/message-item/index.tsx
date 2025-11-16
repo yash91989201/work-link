@@ -1,14 +1,15 @@
-import { useParams } from "@tanstack/react-router";
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
-import { Activity, useState } from "react";
-import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
+import { Activity } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { cn } from "@/lib/utils";
-import { useMessageThreadSidebar } from "@/stores/channel-store";
+import {
+  useMaximizedMessageComposerActions,
+  useMessageThreadSidebar,
+} from "@/stores/channel-store";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
 import { MessageReactions } from "./message-reactions";
@@ -18,12 +19,6 @@ interface MessageItemProps {
 }
 
 export function MessageItem({ message }: MessageItemProps) {
-  const { id: channelId } = useParams({
-    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
-  });
-
-  const [showEditDialog, setShowEditDialog] = useState(false);
-
   const {
     deleteMessage,
     pinMessage,
@@ -59,12 +54,13 @@ export function MessageItem({ message }: MessageItemProps) {
     removeReaction({ messageId: message.id, emoji });
   };
 
-  const handleEditDialog = () => {
-    setShowEditDialog(true);
-  };
+  const { openMaximizedMessageComposer } = useMaximizedMessageComposerActions();
 
-  const handleEditSave = () => {
-    setShowEditDialog(false);
+  const handleEditDialog = () => {
+    openMaximizedMessageComposer({
+      messageId: message.id,
+      content: message.content || "",
+    });
   };
 
   const toggleMessageThread = () => {
@@ -78,7 +74,7 @@ export function MessageItem({ message }: MessageItemProps) {
   return (
     <div
       className={cn(
-        "group relative space-y-6 rounded-xl p-3 transition-all hover:bg-muted/40",
+        "group relative space-y-4 rounded-xl p-3 transition-all hover:bg-muted/40",
         {
           "bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/10":
             isMessageThreadActive,
@@ -116,6 +112,7 @@ export function MessageItem({ message }: MessageItemProps) {
 
       <MessageActions
         canEdit={user.id === message.senderId && message.type === "text"}
+        // TODO: Fix this so that user cannot reply to a message that it itself a reply, in a thread
         canReply={!isOpen}
         isOwnMessage={user.id === message.senderId}
         isPinned={message.isPinned}
@@ -147,17 +144,6 @@ export function MessageItem({ message }: MessageItemProps) {
           {isMessageThreadActive ? "Close Thread" : "View Thread"}
         </Button>
       </Activity>
-
-      <MaximizedMessageComposer
-        channelId={channelId}
-        description="Make changes to your message. Click save when you're done."
-        initialContent={message.content || ""}
-        messageId={message.id}
-        onOpenChange={setShowEditDialog}
-        onSendSuccess={handleEditSave}
-        open={showEditDialog}
-        title="Edit Message"
-      />
     </div>
   );
 }

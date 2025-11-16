@@ -12,6 +12,33 @@ interface ChannelMember {
   isOnline: boolean;
 }
 
+interface InfoSidebarState {
+  isOpen: boolean;
+}
+
+type MaximizedMessageComposerResult =
+  | { action: "submit" }
+  | { action: "cancel"; content?: string | null };
+
+type MaximizedComposerCompleteCallback = (
+  result: MaximizedMessageComposerResult
+) => void;
+
+interface MaximizedMessageComposerState {
+  isOpen: boolean;
+  content: string | null;
+  messageId: string | null;
+  parentMessageId: string | null;
+  onComplete?: MaximizedComposerCompleteCallback;
+}
+
+interface OpenMaximizedMessageComposerConfig {
+  messageId?: string | null;
+  content?: string | null;
+  parentMessageId?: string | null;
+  onComplete?: MaximizedComposerCompleteCallback;
+}
+
 interface MessageThreadState {
   messageId: string | null;
   isOpen: boolean;
@@ -22,21 +49,37 @@ interface PinnedMessagesState {
 }
 
 interface ChannelState {
-  infoSidebar: {
-    isOpen: boolean;
-  };
+  infoSidebar: InfoSidebarState;
+  maximizedMessageComposer: MaximizedMessageComposerState;
   messageThread: MessageThreadState;
   pinnedMessages: PinnedMessagesState;
+
   openInfoSidebar: () => void;
   closeInfoSidebar: () => void;
+
+  openMaximizedMessageComposer: (
+    config?: OpenMaximizedMessageComposerConfig
+  ) => void;
+  closeMaximizedMessageComposer: () => void;
+
   openMessageThread: (messageId: string) => void;
   closeMessageThread: () => void;
+
   openPinnedMessages: () => void;
   closePinnedMessages: () => void;
 }
 
+const defaultMaximizedComposerState: MaximizedMessageComposerState = {
+  isOpen: false,
+  messageId: null,
+  content: null,
+  parentMessageId: null,
+  onComplete: undefined,
+};
+
 const useChannelStore = create<ChannelState>((set) => ({
   infoSidebar: { isOpen: false },
+  maximizedMessageComposer: { ...defaultMaximizedComposerState },
   pinnedMessages: {
     isOpen: false,
   },
@@ -45,48 +88,30 @@ const useChannelStore = create<ChannelState>((set) => ({
     isOpen: false,
   },
 
-  openInfoSidebar: () =>
+  openInfoSidebar: () => set({ infoSidebar: { isOpen: true } }),
+  closeInfoSidebar: () => set({ infoSidebar: { isOpen: false } }),
+
+  openMaximizedMessageComposer: (config = {}) =>
     set({
-      infoSidebar: {
+      maximizedMessageComposer: {
+        ...defaultMaximizedComposerState,
         isOpen: true,
+        content: config.content ?? null,
+        messageId: config.messageId ?? null,
+        parentMessageId: config.parentMessageId ?? null,
+        onComplete: config.onComplete,
       },
     }),
-  closeInfoSidebar: () =>
-    set({
-      infoSidebar: {
-        isOpen: false,
-      },
-    }),
-  openMessageThread: (messageId) => {
-    set({
-      messageThread: {
-        messageId,
-        isOpen: true,
-      },
-    });
-  },
-  closeMessageThread: () => {
-    set({
-      messageThread: {
-        messageId: null,
-        isOpen: false,
-      },
-    });
-  },
-  openPinnedMessages: () => {
-    set({
-      pinnedMessages: {
-        isOpen: true,
-      },
-    });
-  },
-  closePinnedMessages: () => {
-    set({
-      pinnedMessages: {
-        isOpen: false,
-      },
-    });
-  },
+
+  closeMaximizedMessageComposer: () =>
+    set({ maximizedMessageComposer: { ...defaultMaximizedComposerState } }),
+
+  openMessageThread: (messageId) =>
+    set({ messageThread: { messageId, isOpen: true } }),
+  closeMessageThread: () =>
+    set({ messageThread: { messageId: null, isOpen: false } }),
+  openPinnedMessages: () => set({ pinnedMessages: { isOpen: true } }),
+  closePinnedMessages: () => set({ pinnedMessages: { isOpen: false } }),
 }));
 
 export function useChannel(channelId: string) {
@@ -125,34 +150,20 @@ export function useChannel(channelId: string) {
 
 export function useChannelInfoSidebar() {
   const isOpen = useChannelStore((state) => state.infoSidebar.isOpen);
-
   const openInfoSidebar = useChannelStore((state) => state.openInfoSidebar);
-
   const closeInfoSidebar = useChannelStore((state) => state.closeInfoSidebar);
 
-  const toggleInfoSidebar = () => {
-    if (isOpen) {
-      closeInfoSidebar();
-    } else {
-      openInfoSidebar();
-    }
-  };
+  const toggleInfoSidebar = () =>
+    isOpen ? closeInfoSidebar() : openInfoSidebar();
 
-  return {
-    isOpen,
-    openInfoSidebar,
-    closeInfoSidebar,
-    toggleInfoSidebar,
-  };
+  return { isOpen, openInfoSidebar, closeInfoSidebar, toggleInfoSidebar };
 }
 
 export function usePinnedMessagesSidebar() {
   const isOpen = useChannelStore((state) => state.pinnedMessages.isOpen);
-
   const openPinnedMessages = useChannelStore(
     (state) => state.openPinnedMessages
   );
-
   const closePinnedMessages = useChannelStore(
     (state) => state.closePinnedMessages
   );
@@ -169,9 +180,7 @@ export function useMessageThreadSidebar() {
   const messageId = useChannelStore(
     (state) => state.messageThread.messageId
   ) as string;
-
   const openMessageThread = useChannelStore((state) => state.openMessageThread);
-
   const closeMessageThread = useChannelStore(
     (state) => state.closeMessageThread
   );
@@ -182,4 +191,52 @@ export function useMessageThreadSidebar() {
     openMessageThread,
     closeMessageThread,
   };
+}
+
+export function useMaximizedMessageComposer() {
+  const isOpen = useChannelStore(
+    (state) => state.maximizedMessageComposer.isOpen
+  );
+
+  const content = useChannelStore(
+    (state) => state.maximizedMessageComposer.content
+  );
+
+  const messageId = useChannelStore(
+    (state) => state.maximizedMessageComposer.messageId
+  );
+
+  const parentMessageId = useChannelStore(
+    (state) => state.maximizedMessageComposer.parentMessageId
+  );
+
+  const onComplete = useChannelStore(
+    (state) => state.maximizedMessageComposer.onComplete
+  );
+
+  const openMaximizedMessageComposer = useChannelStore(
+    (state) => state.openMaximizedMessageComposer
+  );
+
+  const closeMaximizedMessageComposer = useChannelStore(
+    (state) => state.closeMaximizedMessageComposer
+  );
+
+  return {
+    isOpen,
+    content,
+    messageId,
+    parentMessageId,
+    onComplete,
+    openMaximizedMessageComposer,
+    closeMaximizedMessageComposer,
+  };
+}
+
+export function useMaximizedMessageComposerActions() {
+  const openMaximizedMessageComposer = useChannelStore(
+    (state) => state.openMaximizedMessageComposer
+  );
+
+  return { openMaximizedMessageComposer };
 }

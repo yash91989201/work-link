@@ -54,7 +54,6 @@ interface MessageEditorProps {
   content: string;
   onChange: (content: string) => void;
   onSubmit: () => void;
-  placeholder?: string;
   disabled?: boolean;
   onCursorChange?: (position: number) => void;
   fetchUsers: (
@@ -70,7 +69,6 @@ export function MessageEditor({
   content,
   onChange,
   onSubmit,
-  placeholder = "Type a message...",
   disabled = false,
   onCursorChange,
   fetchUsers,
@@ -137,7 +135,7 @@ export function MessageEditor({
       }),
       Underline,
       Placeholder.configure({
-        placeholder,
+        placeholder: "Type your message here...",
       }),
       Mention.configure({
         HTMLAttributes: {

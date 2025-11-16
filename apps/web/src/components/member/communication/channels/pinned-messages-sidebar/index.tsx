@@ -13,10 +13,7 @@ export function PinnedMessagesSidebar() {
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
 
-  const {
-    isOpen,
-    closePinnedMessages: onClose,
-  } = usePinnedMessagesSidebar();
+  const { isOpen, closePinnedMessages: onClose } = usePinnedMessagesSidebar();
 
   const { pinnedMessages } = usePinnedMessages({ channelId });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -74,7 +71,7 @@ export function PinnedMessagesSidebar() {
       </div>
 
       <ScrollArea className="h-0 flex-1">
-        <div className="flex-1 space-y-2 px-1.5 py-3" ref={scrollContainerRef}>
+        <div className="flex-1 space-y-1.5 p-3" ref={scrollContainerRef}>
           {pinnedCount === 0 ? (
             <div className="mx-2 mt-2 rounded-lg border bg-muted/40 p-3 text-muted-foreground text-sm">
               No messages have been pinned yet. Pin important messages to keep

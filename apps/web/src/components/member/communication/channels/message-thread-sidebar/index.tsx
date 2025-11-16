@@ -1,9 +1,11 @@
 import { useParams } from "@tanstack/react-router";
 import { Spool, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
 import { useMessageThread } from "@/hooks/communications/use-message-thread";
-import { useMessageThreadSidebar } from "@/stores/channel-store";
+import {
+  useMaximizedMessageComposerActions,
+  useMessageThreadSidebar,
+} from "@/stores/channel-store";
 import { formatMessageDate } from "@/utils/message-utils";
 import { MessageComposer } from "../message-composer";
 import { HelpText } from "../message-composer/help-text";
@@ -13,7 +15,6 @@ export function MessageThreadSidebar() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
   const previousScrollHeight = useRef(0);
-  const [showMaximizedComposer, setShowMaximizedComposer] = useState(false);
   const [threadComposerText, setThreadComposerText] = useState("");
 
   const { id: channelId } = useParams({
@@ -95,14 +96,27 @@ export function MessageThreadSidebar() {
     target?.scrollIntoView({ block: "center" });
   }, [messageId, isOpen]);
 
-  const handleMaximizedReply = useCallback(() => {
-    setShowMaximizedComposer(true);
-  }, []);
+  const { openMaximizedMessageComposer } = useMaximizedMessageComposerActions();
 
-  const handleMaximizedSubmit = useCallback((content: string) => {
-    setThreadComposerText(content);
-    setShowMaximizedComposer(false);
-  }, []);
+  const handleMaximizedReply = useCallback(
+    (content: string) => {
+      if (!message) return;
+
+      setThreadComposerText(content);
+      openMaximizedMessageComposer({
+        content,
+        parentMessageId: message.id,
+        onComplete: (result) => {
+          if (result.action === "cancel") {
+            setThreadComposerText(result.content ?? content);
+            return;
+          }
+          setThreadComposerText("");
+        },
+      });
+    },
+    [message, openMaximizedMessageComposer]
+  );
 
   if (!isOpen) {
     return (
@@ -163,7 +177,7 @@ export function MessageThreadSidebar() {
         </div>
 
         <div
-          className="flex-1 space-y-3 overflow-y-auto px-1.5 py-3"
+          className="flex-1 space-y-3 overflow-y-auto p-3"
           ref={scrollContainerRef}
         >
           {hasMore && (
@@ -197,15 +211,6 @@ export function MessageThreadSidebar() {
           />
           <HelpText />
         </div>
-
-        <MaximizedMessageComposer
-          channelId={channelId}
-          onOpenChange={setShowMaximizedComposer}
-          onSendSuccess={handleMaximizedSubmit}
-          open={showMaximizedComposer}
-          parentMessageId={message.id}
-          placeholder="Reply in thread..."
-        />
       </div>
     </div>
   );

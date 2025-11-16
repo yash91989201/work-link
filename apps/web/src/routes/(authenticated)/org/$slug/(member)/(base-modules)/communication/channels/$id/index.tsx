@@ -2,6 +2,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { ChannelHeader } from "@/components/member/communication/channels/channel-header";
 import { ChannelSkeleton } from "@/components/member/communication/channels/channel-skeleton";
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
+import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
 import { MessageList } from "@/components/member/communication/channels/message-list";
 
 export const Route = createFileRoute(
@@ -36,6 +37,7 @@ function RouteComponent() {
           <MessageComposer channelId={id} />
         </div>
       </div>
+      <MaximizedMessageComposer />
     </div>
   );
 }
