@@ -1,6 +1,7 @@
 import { useParams } from "@tanstack/react-router";
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
 import { useMemo, useState } from "react";
+import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { useMessageMutations } from "@/hooks/communications/use-message-mutation
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { cn } from "@/lib/utils";
 import { useMessageThreadSidebar } from "@/stores/channel-store";
-import { MaximizedMessageComposer } from "../message-composer/maximized-message-composer";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
 import { MessageReactions } from "./message-reactions";
