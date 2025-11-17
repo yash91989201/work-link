@@ -1,4 +1,4 @@
-import { FileIcon, FileText, Image, Video, X } from "lucide-react";
+import { FileText, Video, X } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -31,7 +31,7 @@ function AttachmentCard({
 }) {
   const isImage = attachment.file.type.startsWith("image/");
   const isVideo = attachment.file.type.startsWith("video/");
-  const isDocument = !isImage && !isVideo;
+  const isDocument = !(isImage || isVideo);
 
   const previewUrl = useMemo(() => {
     if (isImage || isVideo) {
@@ -74,7 +74,10 @@ function AttachmentCard({
       )}
 
       <div className="flex-1 border-t bg-background p-2">
-        <p className="truncate font-medium text-xs" title={attachment.file.name}>
+        <p
+          className="truncate font-medium text-xs"
+          title={attachment.file.name}
+        >
           {attachment.file.name}
         </p>
         <p className="text-muted-foreground text-xs">

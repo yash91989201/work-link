@@ -6,6 +6,7 @@ import { useAudioRecorder } from "@/hooks/use-audio-recorder";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { useMaximizedMessageComposerActions } from "@/stores/channel-store";
 import { orpcClient } from "@/utils/orpc";
 import { uploadToSupabase } from "@/utils/upload-helper";
 import { AttachmentPreviewList } from "./attachment-preview-list";
@@ -14,7 +15,6 @@ import { ComposerActions } from "./composer-actions";
 import { HelpText } from "./help-text";
 import { MessageEditor } from "./message-editor";
 import { TypingIndicator } from "./typing-indicator";
-import { useMaximizedMessageComposerActions } from "@/stores/channel-store";
 
 interface AttachmentPreview {
   file: File;

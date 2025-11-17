@@ -1,4 +1,4 @@
-import { Mic, Pause, Play, Send, Trash2, X } from "lucide-react";
+import { Pause, Play, Send, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -25,7 +25,6 @@ export function AudioRecorder({
   onStop,
   onCancel,
   onSend,
-  onStart,
 }: AudioRecorderProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackTime, setPlaybackTime] = useState(0);
@@ -93,9 +92,14 @@ export function AudioRecorder({
   if (audioUrl) {
     return (
       <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
-        <audio ref={audioRef} className="hidden" />
+        {/** biome-ignore lint/a11y/useMediaCaption: <track is not required here> */}
+        <audio className="hidden" ref={audioRef} />
         <Button onClick={togglePlayback} size="icon-sm" variant="ghost">
-          {isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
+          {isPlaying ? (
+            <Pause className="size-4" />
+          ) : (
+            <Play className="size-4" />
+          )}
         </Button>
         <div className="flex-1">
           <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -115,7 +119,12 @@ export function AudioRecorder({
             <Send className="mr-1 size-3" />
             Send
           </Button>
-          <Button onClick={onCancel} size="icon-sm" title="Delete audio" variant="ghost">
+          <Button
+            onClick={onCancel}
+            size="icon-sm"
+            title="Delete audio"
+            variant="ghost"
+          >
             <Trash2 className="size-4 text-destructive" />
           </Button>
         </div>
