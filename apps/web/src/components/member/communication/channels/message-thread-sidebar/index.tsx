@@ -1,11 +1,11 @@
 import { useParams } from "@tanstack/react-router";
-import { Spool, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowDownIcon, Loader2Icon, Spool, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
 import { HelpText } from "@/components/member/communication/channels/message-composer/help-text";
 import { MessageItem } from "@/components/member/communication/channels/message-list/message-item";
 import { Button } from "@/components/ui/button";
-import { useMessageThread } from "@/hooks/communications/use-message-thread";
+import { useVirtualMessageThread } from "@/hooks/communications/use-message-thread";
 import {
   useMaximizedMessageComposerActions,
   useMessageThreadSidebar,
@@ -13,9 +13,6 @@ import {
 import { formatMessageDate } from "@/utils/message-utils";
 
 export function MessageThreadSidebar() {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const isInitialMount = useRef(true);
-  const previousScrollHeight = useRef(0);
   const [threadComposerText, setThreadComposerText] = useState("");
 
   const { id: channelId } = useParams({
@@ -24,10 +21,20 @@ export function MessageThreadSidebar() {
 
   const { messageId, isOpen, closeMessageThread } = useMessageThreadSidebar();
 
-  const { message, threadMessages, messagesEndRef, hasMore, loadMore } =
-    useMessageThread({
-      messageId,
-    });
+  const {
+    scrollRef,
+    virtualizer,
+    virtualItems,
+    totalSize,
+    message,
+    threadMessages,
+    isLoading,
+    isFetchingNextPage,
+    showScrollButton,
+    scrollToBottom,
+  } = useVirtualMessageThread({
+    messageId,
+  });
 
   const repliesCount = threadMessages.length;
 
@@ -36,72 +43,6 @@ export function MessageThreadSidebar() {
       closeMessageThread();
     }
   }, [messageId, closeMessageThread]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Need to track message count changes
-  useEffect(() => {
-    if (isOpen) {
-      isInitialMount.current = true;
-      previousScrollHeight.current = 0;
-    }
-  }, [isOpen, messageId]);
-
-  useEffect(() => {
-    if (isInitialMount.current && threadMessages.length > 0) {
-      const container = scrollContainerRef.current;
-      if (container) {
-        setTimeout(() => {
-          container.scrollTop = container.scrollHeight;
-          isInitialMount.current = false;
-        }, 100);
-      }
-    }
-  }, [threadMessages.length]);
-
-  useEffect(() => {
-    if (isInitialMount.current) return;
-
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const { scrollTop } = container;
-
-      if (scrollTop < 100 && hasMore) {
-        previousScrollHeight.current = container.scrollHeight;
-        loadMore();
-      }
-    };
-
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [hasMore, loadMore]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Need to track message count changes
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || isInitialMount.current) return;
-
-    const currentScrollHeight = container.scrollHeight;
-    const heightDifference = currentScrollHeight - previousScrollHeight.current;
-
-    if (heightDifference > 0) {
-      container.scrollTop += heightDifference;
-      previousScrollHeight.current = currentScrollHeight;
-    }
-  }, [threadMessages.length]);
-
-  useEffect(() => {
-    if (!(isOpen && messageId)) return;
-
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const target = container.querySelector<HTMLElement>(
-      `[data-message-id="${messageId}"]`
-    );
-
-    target?.scrollIntoView({ block: "center" });
-  }, [messageId, isOpen]);
 
   const { openMaximizedMessageComposer } = useMaximizedMessageComposerActions();
 
@@ -170,9 +111,12 @@ export function MessageThreadSidebar() {
                 {formatMessageDate(message.createdAt)}
               </div>
               <div className="font-medium text-primary text-xs">
-                {repliesCount === 0
-                  ? "No replies yet"
-                  : `${repliesCount} repl${repliesCount === 1 ? "y" : "ies"}`}
+                {repliesCount === 0 && <span>No replies yet</span>}
+                {repliesCount > 0 && (
+                  <span>
+                    {repliesCount} repl{repliesCount === 1 ? "y" : "ies"}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -186,32 +130,79 @@ export function MessageThreadSidebar() {
           </button>
         </div>
 
-        <div
-          className="flex-1 space-y-3 overflow-y-auto p-3"
-          ref={scrollContainerRef}
-        >
-          {hasMore && (
-            <div className="flex justify-center py-2">
-              <div className="text-muted-foreground text-sm">
-                Loading older replies...
-              </div>
-            </div>
-          )}
-          {threadMessages.length === 0 ? (
-            <div className="mx-2 mt-2 rounded-lg border bg-muted/40 p-3 text-muted-foreground text-sm">
+        {isLoading && threadMessages.length === 0 && (
+          <div className="flex flex-1 items-center justify-center text-muted-foreground text-sm">
+            Loading replies...
+          </div>
+        )}
+
+        {!isLoading && repliesCount === 0 && (
+          <div className="flex flex-1 items-center justify-center p-6">
+            <div className="rounded-lg border bg-muted/40 p-4 text-center text-muted-foreground text-sm">
               Start the conversation by replying to this message.
             </div>
-          ) : (
-            threadMessages.map((reply) => (
-              <MessageItem
-                isThreadMessage={true}
-                key={reply.id}
-                message={reply}
-              />
-            ))
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+          </div>
+        )}
+
+        {repliesCount > 0 && (
+          <div className="relative flex-1 overflow-hidden">
+            <div className="h-full overflow-auto" ref={scrollRef}>
+              <div
+                style={{
+                  height: totalSize,
+                  width: "100%",
+                  position: "relative",
+                }}
+              >
+                {isFetchingNextPage && (
+                  <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-center gap-2 bg-background/80 py-2 shadow-sm backdrop-blur-sm">
+                    <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="font-medium text-muted-foreground text-sm">
+                      Loading older replies...
+                    </span>
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
+                  }}
+                >
+                  {virtualItems.map((virtualRow) => (
+                    <div
+                      className="p-3"
+                      data-index={virtualRow.index}
+                      key={virtualRow.key}
+                      ref={virtualizer.measureElement}
+                    >
+                      <MessageItem
+                        isThreadMessage
+                        message={threadMessages[virtualRow.index]}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {showScrollButton && (
+              <div className="absolute inset-x-0 bottom-4 z-20 flex justify-center">
+                <Button
+                  className="gap-2"
+                  onClick={scrollToBottom}
+                  variant="secondary"
+                >
+                  <ArrowDownIcon className="h-4 w-4" />
+                  <span className="text-sm">Jump to latest replies</span>
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="border-t">
           <MessageComposer

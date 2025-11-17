@@ -135,7 +135,7 @@ export function MessageItem({
 
       {message.threadCount > 0 && (
         <Button
-          className="rounded-full"
+          className="self-start rounded-full"
           onClick={toggleMessageThread}
           size="sm"
           variant="secondary"
