@@ -102,7 +102,7 @@ export function MessageItem({
         </Avatar>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
         {/* Header */}
         <div className="flex flex-wrap items-baseline gap-2 text-xs">
           <span className="font-semibold text-foreground text-sm">
@@ -137,16 +137,10 @@ export function MessageItem({
         {/* Thread entry */}
         {message.threadCount > 0 && (
           <Button
-            className={cn(
-              "mt-1 inline-flex items-center gap-1.5 self-start rounded-full border border-border/70 border-dashed bg-muted/40 px-3 py-1 font-medium text-muted-foreground text-xs hover:border-primary/50 hover:bg-primary/5 hover:text-primary",
-              {
-                "border-primary/60 bg-primary/5 text-primary":
-                  isMessageThreadActive,
-              }
-            )}
+            className="self-start rounded-full"
             onClick={toggleMessageThread}
             size="sm"
-            variant="ghost"
+            variant="secondary"
           >
             {isMessageThreadActive ? "Close thread" : "Open thread"}
           </Button>
