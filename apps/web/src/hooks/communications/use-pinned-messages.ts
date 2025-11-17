@@ -105,9 +105,9 @@ export function useVirtualPinnedMessages() {
     if (!el) return;
 
     const scrollThreshold = el.clientHeight * 0.1;
-    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const distanceFromTop = el.scrollTop;
 
-    setShowScrollButton(distanceFromBottom > 100);
+    setShowScrollButton(distanceFromTop > 100);
 
     if (!hasNextPage || isFetchingNextPage) return;
     if (loadMoreAnchorRef.current) return;
@@ -115,6 +115,8 @@ export function useVirtualPinnedMessages() {
     const lastItem =
       virtualizer.getVirtualItems()[virtualizer.getVirtualItems().length - 1];
     if (!lastItem) return;
+
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
 
     if (
       lastItem.index === pinnedMessages.length - 1 &&
@@ -141,9 +143,8 @@ export function useVirtualPinnedMessages() {
 
     const checkInitialScroll = () => {
       if (!el) return;
-      const distanceFromBottom =
-        el.scrollHeight - el.scrollTop - el.clientHeight;
-      setShowScrollButton(distanceFromBottom > 100);
+      const distanceFromTop = el.scrollTop;
+      setShowScrollButton(distanceFromTop > 100);
     };
 
     checkInitialScroll();
@@ -151,13 +152,13 @@ export function useVirtualPinnedMessages() {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToBottom = useCallback(() => {
+  const scrollToTop = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
 
     requestAnimationFrame(() => {
-      virtualizer.scrollToOffset(el.scrollHeight, {
-        align: "end",
+      virtualizer.scrollToOffset(0, {
+        align: "start",
         behavior: "smooth",
       });
     });
@@ -173,7 +174,7 @@ export function useVirtualPinnedMessages() {
     isFetchingNextPage,
     hasNextPage,
     showScrollButton,
-    scrollToBottom,
+    scrollToTop,
   };
 }
 

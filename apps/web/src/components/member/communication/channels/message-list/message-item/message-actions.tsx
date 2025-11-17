@@ -28,7 +28,7 @@ export function MessageActions({
   onReact,
 }: MessageActionsProps) {
   return (
-    <ButtonGroup className="pointer-events-none absolute top-3 right-3 z-10 rounded-lg bg-popover/95 opacity-0 backdrop-blur transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 supports-backdrop-filter:bg-popover/75">
+    <ButtonGroup className="pointer-events-none absolute top-0.5 right-3 z-10 rounded-lg bg-popover/95 opacity-0 backdrop-blur transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 supports-backdrop-filter:bg-popover/75">
       {canReply && (
         <Button
           aria-label="Reply"

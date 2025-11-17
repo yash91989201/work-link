@@ -1,9 +1,9 @@
-import { Loader2Icon, Pin, X } from "lucide-react";
-import { MessageItem } from "@/components/member/communication/channels/message-list/message-item";
+import { ArrowUpIcon, Loader2Icon, Pin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVirtualPinnedMessages } from "@/hooks/communications/use-pinned-messages";
 import { cn } from "@/lib/utils";
 import { usePinnedMessagesSidebar } from "@/stores/channel-store";
+import { MessageItem } from "../message-list/message-item";
 
 export function PinnedMessagesSidebar() {
   const { isOpen, closePinnedMessages: onClose } = usePinnedMessagesSidebar();
@@ -16,6 +16,8 @@ export function PinnedMessagesSidebar() {
     pinnedMessages,
     isLoading,
     isFetchingNextPage,
+    showScrollButton,
+    scrollToTop,
   } = useVirtualPinnedMessages();
 
   const pinnedCount = pinnedMessages.length;
@@ -117,6 +119,18 @@ export function PinnedMessagesSidebar() {
               </div>
             </div>
           </div>
+          {showScrollButton && (
+            <div className="absolute inset-x-0 top-4 z-20 flex justify-center">
+              <Button
+                className="gap-2"
+                onClick={scrollToTop}
+                variant="secondary"
+              >
+                <ArrowUpIcon className="h-4 w-4" />
+                <span className="text-sm">Jump to newest</span>
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

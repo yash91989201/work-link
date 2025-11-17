@@ -84,7 +84,7 @@ export function MessageContent({ message }: MessageContentProps) {
 
   // For text messages (with or without attachments)
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-linear-to-br from-background/95 to-background/80 p-4 shadow-sm ring-1 ring-border/40 backdrop-blur-sm transition-all">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-background/90 px-3 py-2 text-sm shadow-sm transition-colors">
       {hasContent && message.content !== null && (
         <div className="ProseMirror prose-sm dark:prose-invert wrapbreak-word whitespace-pre-wrap">
           {parse(DOMPurify.sanitize(message.content))}

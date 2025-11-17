@@ -9,6 +9,7 @@ import {
   useMaximizedMessageComposerActions,
   useMessageThreadSidebar,
 } from "@/stores/channel-store";
+import { formatMessageDate } from "@/utils/message-utils";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
 import { MessageReactions } from "./message-reactions";
@@ -77,7 +78,7 @@ export function MessageItem({
   return (
     <div
       className={cn(
-        "group relative flex flex-col gap-3 rounded-xl p-3 transition-all hover:bg-muted/40",
+        "group relative flex gap-3 rounded-xl px-3 py-2 transition-all hover:bg-muted/40",
         {
           "bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/10":
             isMessageThreadActive,
@@ -85,9 +86,12 @@ export function MessageItem({
       )}
       data-message-id={message.id}
     >
-      {/* Message header */}
-      <div className="flex items-center gap-3">
-        <Avatar className="h-10 w-10 ring-2 ring-border/50">
+      <div className="mt-1 shrink-0">
+        <Avatar
+          className={cn("h-10 w-10 ring-2 ring-border/40", {
+            "h-8 w-8 ring-border/30": isThreadMessage,
+          })}
+        >
           <AvatarImage
             alt={message.sender.name}
             src={message.sender.image || undefined}
@@ -96,21 +100,57 @@ export function MessageItem({
             {message.sender.name.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-foreground text-sm">
-              {message.sender.name}
-            </span>
+      </div>
 
-            {message.isEdited && <Badge variant="secondary">Edited</Badge>}
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        {/* Header */}
+        <div className="flex flex-wrap items-baseline gap-2 text-xs">
+          <span className="font-semibold text-foreground text-sm">
+            {message.sender.name}
+          </span>
 
-            {message.isPinned && <Badge variant="outline">📌</Badge>}
+          <span className="text-muted-foreground text-xs">
+            {formatMessageDate(message.createdAt)}
+          </span>
 
-            {message.threadCount > 0 && (
-              <Badge variant="secondary">{message.threadCount} 💬</Badge>
-            )}
-          </div>
+          {message.isEdited && <Badge variant="secondary">Edited</Badge>}
+
+          {message.isPinned && <Badge variant="outline">📌</Badge>}
+
+          {message.threadCount > 0 && (
+            <Badge variant="secondary">{message.threadCount} 💬</Badge>
+          )}
         </div>
+
+        {/* Message body */}
+        <div className="mt-1">
+          <MessageContent message={message} />
+        </div>
+
+        {/* Reactions */}
+        <MessageReactions
+          onAddReaction={handleReact}
+          onRemoveReaction={handleReactionClick}
+          reactions={message.reactions || []}
+        />
+
+        {/* Thread entry */}
+        {message.threadCount > 0 && (
+          <Button
+            className={cn(
+              "mt-1 inline-flex items-center gap-1.5 self-start rounded-full border border-border/70 border-dashed bg-muted/40 px-3 py-1 font-medium text-muted-foreground text-xs hover:border-primary/50 hover:bg-primary/5 hover:text-primary",
+              {
+                "border-primary/60 bg-primary/5 text-primary":
+                  isMessageThreadActive,
+              }
+            )}
+            onClick={toggleMessageThread}
+            size="sm"
+            variant="ghost"
+          >
+            {isMessageThreadActive ? "Close thread" : "Open thread"}
+          </Button>
+        )}
       </div>
 
       <MessageActions
@@ -124,25 +164,6 @@ export function MessageItem({
         onReact={handleReact}
         onReply={toggleMessageThread}
       />
-
-      <MessageContent message={message} />
-
-      <MessageReactions
-        onAddReaction={handleReact}
-        onRemoveReaction={handleReactionClick}
-        reactions={message.reactions || []}
-      />
-
-      {message.threadCount > 0 && (
-        <Button
-          className="self-start rounded-full"
-          onClick={toggleMessageThread}
-          size="sm"
-          variant="secondary"
-        >
-          {isMessageThreadActive ? "Close Thread" : "View Thread"}
-        </Button>
-      )}
     </div>
   );
 }
