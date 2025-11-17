@@ -32,7 +32,6 @@ export function MessageThreadSidebar() {
   const repliesCount = threadMessages.length;
 
   useEffect(() => {
-    console.log(messageId);
     if (messageId === undefined) {
       closeMessageThread();
     }
