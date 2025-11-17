@@ -1,3 +1,5 @@
+import { ArrowDownIcon, Loader2Icon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useVirtualMessages } from "@/hooks/communications/use-messages";
 import { EmptyState } from "./empty-state";
 import { MessageItem } from "./message-item";
@@ -11,6 +13,8 @@ export function MessageList() {
     messages,
     isLoading,
     isFetchingNextPage,
+    showScrollButton,
+    scrollToBottom,
   } = useVirtualMessages();
 
   if (isLoading && messages.length === 0) {
@@ -42,8 +46,11 @@ export function MessageList() {
           }}
         >
           {isFetchingNextPage && (
-            <div className="absolute inset-x-0 top-0 z-10 flex justify-center py-1 text-muted-foreground text-xs">
-              Loading older messages…
+            <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-center gap-2 bg-background/80 py-2 shadow-sm backdrop-blur-sm">
+              <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
+              <span className="font-medium text-muted-foreground text-sm">
+                Loading older messages...
+              </span>
             </div>
           )}
 
@@ -58,7 +65,7 @@ export function MessageList() {
           >
             {virtualItems.map((virtualRow) => (
               <div
-                className="px-4 py-1 sm:px-4"
+                className="p-3"
                 data-index={virtualRow.index}
                 key={virtualRow.key}
                 ref={virtualizer.measureElement}
@@ -69,6 +76,19 @@ export function MessageList() {
           </div>
         </div>
       </div>
+
+      {showScrollButton && (
+        <div className="absolute inset-x-0 bottom-4 z-20 flex justify-center">
+          <Button
+            className="gap-2"
+            onClick={scrollToBottom}
+            variant="secondary"
+          >
+            <ArrowDownIcon className="h-4 w-4" />
+            <span className="text-sm">Jump to latest messages</span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

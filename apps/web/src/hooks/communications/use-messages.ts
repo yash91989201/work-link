@@ -1,7 +1,14 @@
 import { and, eq, isNull, useLiveInfiniteQuery } from "@tanstack/react-db";
 import { useParams } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useEffectEvent, useMemo, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   attachmentsCollection,
   messagesCollection,
@@ -46,6 +53,8 @@ export function useVirtualMessages() {
   const virtualItems = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();
 
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
   // 🔄 Detect channel changes and reset internal flags
   useEffect(() => {
     if (!channelId) return;
@@ -54,6 +63,7 @@ export function useVirtualMessages() {
       prevChannelIdRef.current = channelId;
       hasDoneInitialScrollRef.current = false;
       loadMoreAnchorRef.current = null;
+      setShowScrollButton(false);
     }
   }, [channelId]);
 
@@ -68,9 +78,7 @@ export function useVirtualMessages() {
     hasDoneInitialScrollRef.current = true;
 
     requestAnimationFrame(() => {
-      const bottom = el.scrollHeight;
-      el.scrollTop = bottom;
-      virtualizer.scrollToOffset(bottom, { align: "end" });
+      virtualizer.scrollToOffset(el.scrollHeight, { align: "end" });
     });
   }, [channelId, isLoading, messages.length, virtualizer]);
 
@@ -90,7 +98,6 @@ export function useVirtualMessages() {
       const diff = newScrollHeight - anchor.prevScrollHeight;
 
       const newScrollTop = anchor.prevScrollTop + diff;
-      el.scrollTop = newScrollTop;
 
       virtualizer.scrollToOffset(newScrollTop, { align: "start" });
 
@@ -105,13 +112,19 @@ export function useVirtualMessages() {
     const el = scrollRef.current;
     if (!el) return;
 
+    const scrollThreshold = el.clientHeight * 0.1;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+    // Show button when not at the bottom (with 100px threshold)
+    setShowScrollButton(distanceFromBottom > 100);
+
     if (!hasNextPage || isFetchingNextPage) return;
     if (loadMoreAnchorRef.current) return; // already anchoring
 
     const firstItem = virtualizer.getVirtualItems()[0];
     if (!firstItem) return;
 
-    if (firstItem.index === 0 && el.scrollTop <= 25) {
+    if (firstItem.index === 0 && el.scrollTop <= scrollThreshold) {
       loadMoreAnchorRef.current = {
         prevScrollHeight: el.scrollHeight,
         prevScrollTop: el.scrollTop,
@@ -131,8 +144,31 @@ export function useVirtualMessages() {
     };
 
     el.addEventListener("scroll", onScroll);
+
+    // Check initial scroll position
+    const checkInitialScroll = () => {
+      if (!el) return;
+      const distanceFromBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight;
+      setShowScrollButton(distanceFromBottom > 100);
+    };
+
+    checkInitialScroll();
+
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
+
+  const scrollToBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    requestAnimationFrame(() => {
+      virtualizer.scrollToOffset(el.scrollHeight, {
+        align: "end",
+        behavior: "smooth",
+      });
+    });
+  }, [virtualizer]);
 
   return {
     // DOM
@@ -150,6 +186,10 @@ export function useVirtualMessages() {
     isLoading,
     isFetchingNextPage,
     hasNextPage,
+
+    // scroll actions
+    showScrollButton,
+    scrollToBottom,
   };
 }
 
