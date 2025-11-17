@@ -1,4 +1,4 @@
-import { useVirtualMessages } from "@/hooks/communications/use-virtual-messages";
+import { useVirtualMessages } from "@/hooks/communications/use-messages";
 import { EmptyState } from "./empty-state";
 import { MessageItem } from "./message-item";
 
@@ -56,24 +56,16 @@ export function MessageList() {
               transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
             }}
           >
-            {virtualItems.map((virtualRow) => {
-              const message = messages[virtualRow.index];
-              if (!message) return null;
-
-              return (
-                <div
-                  className="p-3"
-                  data-index={virtualRow.index}
-                  key={message.id}
-                  ref={virtualizer.measureElement}
-                  style={{
-                    minHeight: virtualRow.size,
-                  }}
-                >
-                  <MessageItem message={message} />
-                </div>
-              );
-            })}
+            {virtualItems.map((virtualRow) => (
+              <div
+                className="px-4 py-1 sm:px-4"
+                data-index={virtualRow.index}
+                key={virtualRow.key}
+                ref={virtualizer.measureElement}
+              >
+                <MessageItem message={messages[virtualRow.index]} />
+              </div>
+            ))}
           </div>
         </div>
       </div>
