@@ -21,7 +21,6 @@ import {
 } from "@work-link/db/lib/schemas/db-tables";
 import { env } from "@/env";
 import { fetchClient } from "@/lib/electric";
-import { orpcClient } from "@/utils/orpc";
 
 export const messagesCollection = createCollection(
   electricCollectionOptions({
@@ -36,19 +35,6 @@ export const messagesCollection = createCollection(
       parser: {
         timestamptz: (s: string) => new Date(s),
       },
-    },
-    onInsert: async ({ transaction }) => {
-      const newItem = transaction.mutations[0].modified;
-
-      const { txid } = await orpcClient.communication.message.create({
-        ...newItem,
-        receiverId: newItem.receiverId ?? undefined,
-        content: newItem.content ?? undefined,
-        parentMessageId: newItem.parentMessageId ?? undefined,
-        mentions: newItem.mentions ?? [],
-      });
-
-      return { txid };
     },
   })
 );

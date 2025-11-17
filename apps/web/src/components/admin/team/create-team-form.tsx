@@ -57,7 +57,7 @@ export const CreateTeamForm = () => {
       }
 
       queryClient.refetchQueries({
-        queryKey: queryUtils.admin.team.deleteTeam.mutationKey(),
+        queryKey: queryUtils.admin.team.listTeams.mutationKey(),
       });
 
       toast.success(`${data.name} team created successfully`);

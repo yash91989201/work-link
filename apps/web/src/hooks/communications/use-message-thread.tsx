@@ -1,5 +1,10 @@
-import { and, eq, isNull, useLiveInfiniteQuery } from "@tanstack/react-db";
-import { useParams } from "@tanstack/react-router";
+import {
+  and,
+  eq,
+  isNull,
+  useLiveInfiniteQuery,
+  useLiveSuspenseQuery,
+} from "@tanstack/react-db";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   useCallback,
@@ -16,23 +21,20 @@ import {
 } from "@/db/collections";
 import { buildMessageWithAttachments } from "@/lib/communications/message";
 
-export function useVirtualPinnedMessages() {
-  const { id: channelId } = useParams({
-    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
-  });
-
+export function useVirtualMessageThread({ messageId }: { messageId: string }) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const {
-    pinnedMessages,
+    message,
+    threadMessages,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-  } = usePinnedMessages({ channelId });
+  } = useMessageThread({ messageId });
 
   const hasDoneInitialScrollRef = useRef(false);
-  const prevChannelIdRef = useRef<string | null>(null);
+  const prevMessageIdRef = useRef<string | null>(null);
 
   const loadMoreAnchorRef = useRef<{
     prevScrollHeight: number;
@@ -40,7 +42,7 @@ export function useVirtualPinnedMessages() {
   } | null>(null);
 
   const virtualizer = useVirtualizer({
-    count: pinnedMessages.length,
+    count: threadMessages.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => 160,
     overscan: 25,
@@ -52,29 +54,29 @@ export function useVirtualPinnedMessages() {
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   useEffect(() => {
-    if (!channelId) return;
+    if (!messageId) return;
 
-    if (prevChannelIdRef.current !== channelId) {
-      prevChannelIdRef.current = channelId;
+    if (prevMessageIdRef.current !== messageId) {
+      prevMessageIdRef.current = messageId;
       hasDoneInitialScrollRef.current = false;
       loadMoreAnchorRef.current = null;
       setShowScrollButton(false);
     }
-  }, [channelId]);
+  }, [messageId]);
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (!(channelId && el)) return;
+    if (!(messageId && el)) return;
     if (isLoading) return;
-    if (pinnedMessages.length === 0) return;
+    if (threadMessages.length === 0) return;
     if (hasDoneInitialScrollRef.current) return;
 
     hasDoneInitialScrollRef.current = true;
 
     requestAnimationFrame(() => {
-      virtualizer.scrollToOffset(0, { align: "start" });
+      virtualizer.scrollToOffset(el.scrollHeight, { align: "end" });
     });
-  }, [channelId, isLoading, pinnedMessages.length, virtualizer]);
+  }, [messageId, isLoading, threadMessages.length, virtualizer]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Need to track message count changes
   useEffect(() => {
@@ -98,30 +100,24 @@ export function useVirtualPinnedMessages() {
     });
 
     return () => cancelAnimationFrame(frameId);
-  }, [isFetchingNextPage, pinnedMessages.length, virtualizer]);
+  }, [isFetchingNextPage, threadMessages.length, virtualizer]);
 
   const handleScroll = useEffectEvent(() => {
     const el = scrollRef.current;
     if (!el) return;
 
     const scrollThreshold = el.clientHeight * 0.1;
-    const distanceFromTop = el.scrollTop;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
 
-    setShowScrollButton(distanceFromTop > 100);
+    setShowScrollButton(distanceFromBottom > 100);
 
     if (!hasNextPage || isFetchingNextPage) return;
     if (loadMoreAnchorRef.current) return;
 
-    const lastItem =
-      virtualizer.getVirtualItems()[virtualizer.getVirtualItems().length - 1];
-    if (!lastItem) return;
+    const firstItem = virtualizer.getVirtualItems()[0];
+    if (!firstItem) return;
 
-    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-
-    if (
-      lastItem.index === pinnedMessages.length - 1 &&
-      distanceFromBottom <= scrollThreshold
-    ) {
+    if (firstItem.index === 0 && el.scrollTop <= scrollThreshold) {
       loadMoreAnchorRef.current = {
         prevScrollHeight: el.scrollHeight,
         prevScrollTop: el.scrollTop,
@@ -143,8 +139,9 @@ export function useVirtualPinnedMessages() {
 
     const checkInitialScroll = () => {
       if (!el) return;
-      const distanceFromTop = el.scrollTop;
-      setShowScrollButton(distanceFromTop > 100);
+      const distanceFromBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight;
+      setShowScrollButton(distanceFromBottom > 100);
     };
 
     checkInitialScroll();
@@ -152,13 +149,13 @@ export function useVirtualPinnedMessages() {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToTop = useCallback(() => {
+  const scrollToBottom = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
 
     requestAnimationFrame(() => {
-      virtualizer.scrollToOffset(0, {
-        align: "start",
+      virtualizer.scrollToOffset(el.scrollHeight, {
+        align: "end",
         behavior: "smooth",
       });
     });
@@ -169,18 +166,41 @@ export function useVirtualPinnedMessages() {
     virtualizer,
     virtualItems,
     totalSize,
-    pinnedMessages,
+    message,
+    threadMessages,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
     showScrollButton,
-    scrollToTop,
+    scrollToBottom,
   };
 }
 
 const PAGE_SIZE = 100;
 
-export function usePinnedMessages({ channelId }: { channelId: string }) {
+export function useMessageThread({ messageId }: { messageId: string }) {
+  const { data: messageRows } = useLiveSuspenseQuery(
+    (q) =>
+      q
+        .from({ message: messagesCollection })
+        .innerJoin({ sender: usersCollection }, ({ message, sender }) =>
+          eq(message.senderId, sender.id)
+        )
+        .leftJoin(
+          { attachment: attachmentsCollection },
+          ({ message, attachment }) => eq(attachment.messageId, message.id)
+        )
+        .where(({ message }) =>
+          and(eq(message.id, messageId), eq(message.isDeleted, false))
+        )
+        .select(({ message, sender, attachment }) => ({
+          message,
+          sender,
+          attachment,
+        })),
+    [messageId]
+  );
+
   const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useLiveInfiniteQuery(
       (q) =>
@@ -195,12 +215,11 @@ export function usePinnedMessages({ channelId }: { channelId: string }) {
           )
           .where(({ message }) =>
             and(
-              eq(message.channelId, channelId),
-              eq(message.isPinned, true),
+              eq(message.parentMessageId, messageId),
               isNull(message.deletedAt)
             )
           )
-          .orderBy(({ message }) => message.pinnedAt, "desc")
+          .orderBy(({ message }) => message.createdAt, "desc")
           .select(({ message, sender, attachment }) => ({
             message,
             sender,
@@ -211,12 +230,34 @@ export function usePinnedMessages({ channelId }: { channelId: string }) {
         getNextPageParam: (lastPage, allPages) =>
           lastPage.length === PAGE_SIZE ? allPages.length : undefined,
       },
-      [channelId]
+      [messageId]
     );
+
+  const message = useMemo(() => {
+    if (!messageRows.length) return;
+
+    const messageMap = new Map<
+      string,
+      ReturnType<typeof buildMessageWithAttachments>
+    >();
+
+    for (const { message, sender, attachment } of messageRows) {
+      let entry = messageMap.get(message.id);
+      if (!entry) {
+        entry = buildMessageWithAttachments(message, sender);
+        messageMap.set(message.id, entry);
+      }
+      if (attachment) {
+        entry.attachments.push(attachment);
+      }
+    }
+
+    return Array.from(messageMap.values())[0];
+  }, [messageRows]);
 
   const rowsWithExtra = useMemo(() => (pages ? pages.flat() : []), [pages]);
 
-  const pinnedMessages = useMemo(() => {
+  const threadMessages = useMemo(() => {
     const map = new Map<
       string,
       ReturnType<typeof buildMessageWithAttachments>
@@ -237,15 +278,15 @@ export function usePinnedMessages({ channelId }: { channelId: string }) {
 
     const ordered = Array.from(map.values()).sort(
       (a, b) =>
-        new Date(b.pinnedAt ?? 0).getTime() -
-        new Date(a.pinnedAt ?? 0).getTime()
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
 
     return ordered;
   }, [rowsWithExtra]);
 
   return {
-    pinnedMessages,
+    message,
+    threadMessages,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,

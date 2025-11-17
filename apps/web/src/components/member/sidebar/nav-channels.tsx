@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import { CircleAlert, Hash } from "lucide-react";
 import {
   SidebarGroup,
@@ -18,6 +18,10 @@ export function NavChannels({
 }: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { state } = useSidebar();
   const { channels } = useUserChannels();
+  const params = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+    shouldThrow: false,
+  });
 
   const slug = useActiveOrgSlug();
 
@@ -54,7 +58,11 @@ export function NavChannels({
         <SidebarMenu>
           {channels.map((channel) => (
             <SidebarMenuItem key={channel.id}>
-              <SidebarMenuButton asChild tooltip={channel.name}>
+              <SidebarMenuButton
+                asChild
+                isActive={channel.id === params?.id}
+                tooltip={channel.name}
+              >
                 <Link
                   params={{ slug, id: channel.id }}
                   to="/org/$slug/communication/channels/$id"

@@ -4,7 +4,6 @@ import {
   UserSchema,
 } from "@work-link/db/lib/schemas/db-tables";
 import { z } from "zod";
-import { SuccessOutput } from "./channel";
 
 // Message types enum
 export const MessageTypeSchema = MessageSchema.shape.type;
@@ -47,8 +46,11 @@ export const UpdateMessageInput = z.object({
   mentions: z.array(z.string()).optional(),
 });
 
-export const UpdateMessageOutput = MessageSchema.extend({
-  sender: UserSchema,
+export const UpdateMessageOutput = z.object({
+  txid: z.number(),
+  message: MessageSchema.extend({
+    sender: UserSchema,
+  }),
 });
 
 export const MessageWithSenderSchema = MessageSchema.extend({
@@ -83,17 +85,32 @@ export const DeleteMessageInput = z.object({
   messageId: z.string(),
 });
 
+export const DeleteMessageOutput = z.object({
+  txid: z.number(),
+});
+
 // Add reaction input
 export const AddReactionInput = z.object({
   messageId: z.string(),
   emoji: z.string().min(1).max(10),
 });
 
+// Reaction output
+export const ReactionOutput = z.object({
+  txid: z.number(),
+  success: z.boolean(),
+  message: z.string().optional(),
+});
+
+export const AddReactionOutput = ReactionOutput;
+
 // Remove reaction input
 export const RemoveReactionInput = z.object({
   messageId: z.string(),
   emoji: z.string().min(1).max(10),
 });
+
+export const RemoveReactionOutput = ReactionOutput;
 
 // Mark message as read input
 export const MarkMessageAsReadInput = z.object({
@@ -231,13 +248,17 @@ export const PinMessageInput = z.object({
   messageId: z.string(),
 });
 
-export const PinMessageOutput = SuccessOutput;
+export const PinMessageOutput = z.object({
+  txid: z.number(),
+});
 
 export const UnPinMessageInput = z.object({
   messageId: z.string(),
 });
 
-export const UnPinMessageOutput = SuccessOutput;
+export const UnPinMessageOutput = z.object({
+  txid: z.number(),
+});
 
 export const GetPinnedMessagesInput = z.object({
   channelId: z.string(),

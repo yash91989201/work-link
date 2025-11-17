@@ -49,9 +49,9 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
     "oxlint": "^1.28.0",
-    "tsdown": "^0.16.4",
+    "tsdown": "^0.16.5",
     "turbo": "^2.6.1",
-    "ultracite": "6.3.2"
+    "ultracite": "6.3.3"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [

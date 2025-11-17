@@ -1,23 +1,23 @@
+import { useParams } from "@tanstack/react-router";
 import { Hash, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { useChannel, useChannelSidebar } from "@/stores/channel-store";
+import { useChannel, useChannelInfoSidebar } from "@/stores/channel-store";
 import { ChannelInfo } from "./channel-info";
-import { JoinRequests } from "./join-requests";
 import { Members } from "./members";
 
-export const ChannelInfoSidebar = ({ channelId }: { channelId: string }) => {
+export const ChannelInfoSidebar = () => {
+  const { id: channelId } = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+  });
+
   const { channel, channelMembers, onlineUsersCount } = useChannel(channelId);
-  const { showChannelInfoSidebar, setShowChannelInfoSidebar } =
-    useChannelSidebar();
+  const { isOpen, toggleInfoSidebar } = useChannelInfoSidebar();
 
   return (
-    <Sheet
-      onOpenChange={setShowChannelInfoSidebar}
-      open={showChannelInfoSidebar}
-    >
+    <Sheet onOpenChange={toggleInfoSidebar} open={isOpen}>
       <SheetContent
         className="flex h-full flex-col gap-0 border-border border-l bg-background/95 p-0 backdrop-blur-sm supports-backdrop-filter:bg-background/60 sm:max-w-md"
         side="right"
@@ -56,16 +56,8 @@ export const ChannelInfoSidebar = ({ channelId }: { channelId: string }) => {
 
         <ScrollArea className="h-0 flex-1">
           <div className="space-y-4 p-4">
-            <Separator className="bg-border/50" />
-
             <Members members={channelMembers} />
-
             <Separator className="bg-border/50" />
-
-            <JoinRequests channelId={channelId} />
-
-            <Separator className="bg-border/50" />
-
             <ChannelInfo
               channelDescription={channel.description ?? ""}
               createdAt={channel.createdAt}

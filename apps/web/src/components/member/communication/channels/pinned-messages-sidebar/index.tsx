@@ -1,28 +1,24 @@
-import { Pin, X } from "lucide-react";
-import { useMemo, useRef } from "react";
+import { ArrowUpIcon, Loader2Icon, Pin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { usePinnedMessages } from "@/hooks/communications/use-pinned-messages";
+import { useVirtualPinnedMessages } from "@/hooks/communications/use-pinned-messages";
 import { cn } from "@/lib/utils";
-import { usePinnedMessagesSidebar } from "@/stores/message-list-store";
+import { usePinnedMessagesSidebar } from "@/stores/channel-store";
 import { MessageItem } from "../message-list/message-item";
 
-export function PinnedMessagesSidebar({ channelId }: { channelId: string }) {
+export function PinnedMessagesSidebar() {
+  const { isOpen, closePinnedMessages: onClose } = usePinnedMessagesSidebar();
+
   const {
-    isPinnedMessagesSidebarOpen: isOpen,
-    closePinnedMessagesSidebar: onClose,
-  } = usePinnedMessagesSidebar();
-
-  const { pinnedMessages } = usePinnedMessages({ channelId });
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const orderedPinnedMessages = useMemo(
-    () =>
-      [...pinnedMessages].sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      ),
-    [pinnedMessages]
-  );
+    scrollRef,
+    virtualizer,
+    virtualItems,
+    totalSize,
+    pinnedMessages,
+    isLoading,
+    isFetchingNextPage,
+    showScrollButton,
+    scrollToTop,
+  } = useVirtualPinnedMessages();
 
   const pinnedCount = pinnedMessages.length;
 
@@ -46,13 +42,12 @@ export function PinnedMessagesSidebar({ channelId }: { channelId: string }) {
                 Pinned Messages
               </h3>
               <div className="mt-1 flex flex-wrap items-center gap-1.5 text-muted-foreground text-sm">
-                <span>
-                  {pinnedCount === 0
-                    ? "No pinned messages"
-                    : `${pinnedCount} pinned message${
-                        pinnedCount === 1 ? "" : "s"
-                      }`}
-                </span>
+                {pinnedCount === 0 && <span>No pinned messages</span>}
+                {pinnedCount > 0 && (
+                  <span>
+                    {pinnedCount} pinned message{pinnedCount === 1 ? "" : "s"}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -68,25 +63,76 @@ export function PinnedMessagesSidebar({ channelId }: { channelId: string }) {
         </div>
       </div>
 
-      <ScrollArea className="h-0 flex-1">
-        <div className="flex-1 space-y-2 px-1.5 py-3" ref={scrollContainerRef}>
-          {pinnedCount === 0 ? (
-            <div className="mx-2 mt-2 rounded-lg border bg-muted/40 p-3 text-muted-foreground text-sm">
-              No messages have been pinned yet. Pin important messages to keep
-              them easily accessible.
+      {isLoading && pinnedMessages.length === 0 && (
+        <div className="flex flex-1 items-center justify-center text-muted-foreground text-sm">
+          Loading pinned messages...
+        </div>
+      )}
+
+      {!isLoading && pinnedCount === 0 && (
+        <div className="flex flex-1 items-center justify-center p-6">
+          <div className="rounded-lg border bg-muted/40 p-4 text-center text-muted-foreground text-sm">
+            No messages have been pinned yet. Pin important messages to keep
+            them easily accessible.
+          </div>
+        </div>
+      )}
+
+      {pinnedCount > 0 && (
+        <div className="relative flex-1 overflow-hidden">
+          <div className="h-full overflow-auto" ref={scrollRef}>
+            <div
+              style={{
+                height: totalSize,
+                width: "100%",
+                position: "relative",
+              }}
+            >
+              {isFetchingNextPage && (
+                <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-2 bg-background/80 py-2 shadow-sm backdrop-blur-sm">
+                  <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <span className="font-medium text-muted-foreground text-sm">
+                    Loading more pinned messages...
+                  </span>
+                </div>
+              )}
+
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
+                }}
+              >
+                {virtualItems.map((virtualRow) => (
+                  <div
+                    className="p-3"
+                    data-index={virtualRow.index}
+                    key={virtualRow.key}
+                    ref={virtualizer.measureElement}
+                  >
+                    <MessageItem message={pinnedMessages[virtualRow.index]} />
+                  </div>
+                ))}
+              </div>
             </div>
-          ) : (
-            orderedPinnedMessages.map((message) => (
-              <MessageItem
-                key={message.id}
-                message={message}
-                showParentPreview={false}
-                showThreadSummary={false}
-              />
-            ))
+          </div>
+          {showScrollButton && (
+            <div className="absolute inset-x-0 top-4 z-20 flex justify-center">
+              <Button
+                className="gap-2"
+                onClick={scrollToTop}
+                variant="secondary"
+              >
+                <ArrowUpIcon className="h-4 w-4" />
+                <span className="text-sm">Jump to newest</span>
+              </Button>
+            </div>
           )}
         </div>
-      </ScrollArea>
+      )}
     </div>
   );
 }

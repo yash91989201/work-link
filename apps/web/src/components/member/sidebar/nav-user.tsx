@@ -81,7 +81,7 @@ export function NavUser() {
             <DropdownMenuItem asChild>
               <Link to="/settings/preferences">Preferences</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={logout}>
+            <DropdownMenuItem onClick={logout} variant="destructive">
               <IconLogout />
               Log out
             </DropdownMenuItem>

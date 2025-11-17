@@ -11,6 +11,6 @@ export function buildMessageWithAttachments(
   return {
     ...message,
     sender,
-    attachments: [] as NonNullable<AttachmentType>[],
+    attachments: [] as AttachmentType[],
   };
 }

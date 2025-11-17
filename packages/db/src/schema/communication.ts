@@ -157,9 +157,8 @@ export const messageTable = pgTable(
     }),
     deletedAt: timestamp({ withTimezone: true }),
     mentions: json().$type<string[]>(),
-    reactions: json().$type<
-      { reaction: string; userId: string; createdAt: string }[]
-    >(),
+    reactions:
+      json().$type<{ reaction: string; userId: string; createdAt: string }[]>(),
     createdAt: timestamp({ withTimezone: true })
       .$defaultFn(() => new Date())
       .notNull(),

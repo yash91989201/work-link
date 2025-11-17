@@ -18,12 +18,13 @@ import {
 } from "drizzle-orm";
 import { protectedProcedure } from "@/index";
 import { generateTxId } from "@/lib/electric-proxy";
-import { SuccessOutput } from "@/lib/schemas/channel";
 import {
   AddReactionInput,
+  AddReactionOutput,
   CreateMessageInput,
   CreateMessageOutput,
   DeleteMessageInput,
+  DeleteMessageOutput,
   GetChannelMessagesInput,
   GetChannelMessagesOutput,
   GetMenionUsersInput,
@@ -36,6 +37,7 @@ import {
   PinMessageInput,
   PinMessageOutput,
   RemoveReactionInput,
+  RemoveReactionOutput,
   SearchMessageOutput,
   SearchMessagesInput,
   SearchUsersInput,
@@ -141,6 +143,15 @@ export const messageRouter = {
             await tx.insert(notificationTable).values(mentionNotifications);
           }
 
+          if (input.parentMessageId) {
+            await tx
+              .update(messageTable)
+              .set({
+                threadCount: sql`${messageTable.threadCount} + 1`,
+              })
+              .where(eq(messageTable.id, input.parentMessageId));
+          }
+
           return { txid, message: newMessage };
         });
 
@@ -151,37 +162,71 @@ export const messageRouter = {
   update: protectedProcedure
     .input(UpdateMessageInput)
     .output(UpdateMessageOutput)
-    .handler(async ({ input, context }) => {
-      const [updatedMessage] = await context.db
-        .update(messageTable)
-        .set({
-          content: input.content,
-          mentions: input.mentions,
-          isEdited: true,
-          editedAt: new Date(),
-        })
-        .where(eq(messageTable.id, input.messageId))
-        .returning();
-
-      if (!updatedMessage) {
-        throw new ORPCError("BAD_REQUEST", {
-          message: "Failed to update message.",
-        });
-      }
-
-      return {
-        ...updatedMessage,
-        sender: {
-          name: context.session.user.name,
-          email: context.session.user.email,
-          createdAt: context.session.user.createdAt,
-          emailVerified: context.session.user.emailVerified,
-          id: context.session.user.id,
-          updatedAt: context.session.user.updatedAt,
-          image: context.session.user.image ?? null,
+    .handler(
+      async ({
+        context: {
+          db,
+          session: { user },
         },
-      };
-    }),
+        input,
+      }) => {
+        const { txid, message } = await db.transaction(async (tx) => {
+          const txid = await generateTxId(tx);
+
+          const [updatedMessage] = await tx
+            .update(messageTable)
+            .set({
+              content: input.content,
+              mentions: input.mentions,
+              isEdited: true,
+              editedAt: new Date(),
+            })
+            .where(eq(messageTable.id, input.messageId))
+            .returning();
+
+          if (!updatedMessage) {
+            throw new ORPCError("BAD_REQUEST", {
+              message: "Failed to update message.",
+            });
+          }
+
+          if (input.mentions && input.mentions.length > 0) {
+            const mentionNotifications = input.mentions.map(
+              (mentionedUserId) => ({
+                userId: mentionedUserId,
+                type: "mention" as const,
+                title: `${user.name || user.email} mentioned you`,
+                message:
+                  input.content?.slice(0, 200) ||
+                  "You were mentioned in a message",
+                entityId: updatedMessage.id,
+                entityType: "message",
+              })
+            );
+
+            await tx.insert(notificationTable).values(mentionNotifications);
+          }
+
+          return { txid, message: updatedMessage };
+        });
+
+        return {
+          txid,
+          message: {
+            ...message,
+            sender: {
+              name: user.name,
+              email: user.email,
+              createdAt: user.createdAt,
+              emailVerified: user.emailVerified,
+              id: user.id,
+              updatedAt: user.updatedAt,
+              image: user.image ?? null,
+            },
+          },
+        };
+      }
+    ),
 
   getChannelMessages: protectedProcedure
     .input(GetChannelMessagesInput)
@@ -216,16 +261,16 @@ export const messageRouter = {
 
   delete: protectedProcedure
     .input(DeleteMessageInput)
-    .output(SuccessOutput)
+    .output(DeleteMessageOutput)
     .handler(async ({ input, context }) => {
       const { db } = context;
 
-      // Use a transaction to ensure atomicity
-      await db.transaction(async (tx) => {
-        // First check if the message exists and user has permission
+      const { txid } = await db.transaction(async (tx) => {
+        const txid = await generateTxId(tx);
+
         const message = await tx.query.messageTable.findFirst({
           where: eq(messageTable.id, input.messageId),
-          columns: { id: true, senderId: true },
+          columns: { id: true, senderId: true, parentMessageId: true },
           with: {
             attachments: {
               columns: {
@@ -242,14 +287,6 @@ export const messageRouter = {
           });
         }
 
-        // Check if user is the sender or has admin privileges (you may want to add role-based checks)
-        if (message.senderId !== context.session.user.id) {
-          throw new ORPCError("FORBIDDEN", {
-            message: "You can only delete your own messages.",
-          });
-        }
-
-        // Delete attachments from Supabase storage
         if (message.attachments && message.attachments.length > 0) {
           for (const attachment of message.attachments) {
             const bucket =
@@ -270,64 +307,23 @@ export const messageRouter = {
           }
         }
 
-        // Recursively soft delete the message and all its descendants
-        await tx.execute(sql`
-          WITH RECURSIVE message_tree AS (
-            -- Start with the root message to delete
-            SELECT id, "parentMessageId", 1 as depth
-            FROM message
-            WHERE id = ${input.messageId}
-            
-            UNION ALL
-            
-            -- Find all child message recursively
-            SELECT m.id, m."parentMessageId", mt.depth + 1
-            FROM message m
-            INNER JOIN message_tree mt ON m."parentMessageId" = mt.id
-            WHERE m."isDeleted" = false
-          )
-          UPDATE message 
-          SET 
-            "isDeleted" = true, 
-            "deletedAt" = NOW(),
-            -- Clear thread information for deleted message
-            "threadCount" = 0
-          WHERE id IN (SELECT id FROM message_tree)
-        `);
+        await tx
+          .delete(messageTable)
+          .where(eq(messageTable.id, input.messageId));
 
-        // update parent message thread counts
-        await tx.execute(sql`
-          UPDATE message
-          SET "threadCount" = (
-            SELECT COUNT(*) 
-            FROM message
-            WHERE "parentMessageId" = message.id AND "isDeleted" = false
-          )
-          WHERE id IN (
-            SELECT DISTINCT "parentMessageId" 
-            FROM message
-            WHERE "parentMessageId" IS NOT NULL 
-            AND id IN (SELECT id FROM (
-              WITH RECURSIVE message_tree AS (
-                SELECT id, "parentMessageId"
-                FROM message
-                WHERE id = ${input.messageId}
-                UNION ALL
-                SELECT m.id, m."parentMessageId"
-                FROM message m
-                INNER JOIN message_tree mt ON m."parentMessageId" = mt.id
-              )
-              SELECT "parentMessageId" 
-              FROM message_tree 
-              WHERE "parentMessageId" IS NOT NULL
-            ) AS parent_ids)
-          )
-        `);
+        await tx
+          .delete(attachmentTable)
+          .where(eq(attachmentTable.messageId, input.messageId));
+
+        await tx
+          .delete(messageTable)
+          .where(eq(messageTable.parentMessageId, input.messageId));
+
+        return { txid };
       });
 
       return {
-        success: true,
-        message: "Message deleted successfully.",
+        txid,
       };
     }),
 
@@ -449,39 +445,57 @@ export const messageRouter = {
   pin: protectedProcedure
     .input(PinMessageInput)
     .output(PinMessageOutput)
-    .handler(async ({ context, input }) => {
-      await context.db
-        .update(messageTable)
-        .set({
-          isPinned: true,
-          pinnedAt: new Date(),
-          pinnedBy: context.session.user.id,
-        })
-        .where(eq(messageTable.id, input.messageId))
-        .returning();
+    .handler(
+      async ({
+        context: {
+          db,
+          session: { user },
+        },
+        input,
+      }) => {
+        const { txid } = await db.transaction(async (tx) => {
+          const txid = await generateTxId(tx);
 
-      return {
-        success: true,
-        message: "Message pinned successfully.",
-      };
-    }),
+          await tx
+            .update(messageTable)
+            .set({
+              isPinned: true,
+              pinnedAt: new Date(),
+              pinnedBy: user.id,
+            })
+            .where(eq(messageTable.id, input.messageId))
+            .returning();
+
+          return { txid };
+        });
+
+        return {
+          txid,
+        };
+      }
+    ),
   unPin: protectedProcedure
     .input(UnPinMessageInput)
     .output(UnPinMessageOutput)
-    .handler(async ({ context, input }) => {
-      await context.db
-        .update(messageTable)
-        .set({
-          isPinned: false,
-          pinnedAt: null,
-          pinnedBy: null,
-        })
-        .where(eq(messageTable.id, input.messageId))
-        .returning();
+    .handler(async ({ context: { db }, input }) => {
+      const { txid } = await db.transaction(async (tx) => {
+        const txid = await generateTxId(tx);
+
+        await tx
+          .update(messageTable)
+          .set({
+            isPinned: false,
+            pinnedAt: null,
+            pinnedBy: null,
+          })
+          .where(eq(messageTable.id, input.messageId))
+          .returning();
+
+        return { txid };
+      });
 
       return {
-        success: true,
-        message: "Message unpinned successfully.",
+        txid,
       };
     }),
   getPinnedMessages: protectedProcedure
@@ -524,41 +538,48 @@ export const messageRouter = {
 
   addReaction: protectedProcedure
     .input(AddReactionInput)
-    .output(SuccessOutput)
+    .output(AddReactionOutput)
     .handler(async ({ context, input }) => {
       const { db, session } = context;
       const userId = session.user.id;
 
-      const message = await db.query.messageTable.findFirst({
-        where: eq(messageTable.id, input.messageId),
-        columns: { id: true, reactions: true },
+      const { txid } = await db.transaction(async (tx) => {
+        const txid = await generateTxId(tx);
+
+        const message = await tx.query.messageTable.findFirst({
+          where: eq(messageTable.id, input.messageId),
+          columns: { id: true, reactions: true },
+        });
+
+        if (!message) {
+          throw new ORPCError("NOT_FOUND", {
+            message: "Message not found.",
+          });
+        }
+
+        const reactions = message.reactions || [];
+        const reactionIndex = reactions.findIndex(
+          (r) => r.reaction === input.emoji && r.userId === userId
+        );
+
+        if (reactionIndex === -1) {
+          reactions.push({
+            reaction: input.emoji,
+            userId,
+            createdAt: new Date().toISOString(),
+          });
+
+          await tx
+            .update(messageTable)
+            .set({ reactions })
+            .where(eq(messageTable.id, input.messageId));
+        }
+
+        return { txid };
       });
 
-      if (!message) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Message not found.",
-        });
-      }
-
-      const reactions = message.reactions || [];
-      const reactionIndex = reactions.findIndex(
-        (r) => r.reaction === input.emoji && r.userId === userId
-      );
-
-      if (reactionIndex === -1) {
-        reactions.push({
-          reaction: input.emoji,
-          userId,
-          createdAt: new Date().toISOString(),
-        });
-
-        await db
-          .update(messageTable)
-          .set({ reactions })
-          .where(eq(messageTable.id, input.messageId));
-      }
-
       return {
+        txid,
         success: true,
         message: "Reaction added successfully.",
       };
@@ -566,32 +587,39 @@ export const messageRouter = {
 
   removeReaction: protectedProcedure
     .input(RemoveReactionInput)
-    .output(SuccessOutput)
+    .output(RemoveReactionOutput)
     .handler(async ({ context, input }) => {
       const { db, session } = context;
       const userId = session.user.id;
 
-      const message = await db.query.messageTable.findFirst({
-        where: eq(messageTable.id, input.messageId),
-        columns: { id: true, reactions: true },
+      const { txid } = await db.transaction(async (tx) => {
+        const txid = await generateTxId(tx);
+
+        const message = await tx.query.messageTable.findFirst({
+          where: eq(messageTable.id, input.messageId),
+          columns: { id: true, reactions: true },
+        });
+
+        if (!message) {
+          throw new ORPCError("NOT_FOUND", {
+            message: "Message not found.",
+          });
+        }
+
+        const reactions = (message.reactions || []).filter(
+          (r) => !(r.reaction === input.emoji && r.userId === userId)
+        );
+
+        await tx
+          .update(messageTable)
+          .set({ reactions })
+          .where(eq(messageTable.id, input.messageId));
+
+        return { txid };
       });
 
-      if (!message) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Message not found.",
-        });
-      }
-
-      const reactions = (message.reactions || []).filter(
-        (r) => !(r.reaction === input.emoji && r.userId === userId)
-      );
-
-      await db
-        .update(messageTable)
-        .set({ reactions })
-        .where(eq(messageTable.id, input.messageId));
-
       return {
+        txid,
         success: true,
         message: "Reaction removed successfully.",
       };

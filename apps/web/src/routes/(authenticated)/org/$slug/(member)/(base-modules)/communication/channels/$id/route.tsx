@@ -1,8 +1,7 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { ChannelInfoSidebar } from "@/components/member/communication/channels/channel-info-sidebar";
-import { MessageListSkeleton } from "@/components/member/communication/channels/message-list";
-import { MessageMentionSidebar } from "@/components/member/communication/channels/message-mention-sidebar";
+import { MessageListSkeleton } from "@/components/member/communication/channels/message-list/message-list-skeleton";
 import { MessageThreadSidebar } from "@/components/member/communication/channels/message-thread-sidebar";
 import { PinnedMessagesSidebar } from "@/components/member/communication/channels/pinned-messages-sidebar";
 
@@ -28,7 +27,6 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
   return (
     <div className="flex min-h-0 flex-1 bg-muted/10">
       <Suspense
@@ -46,10 +44,9 @@ function RouteComponent() {
       >
         <Outlet />
       </Suspense>
-      <MessageThreadSidebar channelId={id} />
-      <MessageMentionSidebar channelId={id} />
-      <PinnedMessagesSidebar channelId={id} />
-      <ChannelInfoSidebar channelId={id} />
+      <MessageThreadSidebar />
+      <PinnedMessagesSidebar />
+      <ChannelInfoSidebar />
     </div>
   );
 }

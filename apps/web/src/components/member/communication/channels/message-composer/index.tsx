@@ -1,4 +1,3 @@
-import { Paperclip } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMessageMutations } from "@/hooks/communications/use-message-mutations";
@@ -7,13 +6,13 @@ import { useAudioRecorder } from "@/hooks/use-audio-recorder";
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { useMaximizedMessageComposerActions } from "@/stores/channel-store";
 import { orpcClient } from "@/utils/orpc";
 import { uploadToSupabase } from "@/utils/upload-helper";
 import { AttachmentPreviewList } from "./attachment-preview-list";
 import { AudioRecorder } from "./audio-recorder";
 import { ComposerActions } from "./composer-actions";
 import { HelpText } from "./help-text";
-import { MaximizedMessageComposer } from "./maximized-message-composer";
 import { MessageEditor } from "./message-editor";
 import { TypingIndicator } from "./typing-indicator";
 
@@ -30,7 +29,7 @@ interface MessageComposerProps {
   placeholder?: string;
   showHelpText?: boolean;
   onSendSuccess?: () => void;
-  onMaximize?: () => void;
+  onMaximize?: (content: string) => void;
   initialContent?: string;
 }
 
@@ -38,7 +37,6 @@ export function MessageComposer({
   channelId,
   className,
   parentMessageId,
-  placeholder = "Type a message...",
   showHelpText = true,
   onSendSuccess,
   onMaximize,
@@ -49,9 +47,9 @@ export function MessageComposer({
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [text, setText] = useState(initialContent);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showMaximizedComposer, setShowMaximizedComposer] = useState(false);
+  const [isEditorMaximized, setIsEditorMaximized] = useState(false);
   const [attachments, setAttachments] = useState<AttachmentPreview[]>([]);
+  const { openMaximizedMessageComposer } = useMaximizedMessageComposerActions();
 
   const {
     isRecording,
@@ -63,10 +61,7 @@ export function MessageComposer({
     cancelRecording,
   } = useAudioRecorder();
 
-  const { createMessage, isCreatingMessage } = useMessageMutations({
-    channelId,
-  });
-
+  const { createMessage } = useMessageMutations();
   const { typingUsers, broadcastTyping } = useTypingIndicator(channelId);
 
   const fetchUsers = useCallback(
@@ -126,7 +121,6 @@ export function MessageComposer({
     const hasAudio = audioBlob !== null;
 
     if (!(hasText || hasAttachments || hasAudio)) return;
-    if (isCreatingMessage) return;
 
     // Clear UI immediately for better UX
     const textToSend = hasText ? text.trim() : undefined;
@@ -231,7 +225,7 @@ export function MessageComposer({
       const uploadedAttachments =
         uploadPromises.length > 0 ? await Promise.all(uploadPromises) : [];
 
-      await createMessage({
+      const messageData = {
         channelId,
         content: textToSend,
         mentions: mentionUserIds.length > 0 ? mentionUserIds : undefined,
@@ -239,7 +233,9 @@ export function MessageComposer({
         type: messageType,
         attachments:
           uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
-      });
+      };
+
+      createMessage({ message: messageData });
 
       onSendSuccess?.();
     } catch (error) {
@@ -254,7 +250,6 @@ export function MessageComposer({
     channelId,
     createMessage,
     broadcastTyping,
-    isCreatingMessage,
     user.name,
     user.id,
     parentMessageId,
@@ -329,44 +324,45 @@ export function MessageComposer({
     cancelRecording();
   }, [cancelRecording]);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        handleFileUpload(files);
-      }
-    },
-    [handleFileUpload]
-  );
-
   const handleMaximize = useCallback(() => {
     if (onMaximize) {
-      onMaximize();
-    } else {
-      setShowMaximizedComposer(true);
+      onMaximize(text);
+      return;
     }
-  }, [onMaximize]);
 
-  const handleMaximizedSubmit = useCallback(
-    async (content: string) => {
-      setText(content);
-      await handleSubmit();
-    },
-    [handleSubmit]
-  );
+    setIsEditorMaximized(true);
+    openMaximizedMessageComposer({
+      content: text,
+      parentMessageId: parentMessageId ?? null,
+      onComplete: (result) => {
+        setIsEditorMaximized(false);
+
+        if (result.action === "cancel") {
+          if (typeof result.content === "string") {
+            setText(result.content);
+            handleTypingBroadcast(result.content);
+          }
+          return;
+        }
+
+        setText("");
+        setAttachments([]);
+        cancelRecording();
+        if (user?.name) {
+          broadcastTyping(false, user.name);
+        }
+      },
+    });
+  }, [
+    onMaximize,
+    text,
+    openMaximizedMessageComposer,
+    parentMessageId,
+    handleTypingBroadcast,
+    cancelRecording,
+    user?.name,
+    broadcastTyping,
+  ]);
 
   // Sync text when initialContent changes (for thread replies)
   useEffect(() => {
@@ -384,25 +380,7 @@ export function MessageComposer({
         type="file"
       />
 
-      {/** biome-ignore lint/a11y/noNoninteractiveElementInteractions: <required here> */}
-      {/** biome-ignore lint/a11y/noStaticElementInteractions: <required here> */}
-      <div
-        className={cn("relative border-t bg-background", className)}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        {isDragging && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/5">
-            <div className="text-center">
-              <Paperclip className="mx-auto h-12 w-12 text-primary" />
-              <p className="mt-2 font-medium text-primary">
-                Drop files to upload
-              </p>
-            </div>
-          </div>
-        )}
-
+      <div className={cn("relative border-t bg-background", className)}>
         <div>
           <div className="relative">
             {typingUsers.length > 0 && (
@@ -434,17 +412,12 @@ export function MessageComposer({
 
             <MessageEditor
               content={text}
-              disabled={isCreatingMessage || isRecording || audioUrl !== null}
+              disabled={isRecording || audioUrl !== null}
               fetchUsers={fetchUsers}
-              isMaximized={onMaximize ? false : showMaximizedComposer}
+              isMaximized={onMaximize ? false : isEditorMaximized}
               onChange={handleMarkdownChange}
               onMaximize={handleMaximize}
               onSubmit={handleSubmit}
-              placeholder={
-                isRecording || audioUrl
-                  ? "Audio message recorded. Clear audio to type..."
-                  : placeholder
-              }
             />
 
             <div className="border-t p-3">
@@ -452,7 +425,7 @@ export function MessageComposer({
                 hasAttachments={attachments.length > 0}
                 hasAudio={audioUrl !== null}
                 hasText={text.trim().length > 0}
-                isCreatingMessage={isCreatingMessage}
+                isCreatingMessage={false}
                 isRecording={isRecording}
                 onEmojiSelect={handleEmojiSelect}
                 onFileUpload={() => fileInputRef.current?.click()}
@@ -467,19 +440,6 @@ export function MessageComposer({
           {showHelpText && <HelpText />}
         </div>
       </div>
-
-      {!onMaximize && (
-        <MaximizedMessageComposer
-          channelId={channelId}
-          initialContent={text}
-          mode="create"
-          onOpenChange={setShowMaximizedComposer}
-          onSendSuccess={handleMaximizedSubmit}
-          open={showMaximizedComposer}
-          parentMessageId={parentMessageId}
-          placeholder={placeholder}
-        />
-      )}
     </>
   );
 }

@@ -30,8 +30,8 @@ export function ReactionPicker({ onSelectEmoji }: ReactionPickerProps) {
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
-        <Button className="h-7 w-7" size="icon" type="button" variant="ghost">
-          <Smile className="h-4 w-4" />
+        <Button size="icon-sm" type="button" variant="ghost">
+          <Smile />
           <span className="sr-only">Add reaction</span>
         </Button>
       </PopoverTrigger>

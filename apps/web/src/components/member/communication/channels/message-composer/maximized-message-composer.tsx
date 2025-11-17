@@ -1,9 +1,9 @@
+import { useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -12,59 +12,42 @@ import { useTypingIndicator } from "@/hooks/communications/use-typing-indicator"
 import { useAuthedSession } from "@/hooks/use-authed-session";
 import { useResponsive } from "@/hooks/use-responsive";
 import { cn } from "@/lib/utils";
+import { useMaximizedMessageComposer } from "@/stores/channel-store";
 import { orpcClient } from "@/utils/orpc";
-import { TypingIndicator } from "../message-composer/typing-indicator";
 import { MessageEditor } from "./message-editor";
 
-interface MaximizedMessageComposerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  channelId: string;
-  className?: string;
-  parentMessageId?: string;
-  messageId?: string;
-  placeholder?: string;
-  initialContent?: string;
-  title?: string;
-  description?: string;
-  onSendSuccess?: (content: string) => void;
-  mode?: "create" | "edit";
-}
+export function MaximizedMessageComposer() {
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const {
+    isOpen,
+    content,
+    messageId,
+    parentMessageId,
+    onComplete,
+    closeMaximizedMessageComposer,
+  } = useMaximizedMessageComposer();
 
-export function MaximizedMessageComposer({
-  open,
-  onOpenChange,
-  channelId,
-  className,
-  parentMessageId,
-  messageId,
-  placeholder = "Type a message...",
-  initialContent = "",
-  title,
-  description,
-  onSendSuccess,
-  mode = "create",
-}: MaximizedMessageComposerProps) {
+  const isEditing = !!messageId;
+  const isReplying = !!parentMessageId;
+
+  const { id: channelId } = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+  });
+
   const { user } = useAuthedSession();
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [text, setText] = useState(initialContent);
+  const [text, setText] = useState(content ?? "");
 
-  const { createMessage, isCreatingMessage, updateMessage, isUpdatingMessage } =
-    useMessageMutations({ channelId });
+  useEffect(() => {
+    if (isOpen) {
+      setText(content ?? "");
+    }
+  }, [content, isOpen]);
 
-  const { typingUsers, broadcastTyping } = useTypingIndicator(channelId);
+  const { createMessage, updateMessage } = useMessageMutations();
 
-  const isEditing = mode === "edit" && !!messageId;
-  const isLoading = isCreatingMessage || isUpdatingMessage;
-
-  const dialogSizeClasses = cn("flex flex-col overflow-y-auto p-0", {
-    "h-screen w-screen max-w-none rounded-none": isMobile,
-    "max-h-[90vh] sm:max-w-[90vw] sm:max-w-[95vw]": isTablet,
-    "h-[90vh] sm:max-w-[90vw] lg:h-[80vh] lg:max-w-[80vw]": isDesktop,
-  });
+  const { broadcastTyping } = useTypingIndicator(channelId);
 
   const fetchUsers = useCallback(
     async (query: string) => {
@@ -115,8 +98,32 @@ export function MaximizedMessageComposer({
     [handleTypingBroadcast]
   );
 
-  const handleSubmit = useCallback(async () => {
-    if (!text.trim() || isLoading) return;
+  const handleClose = useCallback(() => {
+    onComplete?.({ action: "cancel", content: text });
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    if (user?.name) {
+      broadcastTyping(false, user.name);
+    }
+    closeMaximizedMessageComposer();
+  }, [
+    onComplete,
+    text,
+    closeMaximizedMessageComposer,
+    broadcastTyping,
+    user?.name,
+  ]);
+
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        handleClose();
+      }
+    },
+    [handleClose]
+  );
+
+  const handleSubmit = useCallback(() => {
+    if (!text?.trim()) return;
 
     try {
       const mentionRegex =
@@ -130,27 +137,34 @@ export function MaximizedMessageComposer({
         mentionUserIds.push(match[1]);
       }
 
-      if (isEditing && messageId) {
-        await updateMessage({
-          messageId,
-          content: text.trim(),
-          mentions: mentionUserIds.length ? mentionUserIds : undefined,
+      if (isEditing) {
+        updateMessage({
+          message: {
+            messageId,
+            content: text.trim(),
+            mentions: mentionUserIds.length ? mentionUserIds : undefined,
+          },
         });
       } else {
-        await createMessage({
-          channelId,
-          content: text.trim(),
-          mentions: mentionUserIds.length ? mentionUserIds : undefined,
-          parentMessageId,
+        createMessage({
+          message: {
+            channelId,
+            content: text.trim(),
+            mentions: mentionUserIds.length ? mentionUserIds : undefined,
+            parentMessageId: parentMessageId ?? undefined,
+            type: "text" as const,
+          },
         });
       }
 
       setText("");
-      onOpenChange(false);
-      broadcastTyping(false, user.name);
-      onSendSuccess?.(text.trim());
+      onComplete?.({ action: "submit" });
+      closeMaximizedMessageComposer();
 
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (user?.name) {
+        broadcastTyping(false, user.name);
+      }
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -159,80 +173,53 @@ export function MaximizedMessageComposer({
       );
     }
   }, [
+    user?.name,
     text,
-    isLoading,
     isEditing,
+    parentMessageId,
     messageId,
     channelId,
-    parentMessageId,
-    user?.name,
-    onOpenChange,
-    onSendSuccess,
     updateMessage,
     createMessage,
+    onComplete,
     broadcastTyping,
+    closeMaximizedMessageComposer,
   ]);
 
-  useEffect(() => {
-    if (open) {
-      setText(initialContent);
-    }
-  }, [open, initialContent]);
+  let dialogTitle = "New Message";
+  dialogTitle = isEditing ? "Edit Message" : dialogTitle;
+  dialogTitle = isReplying ? "Reply to Message" : dialogTitle;
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
       <DialogContent
-        className={cn(dialogSizeClasses, className)}
+        className={cn("flex flex-col overflow-y-auto p-0", {
+          "h-screen w-screen max-w-none rounded-none": isMobile,
+          "max-h-[90vh] sm:max-w-[90vw]": isTablet,
+          "h-[90vh] sm:max-w-[90vw] lg:h-[80vh] lg:max-w-[80vw]": isDesktop,
+        })}
         onInteractOutside={(e) => e.preventDefault()}
         showCloseButton={false}
       >
         <DialogHeader className="shrink-0 border-b px-4 py-3 sm:px-6 sm:py-4">
           <DialogTitle className="truncate text-base sm:text-lg">
-            {title ||
-              (isEditing
-                ? "Edit Message"
-                : parentMessageId
-                  ? "Reply to Message"
-                  : "New Message")}
+            {dialogTitle}
           </DialogTitle>
-
-          {description && (
-            <DialogDescription className="text-sm sm:text-base">
-              {description}
-            </DialogDescription>
-          )}
         </DialogHeader>
 
         <div className="flex flex-1 flex-col overflow-hidden">
-          {typingUsers.length > 0 && (
-            <div className="border-b px-4 py-2 sm:px-6">
-              <TypingIndicator typingUsers={typingUsers} />
-            </div>
-          )}
-
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <MessageEditor
-              content={text}
-              disabled={isLoading}
-              fetchUsers={fetchUsers}
-              isInMaximizedComposer={true}
-              isMaximized
-              onChange={handleMarkdownChange}
-              onMaximize={() => onOpenChange(false)}
-              onMinimize={() => onOpenChange(false)}
-              onSubmit={handleSubmit}
-              placeholder={placeholder}
-            />
-          </div>
+          <MessageEditor
+            content={text}
+            disabled={false}
+            fetchUsers={fetchUsers}
+            isInMaximizedComposer={true}
+            isMaximized
+            onChange={handleMarkdownChange}
+            onMaximize={handleClose}
+            onMinimize={handleClose}
+            onSubmit={handleSubmit}
+          />
         </div>
-
-        <input
-          className="hidden"
-          multiple
-          onChange={() => toast.info("File upload not implemented yet")}
-          ref={fileInputRef}
-          type="file"
-        />
       </DialogContent>
     </Dialog>
   );

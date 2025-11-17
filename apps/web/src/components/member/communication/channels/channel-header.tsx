@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
-import { AtSign, Bell, Info, Pin } from "lucide-react";
+import { Bell, Info, Pin } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import {
   Breadcrumb,
@@ -17,11 +17,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useChannelSidebar } from "@/stores/channel-store";
 import {
-  useMessageList,
-  useMessageListActions,
-} from "@/stores/message-list-store";
+  useChannelInfoSidebar,
+  usePinnedMessagesSidebar,
+} from "@/stores/channel-store";
 import { queryUtils } from "@/utils/orpc";
 
 export function ChannelHeader() {
@@ -33,18 +32,8 @@ export function ChannelHeader() {
     queryUtils.communication.channel.get.queryOptions({ input: { channelId } })
   );
 
-  const { toggleChannelInfoSidebar } = useChannelSidebar();
-  const { openPinnedMessagesSidebar, openMentionSidebar, closeMentionSidebar } =
-    useMessageListActions();
-  const { isMentionSidebarOpen, mentionMessage } = useMessageList(channelId);
-
-  const handleMentionClick = () => {
-    if (isMentionSidebarOpen) {
-      closeMentionSidebar();
-    } else if (mentionMessage) {
-      openMentionSidebar(mentionMessage.id);
-    }
-  };
+  const { toggleInfoSidebar } = useChannelInfoSidebar();
+  const { openPinnedMessages } = usePinnedMessagesSidebar();
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur-sm transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height) supports-backdrop-filter:bg-background/60">
@@ -66,6 +55,7 @@ export function ChannelHeader() {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink
+                asChild
                 className="font-semibold text-foreground"
                 href="#"
               >
@@ -85,7 +75,7 @@ export function ChannelHeader() {
             <TooltipTrigger asChild>
               <Button
                 className="h-9 w-9"
-                onClick={openPinnedMessagesSidebar}
+                onClick={openPinnedMessages}
                 size="icon"
                 variant="ghost"
               >
@@ -93,22 +83,6 @@ export function ChannelHeader() {
               </Button>
             </TooltipTrigger>
             <TooltipContent>View Pinned Messages</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="h-9 w-9"
-                disabled={!mentionMessage}
-                onClick={handleMentionClick}
-                size="icon"
-                variant={isMentionSidebarOpen ? "secondary" : "ghost"}
-              >
-                <AtSign className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {mentionMessage ? "View Mention" : "No Mentions"}
-            </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -124,7 +98,7 @@ export function ChannelHeader() {
             <TooltipTrigger asChild>
               <Button
                 className="h-9 w-9"
-                onClick={toggleChannelInfoSidebar}
+                onClick={toggleInfoSidebar}
                 size="icon"
                 variant="ghost"
               >

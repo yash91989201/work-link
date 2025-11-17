@@ -1,22 +1,14 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { ChannelHeader } from "@/components/member/communication/channels/channel-header";
 import { ChannelSkeleton } from "@/components/member/communication/channels/channel-skeleton";
-import { JoinRequestForm } from "@/components/member/communication/channels/join-request-form";
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
+import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
 import { MessageList } from "@/components/member/communication/channels/message-list";
 
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id/"
 )({
   beforeLoad: ({ context: { queryClient, queryUtils }, params }) => {
-    queryClient.prefetchQuery(
-      queryUtils.communication.message.getChannelMessages.queryOptions({
-        input: {
-          channelId: params.id,
-        },
-      })
-    );
-
     queryClient.prefetchQuery(
       queryUtils.communication.message.searchUsers.queryOptions({
         input: {
@@ -27,17 +19,6 @@ export const Route = createFileRoute(
       })
     );
   },
-  loader: async ({ context: { orpcClient }, params }) => {
-    const isMember = await orpcClient.communication.channel.isMember({
-      channelId: params.id,
-    });
-
-    const channel = await orpcClient.communication.channel.get({
-      channelId: params.id,
-    });
-
-    return { isMember, channelName: channel?.name ?? "Channel Name" };
-  },
   pendingComponent: ChannelSkeleton,
   component: RouteComponent,
 });
@@ -47,23 +28,16 @@ function RouteComponent() {
     from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
   });
 
-  const { isMember, channelName } = Route.useLoaderData();
-
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background shadow-sm">
-      {isMember ? (
-        <>
-          <ChannelHeader />
-          <div className="flex min-h-0 flex-1 flex-col">
-            <MessageList className="flex-1" />
-            <div className="shrink-0 border-t bg-linear-to-b from-background to-muted/20">
-              <MessageComposer channelId={id} />
-            </div>
-          </div>
-        </>
-      ) : (
-        <JoinRequestForm channelId={id} channelName={channelName} />
-      )}
+      <ChannelHeader />
+      <div className="flex min-h-0 flex-1 flex-col">
+        <MessageList />
+        <div className="shrink-0 border-t bg-linear-to-b from-background to-muted/20">
+          <MessageComposer channelId={id} />
+        </div>
+      </div>
+      <MaximizedMessageComposer />
     </div>
   );
 }
