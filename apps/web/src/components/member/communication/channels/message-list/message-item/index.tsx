@@ -1,5 +1,4 @@
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
-import { Activity } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,7 +77,7 @@ export function MessageItem({
   return (
     <div
       className={cn(
-        "group relative space-y-4 rounded-xl p-3 transition-all hover:bg-muted/40",
+        "group relative flex flex-col gap-3 rounded-xl p-3 transition-all hover:bg-muted/40",
         {
           "bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/10":
             isMessageThreadActive,
@@ -126,18 +125,15 @@ export function MessageItem({
         onReply={toggleMessageThread}
       />
 
-      <div className="rounded-2xl bg-linear-to-br from-background/95 to-background/80 p-4 shadow-sm ring-1 ring-border/40 backdrop-blur-sm transition-all">
-        <MessageContent message={message} />
-      </div>
+      <MessageContent message={message} />
 
-      {/* Reactions */}
       <MessageReactions
         onAddReaction={handleReact}
         onRemoveReaction={handleReactionClick}
         reactions={message.reactions || []}
       />
 
-      <Activity mode={message.threadCount > 0 ? "visible" : "hidden"}>
+      {message.threadCount > 0 && (
         <Button
           className="rounded-full"
           onClick={toggleMessageThread}
@@ -146,7 +142,7 @@ export function MessageItem({
         >
           {isMessageThreadActive ? "Close Thread" : "View Thread"}
         </Button>
-      </Activity>
+      )}
     </div>
   );
 }

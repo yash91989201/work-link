@@ -1,6 +1,9 @@
 import { useParams } from "@tanstack/react-router";
 import { Spool, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { MessageComposer } from "@/components/member/communication/channels/message-composer";
+import { HelpText } from "@/components/member/communication/channels/message-composer/help-text";
+import { MessageItem } from "@/components/member/communication/channels/message-list/message-item";
 import { Button } from "@/components/ui/button";
 import { useMessageThread } from "@/hooks/communications/use-message-thread";
 import {
@@ -8,9 +11,6 @@ import {
   useMessageThreadSidebar,
 } from "@/stores/channel-store";
 import { formatMessageDate } from "@/utils/message-utils";
-import { MessageComposer } from "../message-composer";
-import { HelpText } from "../message-composer/help-text";
-import { MessageItem } from "../message-list/message-item";
 
 export function MessageThreadSidebar() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
