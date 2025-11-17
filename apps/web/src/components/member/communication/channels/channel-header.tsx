@@ -55,6 +55,7 @@ export function ChannelHeader() {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink
+                asChild
                 className="font-semibold text-foreground"
                 href="#"
               >
