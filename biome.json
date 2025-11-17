@@ -29,7 +29,8 @@
         "noForEach": "off"
       },
       "nursery": {
-        "noShadow": "off"
+        "noShadow": "off",
+        "noIncrementDecrement": "off"
       },
       "style": {
         "noMagicNumbers": "off",
