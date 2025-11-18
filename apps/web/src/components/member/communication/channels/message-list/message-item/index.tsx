@@ -152,7 +152,7 @@ export function MessageItem({
           reactions={message.reactions ?? []}
         />
 
-        {!isThreadMessage && message.parentMessageId !== null && (
+        {!isThreadMessage && message.parentMessageId && (
           <Button
             className="self-start rounded-full"
             onClick={() => handleReplyInThread(message.parentMessageId)}
