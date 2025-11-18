@@ -27,7 +27,7 @@ export function useMessageMutations() {
         deletedAt: null,
         editedAt: null,
         isPinned: false,
-        mentions: null,
+        mentions: message.mentions ?? null,
         pinnedAt: null,
         pinnedBy: null,
         reactions: null,

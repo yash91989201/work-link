@@ -1,5 +1,5 @@
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
-import { CornerDownRight, Pin } from "lucide-react";
+import { CornerDownRight, MessageSquareReply, Pin } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useAuthedSession } from "@/hooks/use-authed-session";
 import { cn } from "@/lib/utils";
 import {
   useMaximizedMessageComposerActions,
+  useMentionsSidebar,
   useMessageThreadSidebar,
 } from "@/stores/channel-store";
 import { MessageActions } from "./message-actions";
@@ -61,6 +62,9 @@ export function MessageItem({
 
   const { openMaximizedMessageComposer } = useMaximizedMessageComposerActions();
 
+  const { isOpen: isMentionSidebarOpen, closeMentionsSidebar } =
+    useMentionsSidebar();
+
   const handleEditDialog = () => {
     openMaximizedMessageComposer({
       messageId: message.id,
@@ -69,11 +73,25 @@ export function MessageItem({
   };
 
   const toggleMessageThread = () => {
+    if (isMentionSidebarOpen) {
+      closeMentionsSidebar();
+    }
+
     if (isMessageThreadActive) {
       closeMessageThread();
     } else {
       openMessageThread(message.id);
     }
+  };
+
+  const handleReplyInThread = (parentMessageId?: string | null) => {
+    if (!parentMessageId) return;
+
+    if (isMentionSidebarOpen) {
+      closeMentionsSidebar();
+    }
+
+    openMessageThread(parentMessageId);
   };
 
   return (
@@ -133,6 +151,18 @@ export function MessageItem({
           onRemoveReaction={handleReactionClick}
           reactions={message.reactions ?? []}
         />
+
+        {!isThreadMessage && message.parentMessageId !== null && (
+          <Button
+            className="self-start rounded-full"
+            onClick={() => handleReplyInThread(message.parentMessageId)}
+            size="sm"
+            variant="secondary"
+          >
+            <MessageSquareReply className="h-3.5 w-3.5" />
+            <span>Reply</span>
+          </Button>
+        )}
 
         {message.threadCount > 0 && (
           <Button

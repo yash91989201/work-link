@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Bell, Info, Pin } from "lucide-react";
+import { AtSign, Bell, Info, Pin } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import {
   Breadcrumb,
@@ -15,8 +15,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useChannelMentions } from "@/hooks/communications/use-channel-mentions";
 import {
   useChannelInfoSidebar,
+  useMentionsSidebar,
   usePinnedMessagesSidebar,
 } from "@/stores/channel-store";
 
@@ -24,9 +26,16 @@ export function ChannelHeader() {
   const { slug } = useParams({
     from: "/(authenticated)/org/$slug",
   });
+  const channelParams = useParams({
+    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+    shouldThrow: false,
+  });
+  const channelId = channelParams?.id;
 
   const { toggleInfoSidebar } = useChannelInfoSidebar();
   const { isOpen, togglePinnedMessages } = usePinnedMessagesSidebar();
+  const { isOpen: mentionsOpen, toggleMentionsSidebar } = useMentionsSidebar();
+  const { mentionCount } = useChannelMentions();
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur-sm transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height) supports-backdrop-filter:bg-background/60">
@@ -48,7 +57,26 @@ export function ChannelHeader() {
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="relative"
+                disabled={!channelId}
+                onClick={toggleMentionsSidebar}
+                size="icon-sm"
+                variant={mentionsOpen ? "secondary" : "ghost"}
+              >
+                <AtSign />
+                {mentionCount > 0 && (
+                  <span className="-right-1 -top-1 pointer-events-none absolute inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 font-semibold text-[10px] text-destructive-foreground leading-none">
+                    {mentionCount > 99 ? "99+" : mentionCount}
+                  </span>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Mentions</TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

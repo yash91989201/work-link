@@ -54,6 +54,35 @@ export const extractMentionUserIds = (
   return [...new Set(userIds)]; // Remove duplicates
 };
 
+// Extract mention IDs from stored HTML content (e.g. when mentions aren't persisted separately)
+export const extractMentionIdsFromContent = (
+  content?: string | null
+): string[] => {
+  if (!content) {
+    return [];
+  }
+
+  const ids = new Set<string>();
+
+  const mentionSpanRegex =
+    /<span[^>]*data-type="mention"[^>]*data-id="([^"]+)"[^>]*>/gi;
+  let match = mentionSpanRegex.exec(content);
+  while (match !== null) {
+    ids.add(match[1]);
+    match = mentionSpanRegex.exec(content);
+  }
+
+  const userIdRegex =
+    /<span[^>]*class="mention"[^>]*data-user-id="([^"]+)"[^>]*>/gi;
+  match = userIdRegex.exec(content);
+  while (match !== null) {
+    ids.add(match[1]);
+    match = userIdRegex.exec(content);
+  }
+
+  return Array.from(ids);
+};
+
 // Replace mentions with formatted HTML/spans - keeps @display_name but adds user ID data
 export const formatMentions = (
   content: string,

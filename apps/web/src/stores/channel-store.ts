@@ -48,11 +48,16 @@ interface PinnedMessagesState {
   isOpen: boolean;
 }
 
+interface MentionsSidebarState {
+  isOpen: boolean;
+}
+
 interface ChannelState {
   infoSidebar: InfoSidebarState;
   maximizedMessageComposer: MaximizedMessageComposerState;
   messageThread: MessageThreadState;
   pinnedMessages: PinnedMessagesState;
+  mentionsSidebar: MentionsSidebarState;
 
   openInfoSidebar: () => void;
   closeInfoSidebar: () => void;
@@ -67,6 +72,9 @@ interface ChannelState {
 
   openPinnedMessages: () => void;
   closePinnedMessages: () => void;
+
+  openMentionsSidebar: () => void;
+  closeMentionsSidebar: () => void;
 }
 
 const defaultMaximizedComposerState: MaximizedMessageComposerState = {
@@ -81,6 +89,9 @@ const useChannelStore = create<ChannelState>((set) => ({
   infoSidebar: { isOpen: false },
   maximizedMessageComposer: { ...defaultMaximizedComposerState },
   pinnedMessages: {
+    isOpen: false,
+  },
+  mentionsSidebar: {
     isOpen: false,
   },
   messageThread: {
@@ -112,6 +123,10 @@ const useChannelStore = create<ChannelState>((set) => ({
     set({ messageThread: { messageId: null, isOpen: false } }),
   openPinnedMessages: () => set({ pinnedMessages: { isOpen: true } }),
   closePinnedMessages: () => set({ pinnedMessages: { isOpen: false } }),
+  openMentionsSidebar: () =>
+    set({ mentionsSidebar: { isOpen: true } }),
+  closeMentionsSidebar: () =>
+    set({ mentionsSidebar: { isOpen: false } }),
 }));
 
 export function useChannel(channelId: string) {
@@ -179,6 +194,29 @@ export function usePinnedMessagesSidebar() {
     openPinnedMessages,
     closePinnedMessages,
     togglePinnedMessages,
+  };
+}
+
+export function useMentionsSidebar() {
+  const isOpen = useChannelStore((state) => state.mentionsSidebar.isOpen);
+
+  const openMentionsSidebar = useChannelStore(
+    (state) => state.openMentionsSidebar
+  );
+
+  const closeMentionsSidebar = useChannelStore(
+    (state) => state.closeMentionsSidebar
+  );
+
+  const toggleMentionsSidebar = isOpen
+    ? closeMentionsSidebar
+    : openMentionsSidebar;
+
+  return {
+    isOpen,
+    openMentionsSidebar,
+    closeMentionsSidebar,
+    toggleMentionsSidebar,
   };
 }
 

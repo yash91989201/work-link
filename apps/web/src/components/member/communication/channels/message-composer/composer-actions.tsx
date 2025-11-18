@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/style/noNestedTernary: <Nested ternary is needed> */
-import { Mic, Paperclip, Send, Smile } from "lucide-react";
+import { Mic, Paperclip, Send, SmilePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   EmojiPicker,
@@ -103,7 +103,7 @@ export function ComposerActions({
             title="Add emoji (⌘+E)"
             variant="ghost"
           >
-            <Smile className={cn(isTextDisabled && "opacity-50")} />
+            <SmilePlus className={cn(isTextDisabled && "opacity-50")} />
           </InputGroupButton>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-80 p-0" side="top">
