@@ -31,11 +31,8 @@ export function useVirtualMessages() {
     isLoading,
   } = useMessages({ channelId });
 
-  // Track if we've done the initial scroll-to-bottom for the *current* channel
+  // Track if we've done the initial scroll-to-bottom
   const hasDoneInitialScrollRef = useRef(false);
-
-  // Track previous channelId so we can detect actual changes
-  const prevChannelIdRef = useRef<string | null>(null);
 
   // Anchor info for preserving scroll when loading older pages
   const loadMoreAnchorRef = useRef<{
@@ -55,19 +52,7 @@ export function useVirtualMessages() {
 
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  // 🔄 Detect channel changes and reset internal flags
-  useEffect(() => {
-    if (!channelId) return;
-
-    if (prevChannelIdRef.current !== channelId) {
-      prevChannelIdRef.current = channelId;
-      hasDoneInitialScrollRef.current = false;
-      loadMoreAnchorRef.current = null;
-      setShowScrollButton(false);
-    }
-  }, [channelId]);
-
-  // Initial scroll to bottom for each channel
+  // Initial scroll to bottom
   useEffect(() => {
     const el = scrollRef.current;
     if (!(channelId && el)) return;
@@ -134,7 +119,7 @@ export function useVirtualMessages() {
     }
   });
 
-  // Infinite scroll: attach DOM listener once, use stable handler
+  // Infinite scroll: attach DOM listener with proper cleanup
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -143,17 +128,7 @@ export function useVirtualMessages() {
       handleScroll();
     };
 
-    el.addEventListener("scroll", onScroll);
-
-    // Check initial scroll position
-    const checkInitialScroll = () => {
-      if (!el) return;
-      const distanceFromBottom =
-        el.scrollHeight - el.scrollTop - el.clientHeight;
-      setShowScrollButton(distanceFromBottom > 100);
-    };
-
-    checkInitialScroll();
+    el.addEventListener("scroll", onScroll, { passive: true });
 
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
