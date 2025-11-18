@@ -9,7 +9,6 @@ import {
   useMaximizedMessageComposerActions,
   useMessageThreadSidebar,
 } from "@/stores/channel-store";
-import { formatMessageDate } from "@/utils/message-utils";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";
 import { MessageReactions } from "./message-reactions";
@@ -17,6 +16,7 @@ import { MessageReactions } from "./message-reactions";
 interface MessageItemProps {
   message: MessageWithSenderType;
   isThreadMessage?: boolean;
+  isPinnedMessage?: boolean;
 }
 
 export function MessageItem({
@@ -109,10 +109,6 @@ export function MessageItem({
             {message.sender.name}
           </span>
 
-          <span className="text-muted-foreground text-xs">
-            {formatMessageDate(message.createdAt)}
-          </span>
-
           {message.isEdited && <Badge variant="secondary">Edited</Badge>}
 
           {message.isPinned && <Badge variant="outline">📌</Badge>}
@@ -122,19 +118,14 @@ export function MessageItem({
           )}
         </div>
 
-        {/* Message body */}
-        <div className="mt-1">
-          <MessageContent message={message} />
-        </div>
+        <MessageContent message={message} />
 
-        {/* Reactions */}
         <MessageReactions
           onAddReaction={handleReact}
           onRemoveReaction={handleReactionClick}
           reactions={message.reactions || []}
         />
 
-        {/* Thread entry */}
         {message.threadCount > 0 && (
           <Button
             className="self-start rounded-full"

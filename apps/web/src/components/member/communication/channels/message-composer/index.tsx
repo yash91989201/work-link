@@ -12,7 +12,6 @@ import { uploadToSupabase } from "@/utils/upload-helper";
 import { AttachmentPreviewList } from "./attachment-preview-list";
 import { AudioRecorder } from "./audio-recorder";
 import { ComposerActions } from "./composer-actions";
-import { HelpText } from "./help-text";
 import { MessageEditor } from "./message-editor";
 import { TypingIndicator } from "./typing-indicator";
 
@@ -37,7 +36,6 @@ export function MessageComposer({
   channelId,
   className,
   parentMessageId,
-  showHelpText = true,
   onSendSuccess,
   onMaximize,
   initialContent = "",
@@ -436,8 +434,6 @@ export function MessageComposer({
               />
             </div>
           </div>
-
-          {showHelpText && <HelpText />}
         </div>
       </div>
     </>

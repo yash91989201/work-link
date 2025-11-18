@@ -28,17 +28,14 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   return (
-    <div className="flex min-h-0 flex-1 bg-muted/10">
+    <div className="flex min-h-0 flex-1">
       <Suspense
         fallback={
-          <div className="flex min-h-0 flex-1 bg-muted/10">
-            <div className="flex min-h-0 flex-1 flex-col">
-              <MessageListSkeleton />
-              <div className="border-t bg-background px-4 py-6 text-center text-muted-foreground text-sm">
-                Preparing message composer.
-              </div>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <MessageListSkeleton />
+            <div className="border-t bg-background px-4 py-6 text-center text-muted-foreground text-sm">
+              Preparing message composer.
             </div>
-            <div className="hidden h-full w-96 border-l bg-background/50 backdrop-blur-sm lg:block" />
           </div>
         }
       >

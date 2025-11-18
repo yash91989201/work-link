@@ -1,4 +1,3 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { Bell, Info, Pin } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
@@ -21,19 +20,14 @@ import {
   useChannelInfoSidebar,
   usePinnedMessagesSidebar,
 } from "@/stores/channel-store";
-import { queryUtils } from "@/utils/orpc";
 
 export function ChannelHeader() {
-  const { slug, id: channelId } = useParams({
-    from: "/(authenticated)/org/$slug/(member)/(base-modules)/communication/channels/$id",
+  const { slug } = useParams({
+    from: "/(authenticated)/org/$slug",
   });
 
-  const { data: channel } = useSuspenseQuery(
-    queryUtils.communication.channel.get.queryOptions({ input: { channelId } })
-  );
-
   const { toggleInfoSidebar } = useChannelInfoSidebar();
-  const { openPinnedMessages } = usePinnedMessagesSidebar();
+  const { isOpen, togglePinnedMessages } = usePinnedMessagesSidebar();
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur-sm transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height) supports-backdrop-filter:bg-background/60">
@@ -53,20 +47,6 @@ export function ChannelHeader() {
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink
-                asChild
-                className="font-semibold text-foreground"
-                href="#"
-              >
-                <Link
-                  params={{ slug, id: channelId }}
-                  to="/org/$slug/communication/channels/$id"
-                >
-                  {channel.name}
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
@@ -74,35 +54,34 @@ export function ChannelHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="h-9 w-9"
-                onClick={openPinnedMessages}
-                size="icon"
-                variant="ghost"
+                onClick={togglePinnedMessages}
+                size="icon-sm"
+                variant={isOpen ? "secondary" : "ghost"}
               >
-                <Pin className="h-4 w-4" />
+                <Pin />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>View Pinned Messages</TooltipContent>
+            <TooltipContent>
+              {isOpen ? "Close pinned messages" : "View pinned messages"}
+            </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button className="h-9 w-9" size="icon" variant="ghost">
-                <Bell className="h-4 w-4" />
+              <Button size="icon-sm" variant="ghost">
+                <Bell />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Notifications</TooltipContent>
           </Tooltip>
           <ThemeToggle />
-          <Separator className="mx-1 h-6" orientation="vertical" />
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="h-9 w-9"
                 onClick={toggleInfoSidebar}
-                size="icon"
+                size="icon-sm"
                 variant="ghost"
               >
-                <Info className="h-4 w-4" />
+                <Info />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Channel Info</TooltipContent>

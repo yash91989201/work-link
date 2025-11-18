@@ -1,5 +1,4 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { ChannelHeader } from "@/components/member/communication/channels/channel-header";
 import { ChannelSkeleton } from "@/components/member/communication/channels/channel-skeleton";
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
 import { MaximizedMessageComposer } from "@/components/member/communication/channels/message-composer/maximized-message-composer";
@@ -30,7 +29,6 @@ function RouteComponent() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background shadow-sm">
-      <ChannelHeader />
       <div className="flex min-h-0 flex-1 flex-col">
         <MessageList />
         <div className="shrink-0 border-t bg-linear-to-b from-background to-muted/20">
