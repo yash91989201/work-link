@@ -37,11 +37,16 @@ export function MessageThreadSidebar() {
 
   const repliesCount = threadMessages.length;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Need to close thread when channel changes
   useEffect(() => {
-    if (messageId === undefined) {
+    closeMessageThread();
+  }, [channelId, closeMessageThread]);
+
+  useEffect(() => {
+    if (messageId === undefined && isOpen) {
       closeMessageThread();
     }
-  }, [messageId, closeMessageThread]);
+  }, [messageId, isOpen, closeMessageThread]);
 
   const { openMaximizedMessageComposer } = useMaximizedMessageComposerActions();
 
@@ -66,21 +71,12 @@ export function MessageThreadSidebar() {
   );
 
   if (!isOpen) {
-    return (
-      <div
-        aria-hidden
-        className="w-0 max-w-0 opacity-0"
-        data-testid="message-thread-sidebar"
-      />
-    );
+    return null;
   }
 
   if (message === undefined) {
     return (
-      <div
-        className="flex h-full w-full max-w-full border-l opacity-100 shadow-lg sm:w-[640px]"
-        data-testid="message-thread-sidebar"
-      >
+      <div className="flex h-full w-full max-w-full border-l opacity-100 shadow-lg sm:w-[540px]">
         <div className="flex h-full flex-1 flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground text-sm">
           <p>Message might be deleted</p>
           <Button className="rounded-full" onClick={closeMessageThread}>

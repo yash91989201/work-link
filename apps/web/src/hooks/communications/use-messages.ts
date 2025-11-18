@@ -190,7 +190,7 @@ export function useMessages({ channelId }: { channelId: string }) {
               isNull(message.parentMessageId)
             )
           )
-          .orderBy(({ message }) => message.createdAt, "desc")
+          .orderBy(({ message }) => message.createdAt)
           .select(({ message, sender, attachment }) => ({
             message,
             sender,
@@ -204,34 +204,35 @@ export function useMessages({ channelId }: { channelId: string }) {
       [channelId]
     );
 
-  const rowsWithExtra = useMemo(() => (pages ? pages.flat() : []), [pages]);
-
   const messages = useMemo(() => {
+    if (!pages || pages.length === 0) {
+      return [];
+    }
+
     const map = new Map<
       string,
       ReturnType<typeof buildMessageWithAttachments>
     >();
 
-    for (const { message, sender, attachment } of rowsWithExtra) {
-      let entry = map.get(message.id);
+    for (const page of pages) {
+      for (const { message, sender, attachment } of page) {
+        if (!map.has(message.id)) {
+          map.set(message.id, buildMessageWithAttachments(message, sender));
+        }
 
-      if (!entry) {
-        entry = buildMessageWithAttachments(message, sender);
-        map.set(message.id, entry);
-      }
-
-      if (attachment) {
-        entry.attachments.push(attachment);
+        if (attachment) {
+          map.get(message.id)?.attachments.push(attachment);
+        }
       }
     }
 
-    const ordered = Array.from(map.values()).sort(
+    const orderedMessages = Array.from(map.values()).sort(
       (a, b) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
 
-    return ordered;
-  }, [rowsWithExtra]);
+    return orderedMessages;
+  }, [pages]);
 
   return {
     messages,
