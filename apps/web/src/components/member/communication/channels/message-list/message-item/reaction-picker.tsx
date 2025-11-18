@@ -1,5 +1,5 @@
 import { EmojiPicker as FrimousseEmojiPicker } from "frimousse";
-import { Smile } from "lucide-react";
+import { SmilePlus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +31,7 @@ export function ReactionPicker({ onSelectEmoji }: ReactionPickerProps) {
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button size="icon-sm" type="button" variant="ghost">
-          <Smile />
+          <SmilePlus />
           <span className="sr-only">Add reaction</span>
         </Button>
       </PopoverTrigger>

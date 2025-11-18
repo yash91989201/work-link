@@ -6,6 +6,7 @@ import { ReactionPicker } from "./reaction-picker";
 
 interface MessageActionsProps {
   canEdit: boolean;
+  canPin: boolean;
   isPinned: boolean;
   isOwnMessage: boolean;
   canReply: boolean;
@@ -19,6 +20,7 @@ interface MessageActionsProps {
 export function MessageActions({
   isOwnMessage,
   canEdit,
+  canPin,
   isPinned,
   canReply,
   onEdit,
@@ -55,16 +57,18 @@ export function MessageActions({
         </Button>
       )}
 
-      <Button
-        aria-label={isPinned ? "UnPin message" : "Pin message"}
-        className={cn({ "text-primary": isPinned })}
-        onClick={onPin}
-        size="icon-sm"
-        title={isPinned ? "Unpin message" : "Pin message"}
-        variant="ghost"
-      >
-        <Pin className={cn({ "fill-current": isPinned })} />
-      </Button>
+      {canPin && (
+        <Button
+          aria-label={isPinned ? "UnPin message" : "Pin message"}
+          className={cn({ "text-primary": isPinned })}
+          onClick={onPin}
+          size="icon-sm"
+          title={isPinned ? "Unpin message" : "Pin message"}
+          variant="ghost"
+        >
+          <Pin className={cn({ "fill-current": isPinned })} />
+        </Button>
+      )}
 
       {isOwnMessage && (
         <Button

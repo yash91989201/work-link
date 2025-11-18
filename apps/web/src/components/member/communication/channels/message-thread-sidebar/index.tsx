@@ -5,6 +5,7 @@ import { MessageComposer } from "@/components/member/communication/channels/mess
 import { MessageItem } from "@/components/member/communication/channels/message-list/message-item";
 import { Button } from "@/components/ui/button";
 import { useVirtualMessageThread } from "@/hooks/communications/use-message-thread";
+import { cn } from "@/lib/utils";
 import {
   useMaximizedMessageComposerActions,
   useMessageThreadSidebar,
@@ -64,65 +65,64 @@ export function MessageThreadSidebar() {
     [message, openMaximizedMessageComposer]
   );
 
-  if (!isOpen) {
-    return null;
-  }
-
-  if (message === undefined) {
-    return (
-      <div className="flex h-full w-full max-w-full border-l opacity-100 shadow-lg sm:w-[540px]">
-        <div className="flex h-full flex-1 flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground text-sm">
-          <p>Message might be deleted</p>
-          <Button className="rounded-full" onClick={closeMessageThread}>
-            Close thread
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-full w-96 flex-col overflow-hidden border-l bg-background/95 opacity-100 shadow-lg backdrop-blur-sm transition-[width,opacity] duration-300 ease-in-out supports-backdrop-filter:bg-background/60 sm:w-[560px]">
+    <div
+      className={cn(
+        "flex h-full min-w-0 shrink-0 flex-col overflow-hidden border-l bg-background/95 backdrop-blur-sm transition-[width,opacity] duration-300 ease-in-out supports-backdrop-filter:bg-background/60",
+        isOpen ? "w-96 opacity-100 shadow-lg sm:w-[560px]" : "w-0 opacity-0"
+      )}
+    >
       <div className="flex h-full flex-1 flex-col">
-        <div className="flex items-start justify-between border-b bg-muted/30 px-4 py-3">
-          <div className="flex gap-3 space-y-1.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-              <Spool className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <div className="font-semibold text-base">
-                {message.sender.name}
-              </div>
-              <div className="text-muted-foreground text-xs">
-                {formatMessageDate(message.createdAt)}
-              </div>
-              <div className="font-medium text-primary text-xs">
-                {repliesCount === 0 && <span>No replies yet</span>}
-                {repliesCount > 0 && (
-                  <span>
-                    {repliesCount} repl{repliesCount === 1 ? "y" : "ies"}
-                  </span>
-                )}
-              </div>
-            </div>
+        {!message && (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground text-sm">
+            <p>Message might be deleted</p>
+            <Button className="rounded-full" onClick={closeMessageThread}>
+              Close thread
+            </Button>
           </div>
-          <button
-            aria-label="Close thread"
-            className="rounded-lg p-1.5 opacity-70 ring-offset-background transition-all hover:bg-destructive/10 hover:text-destructive hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
-            onClick={closeMessageThread}
-            type="button"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        )}
 
-        {isLoading && threadMessages.length === 0 && (
+        {message && (
+          <div className="flex items-start justify-between border-b bg-muted/30 px-4 py-3">
+            <div className="flex gap-3 space-y-1.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+                <Spool className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="font-semibold text-base">
+                  {message.sender.name}
+                </div>
+                <div className="text-muted-foreground text-xs">
+                  {formatMessageDate(message.createdAt)}
+                </div>
+                <div className="font-medium text-primary text-xs">
+                  {repliesCount === 0 && <span>No replies yet</span>}
+                  {repliesCount > 0 && (
+                    <span>
+                      {repliesCount} repl{repliesCount === 1 ? "y" : "ies"}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <button
+              aria-label="Close thread"
+              className="rounded-lg p-1.5 opacity-70 ring-offset-background transition-all hover:bg-destructive/10 hover:text-destructive hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+              onClick={closeMessageThread}
+              type="button"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {message && isLoading && threadMessages.length === 0 && (
           <div className="flex flex-1 items-center justify-center text-muted-foreground text-sm">
             Loading replies...
           </div>
         )}
 
-        {!isLoading && repliesCount === 0 && (
+        {message && !isLoading && repliesCount === 0 && (
           <div className="flex flex-1 items-center justify-center p-6">
             <div className="rounded-lg border bg-muted/40 p-4 text-center text-muted-foreground text-sm">
               Continue the conversation by replying here.
@@ -130,7 +130,7 @@ export function MessageThreadSidebar() {
           </div>
         )}
 
-        {repliesCount > 0 && (
+        {message && repliesCount > 0 && (
           <div className="relative flex-1 overflow-hidden">
             <div className="h-full overflow-auto" ref={scrollRef}>
               <div
@@ -178,11 +178,11 @@ export function MessageThreadSidebar() {
             {showScrollButton && (
               <div className="absolute inset-x-0 bottom-4 z-20 flex justify-center">
                 <Button
-                  className="gap-2"
+                  className="gap-1.5 rounded-full"
                   onClick={scrollToBottom}
                   variant="secondary"
                 >
-                  <ArrowDownIcon className="h-4 w-4" />
+                  <ArrowDownIcon />
                   <span className="text-sm">Jump to latest replies</span>
                 </Button>
               </div>
@@ -190,17 +190,19 @@ export function MessageThreadSidebar() {
           </div>
         )}
 
-        <div className="border-t">
-          <MessageComposer
-            channelId={channelId}
-            initialContent={threadComposerText}
-            key={`${message.id}-${Date.now()}`}
-            onMaximize={handleMaximizedReply}
-            parentMessageId={message.id}
-            placeholder="Reply in thread..."
-            showHelpText={false}
-          />
-        </div>
+        {message && (
+          <div className="border-t">
+            <MessageComposer
+              channelId={channelId}
+              initialContent={threadComposerText}
+              key={`${message.id}-${Date.now()}`}
+              onMaximize={handleMaximizedReply}
+              parentMessageId={message.id}
+              placeholder="Reply in thread..."
+              showHelpText={false}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

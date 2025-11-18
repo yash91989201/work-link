@@ -80,11 +80,11 @@ export function MessageList() {
       {showScrollButton && (
         <div className="absolute inset-x-0 bottom-4 z-20 flex justify-center">
           <Button
-            className="gap-2"
+            className="gap-1.5 rounded-full"
             onClick={scrollToBottom}
             variant="secondary"
           >
-            <ArrowDownIcon className="h-4 w-4" />
+            <ArrowDownIcon />
             <span className="text-sm">Jump to latest messages</span>
           </Button>
         </div>

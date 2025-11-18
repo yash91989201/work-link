@@ -23,6 +23,7 @@ import {
   UnderlineIcon,
   X,
 } from "lucide-react";
+import type { KeyboardEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
@@ -135,7 +136,7 @@ export function MessageEditor({
       }),
       Underline,
       Placeholder.configure({
-        placeholder: "Type your message here...",
+        placeholder: "Type your message...",
       }),
       Mention.configure({
         HTMLAttributes: {
@@ -183,8 +184,8 @@ export function MessageEditor({
         class: cn(
           "prose prose-sm max-w-none p-2 focus:outline-none sm:p-3",
           isMaximized && isInMaximizedComposer
-            ? "min-h-[50vh] overflow-y-auto sm:min-h-[60vh]"
-            : "max-h-32 min-h-16 overflow-y-auto"
+            ? "min-h-[56vh] overflow-y-auto sm:min-h-[64vh]"
+            : "max-h-48 min-h-32 overflow-y-auto"
         ),
       },
       handleKeyDown: (_, event) => {
@@ -301,6 +302,31 @@ export function MessageEditor({
       setIsLinkPopoverOpen(false);
     }
   }, [editor, linkUrl]);
+
+  const handleEditorKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (disabled) return;
+
+      const isModifierPressed = event.ctrlKey || event.metaKey;
+      const isMaximizeShortcut =
+        isModifierPressed && event.key.toLowerCase() === "m";
+
+      if (!isMaximizeShortcut) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (!(isMaximized || isInMaximizedComposer)) {
+        onMaximize?.();
+        return;
+      }
+
+      if (isMaximized && isInMaximizedComposer) {
+        onMinimize?.();
+      }
+    },
+    [disabled, isInMaximizedComposer, isMaximized, onMaximize, onMinimize]
+  );
 
   if (!editor) {
     return null;
@@ -497,11 +523,11 @@ export function MessageEditor({
             onClick={() => {
               editor.chain().focus().clearContent().run();
             }}
-            size="icon"
+            size="icon-sm"
             title="Clear Content"
-            variant="destructive"
+            variant="secondary"
           >
-            <Trash2 className="text-destructive-foreground" />
+            <Trash2 />
           </Button>
         </div>
       </div>
@@ -511,6 +537,7 @@ export function MessageEditor({
         <EditorContent
           className={cn("p-2 sm:p-3", disabled && "opacity-50")}
           editor={editor}
+          onKeyDown={handleEditorKeyDown}
         />
       </div>
     </div>

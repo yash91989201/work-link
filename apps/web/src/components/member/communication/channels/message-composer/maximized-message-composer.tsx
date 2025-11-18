@@ -24,6 +24,7 @@ export function MaximizedMessageComposer() {
     messageId,
     parentMessageId,
     onComplete,
+    openMaximizedMessageComposer,
     closeMaximizedMessageComposer,
   } = useMaximizedMessageComposer();
 
@@ -121,6 +122,42 @@ export function MaximizedMessageComposer() {
     },
     [handleClose]
   );
+
+  const handleGlobalShortcut = useCallback(
+    (event: KeyboardEvent) => {
+      const isModifierPressed = event.ctrlKey || event.metaKey;
+      const isMaximizeShortcut =
+        isModifierPressed && event.key.toLowerCase() === "m";
+
+      if (!isMaximizeShortcut) return;
+
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tagName = target.tagName;
+        const isFormElement =
+          tagName === "INPUT" ||
+          tagName === "TEXTAREA" ||
+          tagName === "SELECT" ||
+          tagName === "BUTTON";
+
+        if (isFormElement || target.isContentEditable) {
+          return;
+        }
+      }
+
+      event.preventDefault();
+      openMaximizedMessageComposer();
+    },
+    [openMaximizedMessageComposer]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleGlobalShortcut);
+
+    return () => {
+      window.removeEventListener("keydown", handleGlobalShortcut);
+    };
+  }, [handleGlobalShortcut]);
 
   const handleSubmit = useCallback(() => {
     if (!text?.trim()) return;

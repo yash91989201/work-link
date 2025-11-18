@@ -1,4 +1,5 @@
 import type { MessageWithSenderType } from "@work-link/api/lib/types";
+import { CornerDownRight, Pin } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ export function MessageItem({
   return (
     <div
       className={cn(
-        "group relative flex gap-3 rounded-xl px-3 py-2 transition-all hover:bg-muted/40",
+        "group relative flex gap-3 rounded-xl p-3 transition-all hover:bg-muted/40",
         {
           "bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/10":
             isMessageThreadActive,
@@ -104,17 +105,24 @@ export function MessageItem({
 
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         {/* Header */}
-        <div className="flex flex-wrap items-baseline gap-2 text-xs">
+        <div className="flex flex-wrap items-stretch gap-3 text-xs">
           <span className="font-semibold text-foreground text-sm">
             {message.sender.name}
           </span>
 
           {message.isEdited && <Badge variant="secondary">Edited</Badge>}
 
-          {message.isPinned && <Badge variant="outline">📌</Badge>}
+          {message.isPinned && (
+            <Badge variant="secondary">
+              <Pin />
+            </Badge>
+          )}
 
           {message.threadCount > 0 && (
-            <Badge variant="secondary">{message.threadCount} 💬</Badge>
+            <Badge className="gap-1.5" variant="secondary">
+              <span>{message.threadCount}</span>
+              <CornerDownRight />
+            </Badge>
           )}
         </div>
 
@@ -123,7 +131,7 @@ export function MessageItem({
         <MessageReactions
           onAddReaction={handleReact}
           onRemoveReaction={handleReactionClick}
-          reactions={message.reactions || []}
+          reactions={message.reactions ?? []}
         />
 
         {message.threadCount > 0 && (
@@ -140,6 +148,7 @@ export function MessageItem({
 
       <MessageActions
         canEdit={user.id === message.senderId && message.type === "text"}
+        canPin={!isThreadMessage}
         canReply={!isThreadMessage}
         isOwnMessage={user.id === message.senderId}
         isPinned={message.isPinned}

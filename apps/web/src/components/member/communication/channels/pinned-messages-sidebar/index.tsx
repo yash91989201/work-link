@@ -122,7 +122,7 @@ export function PinnedMessagesSidebar() {
           {showScrollButton && (
             <div className="absolute inset-x-0 top-4 z-20 flex justify-center">
               <Button
-                className="gap-2"
+                className="gap-1.5 rounded-full"
                 onClick={scrollToTop}
                 variant="secondary"
               >
