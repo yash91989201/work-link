@@ -1,6 +1,6 @@
 import { and, eq, isNull, useLiveQuery } from "@tanstack/react-db";
 import { useParams } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   attachmentsCollection,
   messagesCollection,
@@ -92,9 +92,39 @@ export function useChannelMentions() {
       );
   }, [data, userId]);
 
+  const mentionCount = mentions.length;
+
+  const prevMentionCountRef = useRef(mentionCount);
+  const isFirstLoadRef = useRef(true);
+  const previousChannelIdRef = useRef(channelId);
+
+  if (previousChannelIdRef.current !== channelId) {
+    isFirstLoadRef.current = true;
+    previousChannelIdRef.current = channelId;
+  }
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (isFirstLoadRef.current) {
+      isFirstLoadRef.current = false;
+      prevMentionCountRef.current = mentionCount;
+      return;
+    }
+
+    if (mentionCount > prevMentionCountRef.current) {
+      const audio = new Audio("/assets/sounds/mention.webm");
+      audio.play().catch((error) => {
+        console.error("Error playing mention sound:", error);
+      });
+    }
+
+    prevMentionCountRef.current = mentionCount;
+  }, [mentionCount, isLoading]);
+
   return {
     mentions,
-    mentionCount: mentions.length,
+    mentionCount,
     isLoading,
   };
 }
