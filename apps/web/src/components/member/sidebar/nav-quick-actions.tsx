@@ -1,15 +1,11 @@
-import {
-  IconBuildingBroadcastTower,
-  IconCalendarEvent,
-  IconCirclePlus,
-} from "@tabler/icons-react";
+import { IconCirclePlus } from "@tabler/icons-react";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { Link, useParams } from "@tanstack/react-router";
 import { Clock, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -17,18 +13,20 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { queryUtils } from "@/utils/orpc";
 
-const navItems = [
-  {
-    title: "Attendance",
-    url: "/org/$slug/attendance",
-    icon: IconCalendarEvent,
-  },
-  {
-    title: "Communication",
-    url: "/org/$slug/communication/channels",
-    icon: IconBuildingBroadcastTower,
-  },
-];
+export function NavQuickActions() {
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <MarkAttendanceButton />
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
 
 function MarkAttendanceButton() {
   const { data: attendance, refetch } = useSuspenseQuery(
@@ -112,35 +110,5 @@ function MarkAttendanceButton() {
       <IconCirclePlus />
       <span>Attendance Complete</span>
     </SidebarMenuButton>
-  );
-}
-
-export function NavMain() {
-  const { slug } = useParams({
-    from: "/(authenticated)/org/$slug",
-  });
-
-  return (
-    <SidebarGroup>
-      <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-2">
-            <MarkAttendanceButton />
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <SidebarMenu>
-          {navItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link params={{ slug }} to={item.url}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
   );
 }

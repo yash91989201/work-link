@@ -10,10 +10,11 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarSeparator,
+  SidebarRail,
 } from "@/components/ui/sidebar";
-import { NavChannels, NavChannelsSkeleton } from "./nav-channels";
-import { NavMain } from "./nav-main";
+import { NavAttendance } from "./nav-attendance";
+import { NavCommunication } from "./nav-communication";
+import { NavQuickActions } from "./nav-quick-actions";
 import { NavUser } from "./nav-user";
 
 export function MemberSidebar({
@@ -28,16 +29,15 @@ export function MemberSidebar({
           </Suspense>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain />
-        <SidebarSeparator />
-        <Suspense fallback={<NavChannelsSkeleton />}>
-          <NavChannels />
-        </Suspense>
+      <SidebarContent className="gap-0">
+        <NavQuickActions />
+        <NavAttendance />
+        <NavCommunication />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }
