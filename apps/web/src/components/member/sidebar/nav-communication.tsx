@@ -1,6 +1,7 @@
 import { IconBroadcast } from "@tabler/icons-react";
 import { Link, useParams } from "@tanstack/react-router";
 import { ChevronRight, Hash } from "lucide-react";
+import { useState } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -51,6 +52,8 @@ export function NavChannels() {
     shouldThrow: false,
   });
 
+  const [open, setOpen] = useState(false);
+
   const isPopover = state === "collapsed" && !isMobile;
 
   if (channels.length === 0) {
@@ -70,7 +73,12 @@ export function NavChannels() {
       <SidebarMenu>
         <SidebarMenuItem>
           <Collapsible>
-            <HoverCard closeDelay={100} openDelay={50}>
+            <HoverCard
+              closeDelay={100}
+              onOpenChange={setOpen}
+              open={open}
+              openDelay={50}
+            >
               <HoverCardTrigger asChild>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
@@ -112,6 +120,7 @@ export function NavChannels() {
                           isActive={channel.id === params?.id}
                         >
                           <Link
+                            onClick={() => setOpen(false)}
                             params={{ slug, id: channel.id }}
                             to="/org/$slug/communication/channels/$id"
                           >
