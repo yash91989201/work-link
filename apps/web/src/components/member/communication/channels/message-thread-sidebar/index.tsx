@@ -2,7 +2,6 @@ import { useParams } from "@tanstack/react-router";
 import { ArrowDownIcon, Loader2Icon, Spool, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { MessageComposer } from "@/components/member/communication/channels/message-composer";
-import { HelpText } from "@/components/member/communication/channels/message-composer/help-text";
 import { MessageItem } from "@/components/member/communication/channels/message-list/message-item";
 import { Button } from "@/components/ui/button";
 import { useVirtualMessageThread } from "@/hooks/communications/use-message-thread";
@@ -93,10 +92,7 @@ export function MessageThreadSidebar() {
   }
 
   return (
-    <div
-      className="flex h-full w-full min-w-0 max-w-full shrink-0 flex-col overflow-hidden border-l bg-background/95 opacity-100 shadow-lg backdrop-blur-sm transition-[width,opacity] duration-300 ease-in-out supports-backdrop-filter:bg-background/60 sm:w-[640px]"
-      data-testid="message-thread-sidebar"
-    >
+    <div className="flex h-full w-96 flex-col overflow-hidden border-l bg-background/95 opacity-100 shadow-lg backdrop-blur-sm transition-[width,opacity] duration-300 ease-in-out supports-backdrop-filter:bg-background/60 sm:w-[560px]">
       <div className="flex h-full flex-1 flex-col">
         <div className="flex items-start justify-between border-b bg-muted/30 px-4 py-3">
           <div className="flex gap-3 space-y-1.5">
@@ -139,7 +135,7 @@ export function MessageThreadSidebar() {
         {!isLoading && repliesCount === 0 && (
           <div className="flex flex-1 items-center justify-center p-6">
             <div className="rounded-lg border bg-muted/40 p-4 text-center text-muted-foreground text-sm">
-              Start the conversation by replying to this message.
+              Continue the conversation by replying here.
             </div>
           </div>
         )}
@@ -214,7 +210,6 @@ export function MessageThreadSidebar() {
             placeholder="Reply in thread..."
             showHelpText={false}
           />
-          <HelpText />
         </div>
       </div>
     </div>

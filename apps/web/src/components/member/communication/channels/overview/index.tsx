@@ -17,54 +17,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { queryUtils } from "@/utils/orpc";
-import { ChannelTips } from "./tips";
 
-export const ChannelsOverview = () => {
-  const { data: channelListData } = useSuspenseQuery(
+export const RecentChannels = () => {
+  const { slug } = useParams({ from: "/(authenticated)/org/$slug" });
+
+  const {
+    data: { channels },
+  } = useSuspenseQuery(
     queryUtils.communication.channel.list.queryOptions({ input: {} })
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-6xl space-y-8">
-          <RecentChannels channels={channelListData.channels.slice(0, 6)} />
-          <GettingStarted />
-          <ChannelTypes />
-          <ChannelFeatures />
-          <ChannelTips />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const RecentChannels = ({ channels }: ListChannelsOutputType) => {
-  const { slug } = useParams({ from: "/(authenticated)/org/$slug" });
-
-  if (channels.length === 0) {
-    return (
-      <div>
-        <SidebarTrigger />
-        <h2 className="mb-4 font-semibold text-2xl">Recent Channels</h2>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Hash className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="mb-2 font-semibold text-lg">No channels yet</h3>
-            <p className="mb-4 text-muted-foreground">
-              Create your first channel to start organizing team conversations.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
     <div data-channels-list>
-      <SidebarTrigger />
       <h2 className="mb-4 font-semibold text-2xl">Recent Channels</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {channels.map((channel) => (
@@ -75,7 +40,7 @@ const RecentChannels = ({ channels }: ListChannelsOutputType) => {
   );
 };
 
-const ChannelCard = ({
+export const ChannelCard = ({
   channel,
   slug,
 }: {
@@ -127,7 +92,7 @@ const ChannelCard = ({
   );
 };
 
-const ChannelTypes = () => (
+export const ChannelTypes = () => (
   <div>
     <h2 className="mb-4 font-semibold text-2xl">Channel Types</h2>
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -230,7 +195,7 @@ const ChannelTypes = () => (
   </div>
 );
 
-const GettingStarted = () => {
+export const GettingStarted = () => {
   const steps = [
     {
       icon: <Plus className="h-5 w-5" />,
@@ -287,7 +252,7 @@ const GettingStarted = () => {
   );
 };
 
-const ChannelFeatures = () => {
+export const ChannelFeatures = () => {
   const features = [
     {
       title: "Real-time Messaging",

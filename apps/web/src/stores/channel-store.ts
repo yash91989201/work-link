@@ -161,17 +161,24 @@ export function useChannelInfoSidebar() {
 
 export function usePinnedMessagesSidebar() {
   const isOpen = useChannelStore((state) => state.pinnedMessages.isOpen);
+
   const openPinnedMessages = useChannelStore(
     (state) => state.openPinnedMessages
   );
+
   const closePinnedMessages = useChannelStore(
     (state) => state.closePinnedMessages
   );
+
+  const togglePinnedMessages = isOpen
+    ? closePinnedMessages
+    : openPinnedMessages;
 
   return {
     isOpen,
     openPinnedMessages,
     closePinnedMessages,
+    togglePinnedMessages,
   };
 }
 
