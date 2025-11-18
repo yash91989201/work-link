@@ -46,7 +46,6 @@ export function ChannelHeader() {
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
-            <BreadcrumbSeparator />
           </BreadcrumbList>
         </Breadcrumb>
 

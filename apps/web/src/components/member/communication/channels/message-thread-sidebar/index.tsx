@@ -42,12 +42,6 @@ export function MessageThreadSidebar() {
     closeMessageThread();
   }, [channelId, closeMessageThread]);
 
-  useEffect(() => {
-    if (messageId === undefined && isOpen) {
-      closeMessageThread();
-    }
-  }, [messageId, isOpen, closeMessageThread]);
-
   const { openMaximizedMessageComposer } = useMaximizedMessageComposerActions();
 
   const handleMaximizedReply = useCallback(
