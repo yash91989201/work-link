@@ -4,7 +4,7 @@ import {
   createUpdateSchema,
 } from "drizzle-zod";
 import z from "zod";
-import { attendanceTable } from "@/schema";
+import { attendanceTable, workBlockTable } from "@/schema";
 import {
   account,
   invitation,
@@ -38,6 +38,7 @@ export const TeamSchema = createSelectSchema(team);
 export const TeamMemberSchema = createSelectSchema(teamMember);
 export const VerificationSchema = createSelectSchema(verification);
 export const AttendanceSchema = createSelectSchema(attendanceTable);
+export const WorkBlockSchema = createSelectSchema(workBlockTable);
 
 export const AccountUpdateSchema = createUpdateSchema(account);
 export const UserUpdateSchema = createUpdateSchema(user);
@@ -49,6 +50,7 @@ export const TeamUpdateSchema = createUpdateSchema(team);
 export const TeamMemberUpdateSchema = createUpdateSchema(teamMember);
 export const VerificationUpdateSchema = createUpdateSchema(verification);
 export const AttendanceUpdateSchema = createUpdateSchema(attendanceTable);
+export const WorkBlockUpdateSchema = createUpdateSchema(workBlockTable);
 
 export const AccountInsertSchema = createInsertSchema(account);
 export const UserInsertSchema = createInsertSchema(user);
@@ -60,6 +62,7 @@ export const TeamInsertSchema = createInsertSchema(team);
 export const TeamMemberInsertSchema = createInsertSchema(teamMember);
 export const VerificationInsertSchema = createInsertSchema(verification);
 export const AttendanceInsertSchema = createInsertSchema(attendanceTable);
+export const WorkBlockInsertSchema = createInsertSchema(workBlockTable);
 
 export const ChannelSchema = createSelectSchema(channelTable);
 export const ChannelMemberSchema = createSelectSchema(channelMemberTable);
