@@ -1,9 +1,17 @@
 import { ORPCError } from "@orpc/server";
 import type { AttendanceUpdateType } from "@work-link/db/lib/types";
-import { attendanceTable, member } from "@work-link/db/schema/index";
-import { and, eq } from "drizzle-orm";
+import {
+  attendanceTable,
+  member,
+  workBlockTable,
+} from "@work-link/db/schema/index";
+import { and, eq, isNull } from "drizzle-orm";
 import { protectedProcedure } from "@/index";
 import {
+  AddBreakDurationInput,
+  AddBreakDurationOutput,
+  GetTodayInput,
+  GetTodayOutput,
   MemberAttendanceStatusOutput,
   MemberPunchInInput,
   MemberPunchInOutput,
@@ -54,6 +62,7 @@ export const memberAttendanceRouter = {
           notes: input.note ?? null,
           location: input.location ?? null,
           isManualEntry: true,
+          breakDuration: 0,
         })
         .returning();
 
@@ -62,6 +71,17 @@ export const memberAttendanceRouter = {
           message: "Failed to create attendance record.",
         });
       }
+
+      // Create initial work block
+      await db.insert(workBlockTable).values({
+        attendanceId: attendance.id,
+        userId: user.id,
+        organizationId: orgId,
+        startedAt: now,
+        endedAt: null,
+        durationMinutes: null,
+        endReason: null,
+      });
 
       return attendance;
     }),
@@ -96,9 +116,38 @@ export const memberAttendanceRouter = {
         });
       }
 
+      // End active work block if exists
+      const activeBlock = await db.query.workBlockTable.findFirst({
+        where: and(
+          eq(workBlockTable.attendanceId, attendance.id),
+          isNull(workBlockTable.endedAt)
+        ),
+      });
+
+      if (activeBlock) {
+        const durationMs = now.getTime() - activeBlock.startedAt.getTime();
+        const durationMinutes = Math.floor(durationMs / 60000);
+
+        await db
+          .update(workBlockTable)
+          .set({
+            endedAt: now,
+            durationMinutes,
+            endReason: "punch_out",
+          })
+          .where(eq(workBlockTable.id, activeBlock.id));
+      }
+
+      // Calculate total hours
+      const totalMinutes =
+        (now.getTime() - attendance.checkInTime!.getTime()) / 60000 -
+        (attendance.breakDuration ?? 0);
+      const totalHours = (totalMinutes / 60).toFixed(2);
+
       const updatePayload: Partial<AttendanceUpdateType> = {
         checkOutTime: now,
         clockOutMethod: "manual",
+        totalHours,
       };
 
       if (input.note !== undefined) {
@@ -167,5 +216,66 @@ export const memberAttendanceRouter = {
       }
 
       return attendance;
+    }),
+
+  addBreakDuration: protectedProcedure
+    .input(AddBreakDurationInput)
+    .output(AddBreakDurationOutput)
+    .handler(async ({ input, context: { db, session } }) => {
+      const user = session.user;
+
+      // Validate attendance exists and belongs to user
+      const attendance = await db.query.attendanceTable.findFirst({
+        where: and(
+          eq(attendanceTable.id, input.attendanceId),
+          eq(attendanceTable.userId, user.id),
+          eq(attendanceTable.isDeleted, false)
+        ),
+      });
+
+      if (!attendance) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Attendance record not found.",
+        });
+      }
+
+      if (attendance.checkOutTime) {
+        throw new ORPCError("CONFLICT", {
+          message: "Cannot add break duration after punch out.",
+        });
+      }
+
+      // Update break duration
+      const newBreakDuration = (attendance.breakDuration ?? 0) + input.minutes;
+
+      await db
+        .update(attendanceTable)
+        .set({
+          breakDuration: newBreakDuration,
+        })
+        .where(eq(attendanceTable.id, attendance.id));
+
+      return {
+        breakDuration: newBreakDuration,
+      };
+    }),
+
+  getToday: protectedProcedure
+    .input(GetTodayInput)
+    .output(GetTodayOutput)
+    .handler(async ({ input, context: { db, session } }) => {
+      const user = session.user;
+      const today = new Date();
+
+      const attendance = await db.query.attendanceTable.findFirst({
+        where: and(
+          eq(attendanceTable.organizationId, input.orgId),
+          eq(attendanceTable.userId, user.id),
+          eq(attendanceTable.date, today),
+          eq(attendanceTable.isDeleted, false)
+        ),
+      });
+
+      return attendance ?? null;
     }),
 };
