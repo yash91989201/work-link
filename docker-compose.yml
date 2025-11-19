@@ -13,6 +13,19 @@ services:
     networks:
       - supabase_network_db
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - supabase_network_db
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
 networks:
   supabase_network_db:
     external: true
+
+volumes:
+  redis_data:

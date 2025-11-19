@@ -4,6 +4,7 @@ import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import { getRedisClient } from "@work-link/api/config/redis";
 import { createContext } from "@work-link/api/context";
 import { electricRouter } from "@work-link/api/routers/electric/index";
 import { appRouter } from "@work-link/api/routers/index";
@@ -12,6 +13,25 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { env } from "@/env";
+
+// Initialize Redis client (optional - will be null if Redis is not available)
+let redis: ReturnType<typeof getRedisClient> | undefined;
+try {
+  redis = getRedisClient();
+  // Try to connect
+  redis
+    .connect()
+    .then(() => {
+      console.log("✅ Redis connected successfully");
+    })
+    .catch((err) => {
+      console.warn("⚠️  Redis connection failed, presence features will be disabled:", err.message);
+      redis = undefined;
+    });
+} catch (err) {
+  console.warn("⚠️  Redis initialization failed, presence features will be disabled:", err);
+  redis = undefined;
+}
 
 const app = new Hono();
 
@@ -52,7 +72,7 @@ export const rpcHandler = new RPCHandler(appRouter, {
 });
 
 app.use("/*", async (c, next) => {
-  const context = await createContext({ context: c });
+  const context = await createContext({ context: c, redis });
 
   const rpcResult = await rpcHandler.handle(c.req.raw, {
     prefix: "/rpc",
