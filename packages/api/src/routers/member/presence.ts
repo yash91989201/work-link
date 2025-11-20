@@ -3,6 +3,11 @@ import { member } from "@work-link/db/schema/index";
 import { eq } from "drizzle-orm";
 import { protectedProcedure } from "@/index";
 import {
+  getPresenceForUsers,
+  setManualStatus,
+  updatePresence,
+} from "@/lib/presence";
+import {
   GetOrgPresenceInput,
   GetOrgPresenceOutput,
   HeartbeatInput,
@@ -10,11 +15,6 @@ import {
   SetManualStatusInput,
   SetManualStatusOutput,
 } from "@/lib/schemas/presence";
-import {
-  getPresenceForUsers,
-  setManualStatus,
-  updatePresence,
-} from "@/lib/presence";
 
 export const presenceRouter = {
   heartbeat: protectedProcedure

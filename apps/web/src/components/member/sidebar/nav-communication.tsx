@@ -99,7 +99,7 @@ export function NavChannels() {
                 className="w-fit min-w-52 p-0"
                 role="menu"
                 side="right"
-                sideOffset={14}
+                sideOffset={12}
               >
                 <div className="flex flex-col">
                   <div className="flex items-center gap-3 border-b p-3">

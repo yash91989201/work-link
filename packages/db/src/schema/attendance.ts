@@ -91,7 +91,7 @@ export const endReasonEnum = pgEnum("endReason", [
 ]);
 
 // Work block table for tracking continuous working sessions
-export const workBlockTable = pgTable("work_block", {
+export const workBlockTable = pgTable("workBlock", {
   id: cuid2().defaultRandom().primaryKey(),
   attendanceId: text()
     .notNull()

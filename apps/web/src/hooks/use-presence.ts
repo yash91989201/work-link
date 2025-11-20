@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
+import { queryClient, queryUtils } from "@/utils/orpc";
 import { useActiveOrganization } from "./use-active-organization";
-import { queryUtils } from "@/utils/orpc";
 
 export type PresenceStatus =
   | "available"
@@ -32,18 +32,14 @@ export function usePresenceHeartbeat({
   inCall = false,
   inMeeting = false,
   manualStatus = null,
-  intervalMs = 60000, // 60 seconds
+  intervalMs = 60_000, // 60 seconds
 }: UsePresenceHeartbeatOptions) {
-  const { data: organization } = useActiveOrganization();
+  const organization = useActiveOrganization();
   const lastActivityRef = useRef(Date.now());
   const isTabFocusedRef = useRef(true);
 
   const { mutate: sendHeartbeat } = useMutation(
-    queryUtils.member.presence.heartbeat.mutationOptions({
-      onError: (error) => {
-        console.error("Presence heartbeat failed:", error);
-      },
-    })
+    queryUtils.member.presence.heartbeat.mutationOptions({})
   );
 
   // Track user activity
@@ -71,7 +67,7 @@ export function usePresenceHeartbeat({
 
   // Send heartbeat
   useEffect(() => {
-    if (!enabled || !organization?.id) return;
+    if (!(enabled && organization?.id)) return;
 
     const sendPresenceUpdate = () => {
       const now = Date.now();
@@ -111,30 +107,32 @@ export function usePresenceHeartbeat({
 }
 
 export function useSetManualStatus() {
-  const { data: organization } = useActiveOrganization();
-
+  const organization = useActiveOrganization();
   return useMutation(
     queryUtils.member.presence.setManualStatus.mutationOptions({
       onSuccess: () => {
-        // Refetch org presence to update UI
-        queryUtils.member.presence.getOrgPresence.invalidate();
+        queryClient.invalidateQueries({
+          queryKey: queryUtils.member.presence.getOrgPresence.queryKey({
+            input: {
+              orgId: organization?.id ?? "",
+            },
+          }),
+        });
       },
     })
   );
 }
 
 export function useOrgPresence() {
-  const { data: organization } = useActiveOrganization();
+  const organization = useActiveOrganization();
 
   return useQuery(
-    queryUtils.member.presence.getOrgPresence.queryOptions(
-      {
+    queryUtils.member.presence.getOrgPresence.queryOptions({
+      input: {
         orgId: organization?.id ?? "",
       },
-      {
-        enabled: !!organization?.id,
-        refetchInterval: 30000, // Refresh every 30 seconds
-      }
-    )
+      enabled: !!organization?.id,
+      refetchInterval: 30_000,
+    })
   );
 }

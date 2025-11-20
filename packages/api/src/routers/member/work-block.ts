@@ -5,11 +5,44 @@ import { protectedProcedure } from "@/index";
 import {
   EndBlockInput,
   EndBlockOutput,
+  GetActiveBlockInput,
+  GetActiveBlockOutput,
   StartBlockInput,
   StartBlockOutput,
 } from "@/lib/schemas/work-block";
 
 export const workBlockRouter = {
+  getActiveBlock: protectedProcedure
+    .input(GetActiveBlockInput)
+    .output(GetActiveBlockOutput)
+    .handler(async ({ input, context: { db, session } }) => {
+      const user = session.user;
+
+      // Validate attendance exists and belongs to user
+      const attendance = await db.query.attendanceTable.findFirst({
+        where: and(
+          eq(attendanceTable.id, input.attendanceId),
+          eq(attendanceTable.userId, user.id),
+          eq(attendanceTable.isDeleted, false)
+        ),
+      });
+
+      if (!attendance) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Attendance record not found.",
+        });
+      }
+
+      const activeBlock = await db.query.workBlockTable.findFirst({
+        where: and(
+          eq(workBlockTable.attendanceId, input.attendanceId),
+          isNull(workBlockTable.endedAt)
+        ),
+      });
+
+      return activeBlock ?? null;
+    }),
+
   startBlock: protectedProcedure
     .input(StartBlockInput)
     .output(StartBlockOutput)

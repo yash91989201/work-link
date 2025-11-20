@@ -19,4 +19,10 @@ export const EndBlockInput = z.object({
 export const StartBlockOutput = WorkBlockSchema;
 export const EndBlockOutput = WorkBlockSchema;
 
+export const GetActiveBlockInput = z.object({
+  attendanceId: z.string(),
+});
+
+export const GetActiveBlockOutput = WorkBlockSchema.nullable();
+
 export { WorkBlockSchema };

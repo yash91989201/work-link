@@ -1,16 +1,16 @@
 import { IconCirclePlus } from "@tabler/icons-react";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import {
   Clock,
   Coffee,
   LogOut,
   Moon,
+  Pause,
   PhoneCall,
   Play,
-  Square,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -27,9 +27,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
-import { Switch } from "@/components/ui/switch";
 import { queryUtils } from "@/utils/orpc";
 
 export function NavQuickActions() {
@@ -45,7 +45,7 @@ export function NavQuickActions() {
             <WorkBlockToggle />
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <ManualStatusDropdown />
+            <PresenceStatusDropdown />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
@@ -54,18 +54,52 @@ export function NavQuickActions() {
 }
 
 function WorkBlockToggle() {
-  const { data: attendance, refetch } = useSuspenseQuery(
+  const { state } = useSidebar();
+  const { data: attendance, refetch: refetchAttendance } = useSuspenseQuery(
     queryUtils.member.attendance.getStatus.queryOptions({})
   );
 
-  const [isWorking, setIsWorking] = useState(false);
+  const { data: activeBlock, refetch: refetchBlock } = useQuery(
+    queryUtils.member.workBlock.getActiveBlock.queryOptions({
+      input: {
+        attendanceId: attendance?.id ?? "",
+      },
+      enabled: !!attendance?.id,
+    })
+  );
+
+  const [elapsed, setElapsed] = useState<string>("00:00:00");
+
+  useEffect(() => {
+    if (!activeBlock?.startedAt) {
+      setElapsed("00:00:00");
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const start = new Date(activeBlock.startedAt).getTime();
+      const now = Date.now();
+      const diff = now - start;
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setElapsed(
+        `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeBlock]);
 
   const { mutateAsync: startBlock, isPending: isStarting } = useMutation(
     queryUtils.member.workBlock.startBlock.mutationOptions({
       onSuccess: async () => {
         toast.success("Work session started");
-        setIsWorking(true);
-        await refetch();
+        await Promise.all([refetchAttendance(), refetchBlock()]);
       },
       onError: (error) => {
         toast.error(error.message);
@@ -76,9 +110,8 @@ function WorkBlockToggle() {
   const { mutateAsync: endBlock, isPending: isEnding } = useMutation(
     queryUtils.member.workBlock.endBlock.mutationOptions({
       onSuccess: async () => {
-        toast.success("Work session ended");
-        setIsWorking(false);
-        await refetch();
+        toast.success("Work session paused");
+        await Promise.all([refetchAttendance(), refetchBlock()]);
       },
       onError: (error) => {
         toast.error(error.message);
@@ -90,42 +123,46 @@ function WorkBlockToggle() {
   const hasCheckedOut = !!attendance?.checkOutTime;
   const canToggle = hasCheckedIn && !hasCheckedOut;
   const isPending = isStarting || isEnding;
+  const isWorking = !!activeBlock;
 
   if (!canToggle) {
     return null;
   }
 
-  const handleToggle = async (checked: boolean) => {
+  const handleToggle = async () => {
     if (!attendance?.id) return;
 
-    if (checked) {
-      await startBlock({ attendanceId: attendance.id });
-    } else {
+    if (isWorking) {
       await endBlock({
         attendanceId: attendance.id,
         endReason: "manual",
       });
+    } else {
+      await startBlock({ attendanceId: attendance.id });
     }
   };
 
+  const tooltipContent = isWorking ? `Working (${elapsed})` : "Start Work";
+
   return (
-    <div className="flex items-center justify-between px-2 py-1.5">
-      <div className="flex items-center gap-2">
-        {isWorking ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-        <span className="text-sm">
-          {isWorking ? "Working" : "Start Work"}
+    <SidebarMenuButton
+      className={isWorking ? "text-amber-600 hover:text-amber-700" : ""}
+      disabled={isPending}
+      onClick={handleToggle}
+      tooltip={state === "collapsed" ? tooltipContent : undefined}
+    >
+      {isWorking ? <Pause className="animate-pulse" /> : <Play />}
+      <span>{isWorking ? "Pause Work" : "Start Work"}</span>
+      {isWorking && state === "expanded" && (
+        <span className="ml-auto font-mono text-muted-foreground text-xs">
+          {elapsed}
         </span>
-      </div>
-      <Switch
-        checked={isWorking}
-        onCheckedChange={handleToggle}
-        disabled={isPending}
-      />
-    </div>
+      )}
+    </SidebarMenuButton>
   );
 }
 
-function ManualStatusDropdown() {
+function PresenceStatusDropdown() {
   const { data: attendance } = useSuspenseQuery(
     queryUtils.member.attendance.getStatus.queryOptions({})
   );
@@ -146,10 +183,7 @@ function ManualStatusDropdown() {
     return null;
   }
 
-  const handleStatusChange = async (
-    status: "dnd" | "busy" | "away" | null
-  ) => {
-    // Get orgId from session or attendance
+  const handleStatusChange = async (status: "dnd" | "busy" | "away" | null) => {
     const orgId = attendance?.organizationId;
     if (!orgId) return;
 
@@ -160,12 +194,17 @@ function ManualStatusDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <SidebarMenuButton disabled={isPending}>
-          <Coffee className="h-4 w-4" />
-          <span>Set Status</span>
+          <Coffee />
+          <span>Update Status</span>
         </SidebarMenuButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-48">
-        <DropdownMenuLabel>Manual Status</DropdownMenuLabel>
+      <DropdownMenuContent
+        align="start"
+        className="w-48"
+        side="right"
+        sideOffset={12}
+      >
+        <DropdownMenuLabel>Set Status</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => handleStatusChange(null)}>
           <Clock className="mr-2 h-4 w-4 text-green-600" />
