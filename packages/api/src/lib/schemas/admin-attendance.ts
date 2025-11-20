@@ -25,7 +25,9 @@ export const ListAttendanceRecordsInput = z.object({
   page: z.number().min(1).default(1),
   perPage: z.number().min(1).max(100).default(10),
   search: z.string().optional(),
-  date: z.string().optional(), // ISO date string
+  date: z.string().optional(), // ISO date string (for single date)
+  startDate: z.string().optional(), // ISO date string (for date range)
+  endDate: z.string().optional(), // ISO date string (for date range)
   status: z
     .enum([
       "present",
@@ -64,4 +66,28 @@ export type ListAttendanceRecordsInputType = z.infer<
 >;
 export type ListAttendanceRecordsOutputType = z.infer<
   typeof ListAttendanceRecordsOutput
+>;
+
+// Get attendance detail input/output
+export const GetAttendanceDetailInput = z.object({
+  attendanceId: z.string(),
+});
+
+export const GetAttendanceDetailOutput = AttendanceRecordWithUser.extend({
+  workBlocks: z.array(
+    z.object({
+      id: z.string(),
+      startedAt: z.string(),
+      endedAt: z.string().nullable(),
+      durationMinutes: z.number().nullable(),
+      endReason: z.enum(["manual", "break", "punch_out", "idle_timeout"]).nullable(),
+    })
+  ),
+});
+
+export type GetAttendanceDetailInputType = z.infer<
+  typeof GetAttendanceDetailInput
+>;
+export type GetAttendanceDetailOutputType = z.infer<
+  typeof GetAttendanceDetailOutput
 >;
