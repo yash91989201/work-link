@@ -46,10 +46,40 @@ export function usePresenceHeartbeat({
   useEffect(() => {
     const handleActivity = () => {
       lastActivityRef.current = Date.now();
+      // Send immediate heartbeat when user becomes active
+      if (enabled && organization?.id) {
+        const isIdle = false;
+        sendHeartbeat({
+          orgId: organization.id,
+          punchedIn,
+          onBreak,
+          inCall,
+          inMeeting,
+          isTabFocused: true,
+          isIdle,
+          manualStatus,
+        });
+      }
     };
 
     const handleVisibilityChange = () => {
-      isTabFocusedRef.current = !document.hidden;
+      const newFocusState = !document.hidden;
+      isTabFocusedRef.current = newFocusState;
+      
+      // Send immediate heartbeat when tab becomes focused
+      if (newFocusState && enabled && organization?.id) {
+        lastActivityRef.current = Date.now();
+        sendHeartbeat({
+          orgId: organization.id,
+          punchedIn,
+          onBreak,
+          inCall,
+          inMeeting,
+          isTabFocused: true,
+          isIdle: false,
+          manualStatus,
+        });
+      }
     };
 
     window.addEventListener("mousemove", handleActivity);
@@ -63,7 +93,7 @@ export function usePresenceHeartbeat({
       window.removeEventListener("click", handleActivity);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [enabled, organization?.id, punchedIn, onBreak, inCall, inMeeting, manualStatus, sendHeartbeat]);
 
   // Send heartbeat
   useEffect(() => {
@@ -72,7 +102,7 @@ export function usePresenceHeartbeat({
     const sendPresenceUpdate = () => {
       const now = Date.now();
       const idleTime = now - lastActivityRef.current;
-      const isIdle = idleTime > 15 * 60 * 1000; // 15 minutes
+      const isIdle = idleTime > 60 * 1000; // 1 minute
 
       sendHeartbeat({
         orgId: organization.id,

@@ -107,10 +107,18 @@ function WorkBlockToggle() {
     })
   );
 
+  const { mutateAsync: setManualStatus } = useMutation(
+    queryUtils.member.presence.setManualStatus.mutationOptions({})
+  );
+
   const { mutateAsync: endBlock, isPending: isEnding } = useMutation(
     queryUtils.member.workBlock.endBlock.mutationOptions({
       onSuccess: async () => {
         toast.success("Work session paused");
+        // Set status to away when pausing work
+        if (attendance?.organizationId) {
+          await setManualStatus({ orgId: attendance.organizationId, status: "away" });
+        }
         await Promise.all([refetchAttendance(), refetchBlock()]);
       },
       onError: (error) => {

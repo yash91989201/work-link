@@ -25,4 +25,10 @@ export const GetActiveBlockInput = z.object({
 
 export const GetActiveBlockOutput = WorkBlockSchema.nullable();
 
+export const ListBlocksInput = z.object({
+  attendanceId: z.string(),
+});
+
+export const ListBlocksOutput = z.array(WorkBlockSchema);
+
 export { WorkBlockSchema };

@@ -1,7 +1,5 @@
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { Coffee, Play } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Clock } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -9,10 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Spinner } from "@/components/ui/spinner";
 import { usePresenceHeartbeat } from "@/hooks/use-presence";
-import { useWorkBlocks } from "@/hooks/use-work-blocks";
 import { queryUtils } from "@/utils/orpc";
 
 const formatDuration = (minutes: number) => {
@@ -22,21 +17,17 @@ const formatDuration = (minutes: number) => {
   return `${hrs}h ${mins}m`;
 };
 
+const formatTime = (date: Date | string | null) => {
+  if (!date) return "--:--";
+  return new Date(date).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 export function WorkSessionTracker() {
-  const { data: attendance, refetch } = useSuspenseQuery(
+  const { data: attendance } = useSuspenseQuery(
     queryUtils.member.attendance.getStatus.queryOptions({})
-  );
-
-  const { startBlock, endBlock, isLoading } = useWorkBlocks();
-  const [breakStart, setBreakStart] = useState<Date | null>(null);
-  const [breakDuration, setBreakDuration] = useState(0);
-
-  const { mutateAsync: addBreakDuration } = useMutation(
-    queryUtils.member.attendance.addBreakDuration.mutationOptions({
-      onSuccess: async () => {
-        await refetch();
-      },
-    })
   );
 
   // Determine if we should show the component and enable presence
@@ -45,148 +36,91 @@ export function WorkSessionTracker() {
     attendance.checkInTime &&
     !attendance.checkOutTime
   );
-  const onBreak = !!breakStart;
 
   // Always call hooks unconditionally
   usePresenceHeartbeat({
     enabled: isActive,
     punchedIn: isActive,
-    onBreak,
+    onBreak: false,
   });
-
-  useEffect(() => {
-    if (!breakStart) return;
-
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const elapsed = Math.floor((now - breakStart.getTime()) / 60000);
-      setBreakDuration(elapsed);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [breakStart]);
 
   if (!isActive) {
     return null;
   }
 
-  const handleStartBreak = async () => {
-    try {
-      await endBlock({
-        attendanceId: attendance.id,
-        endReason: "break",
-      });
-      setBreakStart(new Date());
-      setBreakDuration(0);
-    } catch (error) {
-      // Error handled by mutation
-    }
-  };
+  const totalBreakTime = attendance.breakDuration ?? 0;
+  const checkInTime = attendance.checkInTime;
+  const checkOutTime = attendance.checkOutTime;
 
-  const handleEndBreak = async () => {
-    if (!breakStart) return;
-
-    try {
-      const minutes = Math.floor((Date.now() - breakStart.getTime()) / 60000);
-
-      await Promise.all([
-        addBreakDuration({
-          attendanceId: attendance.id,
-          minutes: Math.max(1, minutes),
-        }),
-        startBlock({
-          attendanceId: attendance.id,
-        }),
-      ]);
-
-      setBreakStart(null);
-      setBreakDuration(0);
-    } catch (error) {
-      // Error handled by mutation
-    }
-  };
-
-  const handleToggleWork = async () => {
-    if (breakStart) {
-      // Currently on break, end it
-      await handleEndBreak();
-    } else {
-      // Currently working, start break
-      await handleStartBreak();
-    }
-  };
-
-  const totalBreakTime = (attendance.breakDuration ?? 0) + breakDuration;
+  // Calculate working hours
+  const workingMinutes = checkInTime
+    ? Math.floor((Date.now() - new Date(checkInTime).getTime()) / 60000)
+    : 0;
+  const netWorkingMinutes = workingMinutes - totalBreakTime;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-semibold text-lg">Work Session</CardTitle>
+        <CardTitle className="font-semibold text-lg">
+          Today's Work Summary
+        </CardTitle>
         <CardDescription>
-          Manage your breaks and work blocks for today
+          Track your working hours and break time
         </CardDescription>
       </CardHeader>
 
       <CardContent>
-        <div className="space-y-4">
-          {/* Break Status */}
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div>
-              <p className="text-muted-foreground text-sm">Current Status</p>
-              <p className="font-semibold text-lg">
-                {onBreak ? (
-                  <span className="text-orange-600">On Break</span>
-                ) : (
-                  <span className="text-green-600">Working</span>
-                )}
-              </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Check In Time */}
+          <div className="flex items-center gap-3 rounded-lg border p-4">
+            <div className="rounded-full bg-green-500/10 p-2">
+              <Clock className="h-5 w-5 text-green-600" />
             </div>
-
             <div>
-              <p className="text-muted-foreground text-sm">Total Breaks</p>
+              <p className="text-muted-foreground text-xs">Checked In</p>
               <p className="font-semibold text-lg">
-                {formatDuration(totalBreakTime)}
+                {formatTime(checkInTime)}
               </p>
             </div>
           </div>
 
-          <Separator />
-
-          {/* Current Break Timer */}
-          {onBreak && (
-            <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
-              <p className="mb-2 text-muted-foreground text-sm">
-                Current Break Duration
-              </p>
-              <p className="font-mono font-bold text-2xl text-orange-600">
-                {formatDuration(breakDuration)}
+          {/* Check Out Time */}
+          <div className="flex items-center gap-3 rounded-lg border p-4">
+            <div className="rounded-full bg-red-500/10 p-2">
+              <Clock className="h-5 w-5 text-red-600" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Checked Out</p>
+              <p className="font-semibold text-lg">
+                {formatTime(checkOutTime)}
               </p>
             </div>
-          )}
+          </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button
-              onClick={handleToggleWork}
-              disabled={isLoading}
-              variant={onBreak ? "default" : "outline"}
-              className={onBreak ? "bg-green-600 hover:bg-green-700" : ""}
-              size="lg"
-            >
-              {isLoading ? (
-                <Spinner className="mr-2 h-4 w-4" />
-              ) : onBreak ? (
-                <>
-                  <Play className="mr-2 h-4 w-4" />
-                  Resume Work
-                </>
-              ) : (
-                <>
-                  <Coffee className="mr-2 h-4 w-4" />
-                  Start Break
-                </>
-              )}
-            </Button>
+          {/* Working Hours */}
+          <div className="flex items-center gap-3 rounded-lg border p-4">
+            <div className="rounded-full bg-blue-500/10 p-2">
+              <Clock className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Working Time</p>
+              <p className="font-semibold text-lg">
+                {formatDuration(netWorkingMinutes)}
+              </p>
+            </div>
+          </div>
+
+          {/* Break Time */}
+          <div className="flex items-center gap-3 rounded-lg border p-4">
+            <div className="rounded-full bg-orange-500/10 p-2">
+              <Clock className="h-5 w-5 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Break Time</p>
+              <p className="font-semibold text-lg">
+                {formatDuration(totalBreakTime)}
+              </p>
+            </div>
           </div>
         </div>
       </CardContent>
