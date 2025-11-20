@@ -1,6 +1,6 @@
+import { attendanceTable } from "@work-link/db/schema/index";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { attendanceTable } from "@work-link/db/schema/index";
 
 // Base attendance schema from database
 export const AttendanceSelectSchema = createSelectSchema(attendanceTable);
@@ -77,13 +77,15 @@ export const GetAttendanceDetailOutput = AttendanceRecordWithUser.extend({
   workBlocks: z.array(
     z.object({
       id: z.string(),
-      startedAt: z.string(),
-      endedAt: z.string().nullable(),
+      startedAt: z.date(),
+      endedAt: z.date().nullable(),
       durationMinutes: z.number().nullable(),
-      endReason: z.enum(["manual", "break", "punch_out", "idle_timeout"]).nullable(),
+      endReason: z
+        .enum(["manual", "break", "punch_out", "idle_timeout"])
+        .nullable(),
     })
   ),
-});
+}).optional();
 
 export type GetAttendanceDetailInputType = z.infer<
   typeof GetAttendanceDetailInput

@@ -19,7 +19,11 @@ export function NavAttendance() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Overview">
-              <Link params={{ slug }} to="/org/$slug/dashboard/attendance">
+              <Link
+                params={{ slug }}
+                search={{ page: 1 }}
+                to="/org/$slug/dashboard/attendance"
+              >
                 <IconCalendarMonth />
                 <span>Overview</span>
               </Link>

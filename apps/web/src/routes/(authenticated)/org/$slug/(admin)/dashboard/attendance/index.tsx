@@ -9,24 +9,18 @@ import {
   IconMapPin,
   IconSearch,
   IconUsers,
-  IconX,
 } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { useState } from "react";
-import { DateRange } from "react-day-picker";
+import type { DateRange } from "react-day-picker";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -55,9 +49,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { queryUtils } from "@/utils/orpc";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { queryUtils } from "@/utils/orpc";
 
 const attendanceSearchSchema = z.object({
   page: z.number().min(1).catch(1),
@@ -78,18 +71,22 @@ export const Route = createFileRoute(
     endDate,
     status,
   }),
-  beforeLoad: ({ context: { queryClient, queryUtils }, deps }) => {
+  beforeLoad: ({ context: { queryClient, queryUtils }, search }) => {
     queryClient.prefetchQuery(
-      queryUtils.admin.attendance.getAttendanceStats.queryOptions({})
+      queryUtils.admin.attendance.getAttendanceStats.queryOptions({
+        input: {},
+      })
     );
+
     queryClient.prefetchQuery(
       queryUtils.admin.attendance.listAttendanceRecords.queryOptions({
-        page: deps.page,
-        perPage: 10,
-        search: deps.search,
-        startDate: deps.startDate,
-        endDate: deps.endDate,
-        status: deps.status,
+        input: {
+          page: search.page,
+          perPage: 10,
+          search: search.search,
+          startDate: search.startDate,
+          endDate: search.endDate,
+        },
       })
     );
   },
@@ -113,7 +110,7 @@ function RouteComponent() {
         to: new Date(endDate),
       };
     }
-    return undefined;
+    return;
   });
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>(
     status
@@ -124,26 +121,29 @@ function RouteComponent() {
   );
 
   const { data: stats } = useSuspenseQuery(
-    queryUtils.admin.attendance.getAttendanceStats.queryOptions({})
+    queryUtils.admin.attendance.getAttendanceStats.queryOptions({ input: {} })
   );
 
   const { data: attendanceData } = useSuspenseQuery(
     queryUtils.admin.attendance.listAttendanceRecords.queryOptions({
-      page,
-      perPage: 10,
-      search,
-      startDate,
-      endDate,
-      status,
+      input: {
+        page,
+        perPage: 10,
+        search,
+        startDate,
+        endDate,
+      },
     })
   );
 
-  const { data: detailData } = useSuspenseQuery({
-    ...queryUtils.admin.attendance.getAttendanceDetail.queryOptions({
-      attendanceId: detailAttendanceId ?? "",
-    }),
-    enabled: !!detailAttendanceId,
-  });
+  const { data: detailData } = useSuspenseQuery(
+    queryUtils.admin.attendance.getAttendanceDetail.queryOptions({
+      input: {
+        attendanceId: detailAttendanceId ?? "",
+      },
+      enabled: !!detailAttendanceId,
+    })
+  );
 
   const handleSearch = () => {
     navigate({
@@ -303,42 +303,42 @@ function RouteComponent() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             {/* Search */}
             <div className="relative flex-1 sm:max-w-sm">
-              <IconSearch className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <IconSearch className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-9"
-                placeholder="Search members..."
-                value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleSearch();
                   }
                 }}
+                placeholder="Search members..."
+                value={searchInput}
               />
             </div>
 
             {/* Action Buttons */}
             <div className="flex gap-2">
-              <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <Popover onOpenChange={setFilterOpen} open={filterOpen}>
                 <PopoverTrigger asChild>
                   <Button
-                    size="sm"
-                    variant="outline"
                     className={cn(
                       (startDate || endDate || status) &&
                         "border-primary text-primary"
                     )}
+                    size="sm"
+                    variant="outline"
                   >
                     <IconFilter className="mr-2 h-4 w-4" />
                     Filter
                     {(startDate || endDate || status) && (
-                      <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                      <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
                         {[startDate, endDate, status].filter(Boolean).length}
                       </span>
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80" align="end">
+                <PopoverContent align="end" className="w-80">
                   <div className="space-y-4">
                     <div>
                       <h4 className="mb-3 font-medium">Filter Attendance</h4>
@@ -348,11 +348,11 @@ function RouteComponent() {
                     <div className="space-y-2">
                       <Label>Date Range</Label>
                       <Calendar
-                        mode="range"
-                        selected={dateRange}
-                        onSelect={setDateRange}
-                        numberOfMonths={1}
                         className="rounded-md border"
+                        mode="range"
+                        numberOfMonths={1}
+                        onSelect={setDateRange}
+                        selected={dateRange}
                       />
                       {dateRange?.from && (
                         <p className="text-muted-foreground text-xs">
@@ -367,8 +367,8 @@ function RouteComponent() {
                     <div className="space-y-2">
                       <Label>Status</Label>
                       <Select
-                        value={selectedStatus}
                         onValueChange={setSelectedStatus}
+                        value={selectedStatus}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="All statuses" />
@@ -392,15 +392,15 @@ function RouteComponent() {
                     <div className="flex gap-2">
                       <Button
                         className="flex-1"
-                        size="sm"
                         onClick={handleApplyFilters}
+                        size="sm"
                       >
                         Apply
                       </Button>
                       <Button
-                        variant="outline"
-                        size="sm"
                         onClick={handleClearFilters}
+                        size="sm"
+                        variant="outline"
                       >
                         Clear
                       </Button>
@@ -408,7 +408,7 @@ function RouteComponent() {
                   </div>
                 </PopoverContent>
               </Popover>
-              <Button size="sm" variant="outline" onClick={handleExportCSV}>
+              <Button onClick={handleExportCSV} size="sm" variant="outline">
                 <IconDownload className="mr-2 h-4 w-4" />
                 Export
               </Button>
@@ -469,9 +469,9 @@ function RouteComponent() {
                     <TableCell>{formatHours(record.totalHours)}</TableCell>
                     <TableCell>
                       <Button
+                        onClick={() => setDetailAttendanceId(record.id)}
                         size="icon"
                         variant="ghost"
-                        onClick={() => setDetailAttendanceId(record.id)}
                       >
                         <span className="text-lg">⋮</span>
                       </Button>
@@ -493,17 +493,17 @@ function RouteComponent() {
               <div className="flex gap-2">
                 <Button
                   disabled={page === 1}
+                  onClick={() => handlePageChange(page - 1)}
                   size="sm"
                   variant="outline"
-                  onClick={() => handlePageChange(page - 1)}
                 >
                   <IconChevronLeft className="h-4 w-4" />
                 </Button>
                 <Button
                   disabled={page === attendanceData.pagination.totalPages}
+                  onClick={() => handlePageChange(page + 1)}
                   size="sm"
                   variant="outline"
-                  onClick={() => handlePageChange(page + 1)}
                 >
                   <IconChevronRight className="h-4 w-4" />
                 </Button>
@@ -515,8 +515,8 @@ function RouteComponent() {
 
       {/* Detailed Attendance View Sheet */}
       <Sheet
-        open={!!detailAttendanceId}
         onOpenChange={(open) => !open && setDetailAttendanceId(null)}
+        open={!!detailAttendanceId}
       >
         <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
           {detailData && (
@@ -571,7 +571,7 @@ function RouteComponent() {
                     <Label className="text-muted-foreground text-xs">
                       Status
                     </Label>
-                    <div className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-primary text-sm font-medium capitalize">
+                    <div className="inline-flex rounded-full bg-primary/10 px-3 py-1 font-medium text-primary text-sm capitalize">
                       {detailData.status}
                     </div>
                   </div>
@@ -646,15 +646,15 @@ function RouteComponent() {
                     <div className="space-y-2">
                       {detailData.workBlocks.map((block, index) => (
                         <div
-                          key={block.id}
                           className="flex items-center justify-between rounded-lg border p-3"
+                          key={block.id}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-medium">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-sm">
                               {index + 1}
                             </div>
                             <div className="space-y-1">
-                              <div className="text-sm font-medium">
+                              <div className="font-medium text-sm">
                                 {new Date(block.startedAt).toLocaleTimeString(
                                   "en-US",
                                   {
@@ -683,7 +683,7 @@ function RouteComponent() {
                             </div>
                           </div>
                           {block.durationMinutes && (
-                            <div className="text-sm font-medium">
+                            <div className="font-medium text-sm">
                               {Math.floor(block.durationMinutes / 60)}h{" "}
                               {block.durationMinutes % 60}m
                             </div>
@@ -705,7 +705,7 @@ function RouteComponent() {
                         <div className="flex items-start gap-2">
                           <IconMapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
                           <div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-muted-foreground text-xs">
                               Location
                             </div>
                             <div className="text-sm">{detailData.location}</div>
@@ -759,7 +759,7 @@ function RouteComponent() {
                 )}
 
                 {/* Additional Info */}
-                <div className="space-y-2 rounded-lg border p-4 text-xs text-muted-foreground">
+                <div className="space-y-2 rounded-lg border p-4 text-muted-foreground text-xs">
                   <div className="flex justify-between">
                     <span>Manual Entry:</span>
                     <span>{detailData.isManualEntry ? "Yes" : "No"}</span>

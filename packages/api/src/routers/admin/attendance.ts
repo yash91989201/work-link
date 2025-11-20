@@ -5,7 +5,18 @@ import {
   user,
   workBlockTable,
 } from "@work-link/db/schema/index";
-import { and, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  gte,
+  ilike,
+  lte,
+  or,
+} from "drizzle-orm";
 import { protectedProcedure } from "@/index";
 import {
   GetAttendanceDetailInput,
@@ -110,7 +121,7 @@ export const adminAttendanceRouter = {
       }
 
       // Add search condition for user name or email
-      let searchCondition = undefined;
+      let searchCondition: SQL | undefined;
       if (search) {
         searchCondition = or(
           ilike(user.name, `%${search}%`),
@@ -207,37 +218,9 @@ export const adminAttendanceRouter = {
 
       const { attendanceId } = input;
 
-      // Get attendance record with user data
       const [record] = await db
         .select({
-          id: attendanceTable.id,
-          userId: attendanceTable.userId,
-          organizationId: attendanceTable.organizationId,
-          teamId: attendanceTable.teamId,
-          date: attendanceTable.date,
-          status: attendanceTable.status,
-          checkInTime: attendanceTable.checkInTime,
-          checkOutTime: attendanceTable.checkOutTime,
-          totalHours: attendanceTable.totalHours,
-          breakDuration: attendanceTable.breakDuration,
-          location: attendanceTable.location,
-          coordinates: attendanceTable.coordinates,
-          ipAddress: attendanceTable.ipAddress,
-          deviceInfo: attendanceTable.deviceInfo,
-          notes: attendanceTable.notes,
-          adminNotes: attendanceTable.adminNotes,
-          verifiedBy: attendanceTable.verifiedBy,
-          isManualEntry: attendanceTable.isManualEntry,
-          isApproved: attendanceTable.isApproved,
-          approvedBy: attendanceTable.approvedBy,
-          approvedAt: attendanceTable.approvedAt,
-          clockInMethod: attendanceTable.clockInMethod,
-          clockOutMethod: attendanceTable.clockOutMethod,
-          shiftId: attendanceTable.shiftId,
-          overtimeHours: attendanceTable.overtimeHours,
-          isDeleted: attendanceTable.isDeleted,
-          createdAt: attendanceTable.createdAt,
-          updatedAt: attendanceTable.updatedAt,
+          ...getTableColumns(attendanceTable),
           user: {
             id: user.id,
             name: user.name,
@@ -256,9 +239,7 @@ export const adminAttendanceRouter = {
         );
 
       if (!record) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Attendance record not found",
-        });
+        return;
       }
 
       // Get work blocks for this attendance
