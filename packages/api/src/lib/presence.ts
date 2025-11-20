@@ -1,4 +1,4 @@
-import type { RedisClient } from "./redis";
+import type { RedisClient } from "bun";
 import { getPresenceKey } from "./redis";
 
 // Presence status types
@@ -80,22 +80,28 @@ export async function updatePresence(
   const key = getPresenceKey(userId);
   const now = Date.now().toString();
 
-  const data: Record<string, string> = {
+  // Set hash fields
+  await redis.hmset(key, [
+    "status",
     status,
-    lastSeenAt: now,
+    "lastSeenAt",
+    now,
+    "orgId",
     orgId,
-    punchedIn: input.punchedIn ? "1" : "0",
-    onBreak: input.onBreak ? "1" : "0",
-    inCall: input.inCall ? "1" : "0",
-    inMeeting: input.inMeeting ? "1" : "0",
-    manualStatus: input.manualStatus || "",
-  };
+    "punchedIn",
+    input.punchedIn ? "1" : "0",
+    "onBreak",
+    input.onBreak ? "1" : "0",
+    "inCall",
+    input.inCall ? "1" : "0",
+    "inMeeting",
+    input.inMeeting ? "1" : "0",
+    "manualStatus",
+    input.manualStatus || "",
+  ]);
 
-  // Use pipeline for atomic operations
-  const pipeline = redis.pipeline();
-  pipeline.hset(key, data);
-  pipeline.expire(key, PRESENCE_TTL);
-  await pipeline.exec();
+  // Set expiration
+  await redis.expire(key, PRESENCE_TTL);
 
   return status;
 }
@@ -112,16 +118,18 @@ export async function setManualStatus(
   const key = getPresenceKey(userId);
   const now = Date.now().toString();
 
-  const data: Record<string, string> = {
-    manualStatus: manualStatus || "",
-    lastSeenAt: now,
+  // Update specific fields
+  await redis.hmset(key, [
+    "manualStatus",
+    manualStatus || "",
+    "lastSeenAt",
+    now,
+    "orgId",
     orgId,
-  };
+  ]);
 
-  const pipeline = redis.pipeline();
-  pipeline.hset(key, data);
-  pipeline.expire(key, PRESENCE_TTL);
-  await pipeline.exec();
+  // Refresh expiration
+  await redis.expire(key, PRESENCE_TTL);
 }
 
 /**
@@ -138,7 +146,7 @@ export async function getPresence(
     return null;
   }
 
-  return data as PresenceData;
+  return data as unknown as PresenceData;
 }
 
 /**
@@ -152,25 +160,15 @@ export async function getPresenceForUsers(
     return {};
   }
 
-  const pipeline = redis.pipeline();
-  for (const userId of userIds) {
-    const key = getPresenceKey(userId);
-    pipeline.hgetall(key);
-  }
-
-  const results = await pipeline.exec();
   const presenceMap: Record<string, PresenceData> = {};
 
-  if (!results) {
-    return presenceMap;
-  }
+  // Fetch all presence data in parallel
+  const promises = userIds.map(async (userId) => {
+    const key = getPresenceKey(userId);
+    const data = await redis.hgetall(key);
 
-  for (let i = 0; i < userIds.length; i++) {
-    const userId = userIds[i];
-    const [err, data] = results[i] as [Error | null, Record<string, string>];
-
-    if (!err && data && Object.keys(data).length > 0) {
-      presenceMap[userId] = data as PresenceData;
+    if (data && Object.keys(data).length > 0) {
+      presenceMap[userId] = data as unknown as PresenceData;
     } else {
       // User is offline
       presenceMap[userId] = {
@@ -184,7 +182,9 @@ export async function getPresenceForUsers(
         manualStatus: "",
       };
     }
-  }
+  });
+
+  await Promise.all(promises);
 
   return presenceMap;
 }

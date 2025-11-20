@@ -1,7 +1,7 @@
 import { auth } from "@work-link/auth";
 import { db } from "@work-link/db";
 import type { Context as HonoContext } from "hono";
-import type { RedisClient } from "@/lib/services/redis";
+import type { RedisClient } from "bun";
 
 export type CreateContextOptions = {
   context: HonoContext;

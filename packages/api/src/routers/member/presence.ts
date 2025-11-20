@@ -14,7 +14,7 @@ import {
   getPresenceForUsers,
   setManualStatus,
   updatePresence,
-} from "@/lib/services/presence";
+} from "@/lib/presence";
 
 export const presenceRouter = {
   heartbeat: protectedProcedure

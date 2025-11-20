@@ -4,7 +4,7 @@ import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
-import { getRedisClient } from "@work-link/api/config/redis";
+import { getRedisClient } from "@work-link/api/lib/redis";
 import { createContext } from "@work-link/api/context";
 import { electricRouter } from "@work-link/api/routers/electric/index";
 import { appRouter } from "@work-link/api/routers/index";
