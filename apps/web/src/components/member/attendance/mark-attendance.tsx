@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { usePresenceHeartbeat } from "@/hooks/use-presence";
 import { queryUtils } from "@/utils/orpc";
 
 const formatDateTime = (value: Date | string | null | undefined) => {
@@ -75,6 +76,13 @@ export const MarkAttendance = () => {
   const hasCheckedIn = !!attendance?.checkInTime;
   const hasCheckedOut = !!attendance?.checkOutTime;
   const isActionPending = isPunchingIn || isPunchingOut;
+
+  // Enable presence heartbeat when checked in and not checked out
+  usePresenceHeartbeat({
+    enabled: hasCheckedIn && !hasCheckedOut,
+    punchedIn: hasCheckedIn && !hasCheckedOut,
+    onBreak: false, // This will be managed by WorkSessionTracker
+  });
 
   const formattedCheckIn = formatDateTime(attendance?.checkInTime);
   const formattedCheckOut = formatDateTime(attendance?.checkOutTime);
