@@ -80,25 +80,17 @@ export async function updatePresence(
   const key = getPresenceKey(userId);
   const now = Date.now().toString();
 
-  // Set hash fields
-  await redis.hmset(key, [
-    "status",
+  // Set hash fields using hset (hmset is deprecated)
+  await redis.hset(key, {
     status,
-    "lastSeenAt",
-    now,
-    "orgId",
+    lastSeenAt: now,
     orgId,
-    "punchedIn",
-    input.punchedIn ? "1" : "0",
-    "onBreak",
-    input.onBreak ? "1" : "0",
-    "inCall",
-    input.inCall ? "1" : "0",
-    "inMeeting",
-    input.inMeeting ? "1" : "0",
-    "manualStatus",
-    input.manualStatus || "",
-  ]);
+    punchedIn: input.punchedIn ? "1" : "0",
+    onBreak: input.onBreak ? "1" : "0",
+    inCall: input.inCall ? "1" : "0",
+    inMeeting: input.inMeeting ? "1" : "0",
+    manualStatus: input.manualStatus || "",
+  });
 
   // Set expiration
   await redis.expire(key, PRESENCE_TTL);
@@ -118,15 +110,12 @@ export async function setManualStatus(
   const key = getPresenceKey(userId);
   const now = Date.now().toString();
 
-  // Update specific fields
-  await redis.hmset(key, [
-    "manualStatus",
-    manualStatus || "",
-    "lastSeenAt",
-    now,
-    "orgId",
+  // Update specific fields using hset (hmset is deprecated)
+  await redis.hset(key, {
+    manualStatus: manualStatus || "",
+    lastSeenAt: now,
     orgId,
-  ]);
+  });
 
   // Refresh expiration
   await redis.expire(key, PRESENCE_TTL);

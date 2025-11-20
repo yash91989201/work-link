@@ -39,6 +39,21 @@ export function WorkSessionTracker() {
     })
   );
 
+  // Determine if we should show the component and enable presence
+  const isActive = !!(
+    attendance &&
+    attendance.checkInTime &&
+    !attendance.checkOutTime
+  );
+  const onBreak = !!breakStart;
+
+  // Always call hooks unconditionally
+  usePresenceHeartbeat({
+    enabled: isActive,
+    punchedIn: isActive,
+    onBreak,
+  });
+
   useEffect(() => {
     if (!breakStart) return;
 
@@ -51,7 +66,7 @@ export function WorkSessionTracker() {
     return () => clearInterval(interval);
   }, [breakStart]);
 
-  if (!attendance || !attendance.checkInTime || attendance.checkOutTime) {
+  if (!isActive) {
     return null;
   }
 
@@ -101,15 +116,7 @@ export function WorkSessionTracker() {
     }
   };
 
-  const onBreak = !!breakStart;
   const totalBreakTime = (attendance.breakDuration ?? 0) + breakDuration;
-
-  // Send presence heartbeat with break status
-  usePresenceHeartbeat({
-    enabled: true,
-    punchedIn: true,
-    onBreak,
-  });
 
   return (
     <Card>

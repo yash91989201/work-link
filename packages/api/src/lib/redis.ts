@@ -22,7 +22,7 @@ export function getRedisClient(): RedisClient {
 }
 
 // Graceful shutdown
-export async function closeRedisClient(): Promise<void> {
+export function closeRedisClient(): void {
   if (redisClient) {
     redisClient.close();
     redisClient = null;
@@ -35,5 +35,3 @@ export const PRESENCE_KEY_PREFIX = "presence:user:";
 export function getPresenceKey(userId: string): string {
   return `${PRESENCE_KEY_PREFIX}${userId}`;
 }
-
-export type { RedisClient };
