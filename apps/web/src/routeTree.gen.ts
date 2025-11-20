@@ -33,6 +33,7 @@ import { Route as authenticatedOrgSlugmemberTeamIdIndexRouteImport } from './rou
 import { Route as authenticatedOrgSlugmemberbaseModulesAttendanceIndexRouteImport } from './routes/(authenticated)/org/$slug/(member)/(base-modules)/attendance/index'
 import { Route as authenticatedOrgSlugadminDashboardTeamsIndexRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/teams/index'
 import { Route as authenticatedOrgSlugadminDashboardMembersIndexRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/members/index'
+import { Route as authenticatedOrgSlugadminDashboardAttendanceIndexRouteImport } from './routes/(authenticated)/org/$slug/(admin)/dashboard/attendance/index'
 import { Route as authenticatedOrgSlugownerManageSettingsSecurityRouteImport } from './routes/(authenticated)/org/$slug/(owner)/manage/settings/security'
 import { Route as authenticatedOrgSlugownerManageSettingsNotificationsRouteImport } from './routes/(authenticated)/org/$slug/(owner)/manage/settings/notifications'
 import { Route as authenticatedOrgSlugownerManageSettingsMembersRouteImport } from './routes/(authenticated)/org/$slug/(owner)/manage/settings/members'
@@ -184,6 +185,12 @@ const authenticatedOrgSlugadminDashboardMembersIndexRoute =
     path: '/members/',
     getParentRoute: () => authenticatedOrgSlugadminDashboardRouteRoute,
   } as any)
+const authenticatedOrgSlugadminDashboardAttendanceIndexRoute =
+  authenticatedOrgSlugadminDashboardAttendanceIndexRouteImport.update({
+    id: '/attendance/',
+    path: '/attendance/',
+    getParentRoute: () => authenticatedOrgSlugadminDashboardRouteRoute,
+  } as any)
 const authenticatedOrgSlugownerManageSettingsSecurityRoute =
   authenticatedOrgSlugownerManageSettingsSecurityRouteImport.update({
     id: '/security',
@@ -325,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/org/$slug/manage/settings/members': typeof authenticatedOrgSlugownerManageSettingsMembersRoute
   '/org/$slug/manage/settings/notifications': typeof authenticatedOrgSlugownerManageSettingsNotificationsRoute
   '/org/$slug/manage/settings/security': typeof authenticatedOrgSlugownerManageSettingsSecurityRoute
+  '/org/$slug/dashboard/attendance': typeof authenticatedOrgSlugadminDashboardAttendanceIndexRoute
   '/org/$slug/dashboard/members': typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
   '/org/$slug/dashboard/teams': typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
   '/org/$slug/attendance': typeof authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute
@@ -360,6 +368,7 @@ export interface FileRoutesByTo {
   '/org/$slug/manage/settings/members': typeof authenticatedOrgSlugownerManageSettingsMembersRoute
   '/org/$slug/manage/settings/notifications': typeof authenticatedOrgSlugownerManageSettingsNotificationsRoute
   '/org/$slug/manage/settings/security': typeof authenticatedOrgSlugownerManageSettingsSecurityRoute
+  '/org/$slug/dashboard/attendance': typeof authenticatedOrgSlugadminDashboardAttendanceIndexRoute
   '/org/$slug/dashboard/members': typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
   '/org/$slug/dashboard/teams': typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
   '/org/$slug/attendance': typeof authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute
@@ -403,6 +412,7 @@ export interface FileRoutesById {
   '/(authenticated)/org/$slug/(owner)/manage/settings/members': typeof authenticatedOrgSlugownerManageSettingsMembersRoute
   '/(authenticated)/org/$slug/(owner)/manage/settings/notifications': typeof authenticatedOrgSlugownerManageSettingsNotificationsRoute
   '/(authenticated)/org/$slug/(owner)/manage/settings/security': typeof authenticatedOrgSlugownerManageSettingsSecurityRoute
+  '/(authenticated)/org/$slug/(admin)/dashboard/attendance/': typeof authenticatedOrgSlugadminDashboardAttendanceIndexRoute
   '/(authenticated)/org/$slug/(admin)/dashboard/members/': typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
   '/(authenticated)/org/$slug/(admin)/dashboard/teams/': typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
   '/(authenticated)/org/$slug/(member)/(base-modules)/attendance/': typeof authenticatedOrgSlugmemberbaseModulesAttendanceIndexRoute
@@ -444,6 +454,7 @@ export interface FileRouteTypes {
     | '/org/$slug/manage/settings/members'
     | '/org/$slug/manage/settings/notifications'
     | '/org/$slug/manage/settings/security'
+    | '/org/$slug/dashboard/attendance'
     | '/org/$slug/dashboard/members'
     | '/org/$slug/dashboard/teams'
     | '/org/$slug/attendance'
@@ -479,6 +490,7 @@ export interface FileRouteTypes {
     | '/org/$slug/manage/settings/members'
     | '/org/$slug/manage/settings/notifications'
     | '/org/$slug/manage/settings/security'
+    | '/org/$slug/dashboard/attendance'
     | '/org/$slug/dashboard/members'
     | '/org/$slug/dashboard/teams'
     | '/org/$slug/attendance'
@@ -521,6 +533,7 @@ export interface FileRouteTypes {
     | '/(authenticated)/org/$slug/(owner)/manage/settings/members'
     | '/(authenticated)/org/$slug/(owner)/manage/settings/notifications'
     | '/(authenticated)/org/$slug/(owner)/manage/settings/security'
+    | '/(authenticated)/org/$slug/(admin)/dashboard/attendance/'
     | '/(authenticated)/org/$slug/(admin)/dashboard/members/'
     | '/(authenticated)/org/$slug/(admin)/dashboard/teams/'
     | '/(authenticated)/org/$slug/(member)/(base-modules)/attendance/'
@@ -712,6 +725,13 @@ declare module '@tanstack/react-router' {
       path: '/members'
       fullPath: '/org/$slug/dashboard/members'
       preLoaderRoute: typeof authenticatedOrgSlugadminDashboardMembersIndexRouteImport
+      parentRoute: typeof authenticatedOrgSlugadminDashboardRouteRoute
+    }
+    '/(authenticated)/org/$slug/(admin)/dashboard/attendance/': {
+      id: '/(authenticated)/org/$slug/(admin)/dashboard/attendance/'
+      path: '/attendance'
+      fullPath: '/org/$slug/dashboard/attendance'
+      preLoaderRoute: typeof authenticatedOrgSlugadminDashboardAttendanceIndexRouteImport
       parentRoute: typeof authenticatedOrgSlugadminDashboardRouteRoute
     }
     '/(authenticated)/org/$slug/(owner)/manage/settings/security': {
@@ -982,6 +1002,7 @@ const authenticatedOrgSlugownerRouteRouteWithChildren =
 
 interface authenticatedOrgSlugadminDashboardRouteRouteChildren {
   authenticatedOrgSlugadminDashboardIndexRoute: typeof authenticatedOrgSlugadminDashboardIndexRoute
+  authenticatedOrgSlugadminDashboardAttendanceIndexRoute: typeof authenticatedOrgSlugadminDashboardAttendanceIndexRoute
   authenticatedOrgSlugadminDashboardMembersIndexRoute: typeof authenticatedOrgSlugadminDashboardMembersIndexRoute
   authenticatedOrgSlugadminDashboardTeamsIndexRoute: typeof authenticatedOrgSlugadminDashboardTeamsIndexRoute
   authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute: typeof authenticatedOrgSlugadminDashboardCommunicationChannelsIndexRoute
@@ -991,6 +1012,8 @@ const authenticatedOrgSlugadminDashboardRouteRouteChildren: authenticatedOrgSlug
   {
     authenticatedOrgSlugadminDashboardIndexRoute:
       authenticatedOrgSlugadminDashboardIndexRoute,
+    authenticatedOrgSlugadminDashboardAttendanceIndexRoute:
+      authenticatedOrgSlugadminDashboardAttendanceIndexRoute,
     authenticatedOrgSlugadminDashboardMembersIndexRoute:
       authenticatedOrgSlugadminDashboardMembersIndexRoute,
     authenticatedOrgSlugadminDashboardTeamsIndexRoute:

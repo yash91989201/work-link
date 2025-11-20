@@ -11,6 +11,7 @@ import {
   SidebarHeader,
   SidebarMenu,
 } from "@/components/ui/sidebar";
+import { NavAttendance } from "./nav-attendance";
 import { NavCommunication } from "./nav-communication";
 import { NavMain } from "./nav-main";
 import { NavManagement } from "./nav-management";
@@ -41,6 +42,7 @@ export function AdminSidebar({
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavManagement />
+        <NavAttendance />
         <NavCommunication />
       </SidebarContent>
       <SidebarFooter>
