@@ -1,10 +1,15 @@
-import { AttendanceSchema } from "@work-link/db/lib/schemas/db-tables";
+import {
+  AttendanceInsertSchema,
+  AttendanceSchema,
+  AttendanceUpdateSchema,
+} from "@work-link/db/lib/schemas/db-tables";
 import { z } from "zod";
 
-const MemberPunchBaseInput = z.object({
-  note: z.string().trim().max(500).optional(),
-  location: z.string().trim().max(255).optional(),
-});
+// Derive input schemas from database schemas
+const MemberPunchBaseInput = AttendanceInsertSchema.pick({
+  notes: true,
+  location: true,
+}).partial();
 
 export const MemberPunchInInput = MemberPunchBaseInput;
 
@@ -16,15 +21,16 @@ export const MemberPunchOutOutput = AttendanceSchema;
 
 export const MemberAttendanceStatusOutput = AttendanceSchema;
 
-// Add break duration input
-export const AddBreakDurationInput = z.object({
-  attendanceId: z.string(),
+// Add break duration input - derive from update schema
+export const AddBreakDurationInput = AttendanceSchema.pick({
+  id: true,
+}).extend({
   minutes: z.number().int().min(0).max(480), // Max 8 hours
 });
 
-export const AddBreakDurationOutput = z.object({
-  breakDuration: z.number().int(),
-});
+export const AddBreakDurationOutput = AttendanceUpdateSchema.pick({
+  breakDuration: true,
+}).required();
 
 // Get today's attendance input
 export const GetTodayInput = z.object({

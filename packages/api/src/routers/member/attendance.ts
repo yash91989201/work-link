@@ -76,7 +76,6 @@ export const memberAttendanceRouter = {
       await db.insert(workBlockTable).values({
         attendanceId: attendance.id,
         userId: user.id,
-        organizationId: orgId,
         startedAt: now,
         endedAt: null,
         durationMinutes: null,

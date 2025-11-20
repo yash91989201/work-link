@@ -58,11 +58,10 @@ export const workBlockRouter = {
         .values({
           attendanceId: input.attendanceId,
           userId: user.id,
-          organizationId: attendance.organizationId,
           startedAt: now,
           endedAt: null,
           durationMinutes: null,
-          endReason: input.reason ?? null,
+          endReason: null,
         })
         .returning();
 

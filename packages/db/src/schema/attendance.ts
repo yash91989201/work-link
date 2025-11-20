@@ -82,6 +82,14 @@ export const attendanceTable = pgTable("attendance", {
     .notNull(),
 });
 
+// Define end reason enum for work blocks
+export const endReasonEnum = pgEnum("endReason", [
+  "manual",
+  "break",
+  "punch_out",
+  "idle_timeout",
+]);
+
 // Work block table for tracking continuous working sessions
 export const workBlockTable = pgTable("work_block", {
   id: cuid2().defaultRandom().primaryKey(),
@@ -91,13 +99,10 @@ export const workBlockTable = pgTable("work_block", {
   userId: text()
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  organizationId: text()
-    .notNull()
-    .references(() => organization.id, { onDelete: "cascade" }),
   startedAt: timestamp({ withTimezone: true }).notNull(),
   endedAt: timestamp({ withTimezone: true }),
   durationMinutes: integer(),
-  endReason: text(), // "manual", "break", "punch_out", "idle_timeout"
+  endReason: endReasonEnum(),
   createdAt: timestamp({ withTimezone: true })
     .$defaultFn(() => new Date())
     .notNull(),
