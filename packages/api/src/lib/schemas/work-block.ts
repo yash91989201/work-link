@@ -4,7 +4,6 @@ import {
 } from "@work-link/db/lib/schemas/db-tables";
 import { z } from "zod";
 
-// Derive input schemas from database schemas
 export const StartBlockInput = WorkBlockInsertSchema.pick({
   attendanceId: true,
 }).extend({
@@ -30,5 +29,3 @@ export const ListBlocksInput = z.object({
 });
 
 export const ListBlocksOutput = z.array(WorkBlockSchema);
-
-export { WorkBlockSchema };

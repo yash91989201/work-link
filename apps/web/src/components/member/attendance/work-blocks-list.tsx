@@ -1,5 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Clock, Coffee, LogOut, Pause } from "lucide-react";
+import type { WorkBlockType } from "@work-link/db/lib/types";
+import { Briefcase, Clock, Coffee, LogOut, Pause } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -19,25 +21,88 @@ const formatDuration = (minutes: number | null) => {
   return `${hrs}h ${mins}m`;
 };
 
-const formatTime = (date: Date | string) => {
-  return new Date(date).toLocaleTimeString([], {
+const formatTime = (date: Date | string) =>
+  new Date(date).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
   });
-};
 
 const endReasonIcons: Record<string, React.ReactNode> = {
-  manual: <Pause className="h-4 w-4" />,
-  break: <Coffee className="h-4 w-4" />,
-  punch_out: <LogOut className="h-4 w-4" />,
-  idle_timeout: <Clock className="h-4 w-4" />,
+  manual: <Pause className="h-4 w-4 text-muted-foreground" />,
+  break: <Coffee className="h-4 w-4 text-yellow-500" />,
+  punch_out: <LogOut className="h-4 w-4 text-red-500" />,
+  idle_timeout: <Clock className="h-4 w-4 text-gray-500" />,
 };
 
 const endReasonLabels: Record<string, string> = {
   manual: "Paused",
-  break: "Break",
+  break: "On Break",
   punch_out: "Punched Out",
-  idle_timeout: "Idle Timeout",
+  idle_timeout: "Idle",
+};
+
+const WorkBlockItem = ({
+  block,
+  sessionNumber,
+  isLast,
+}: {
+  block: WorkBlockType;
+  sessionNumber: number;
+  isLast: boolean;
+}) => {
+  const isOngoing = !block.endedAt;
+  const reason = block.endReason;
+
+  let iconComponent: React.ReactNode;
+
+  if (isOngoing) {
+    iconComponent = reason === null
+      ? <Briefcase className="h-4 w-4 text-green-500" />
+      : endReasonIcons[reason as string] || <Clock className="h-4 w-4" />;
+  } else {
+    iconComponent = reason !== null
+      ? endReasonIcons[reason as string] || <Clock className="h-4 w-4" />
+      : <Clock className="h-4 w-4" />;
+  }
+
+  return (
+    <div className="relative flex items-start">
+      {!isLast && (
+        <div className="-ml-px absolute top-4 left-4 h-full w-0.5 bg-border" />
+      )}
+
+      <div className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-background ring-8 ring-card">
+        {iconComponent}
+      </div>
+
+      <div className="ml-4 grow space-y-1 pb-8">
+        <div className="flex items-center justify-between">
+          <p className="font-semibold">
+            Session #{sessionNumber}
+            {isOngoing && (
+              <Badge className="ml-2 animate-pulse" variant="destructive">
+                Live
+              </Badge>
+            )}
+          </p>
+          <p className="font-semibold text-lg">
+            {formatDuration(block.durationMinutes)}
+          </p>
+        </div>
+        <div className="flex items-center justify-between text-muted-foreground text-sm">
+          <p>
+            {formatTime(block.startedAt)} -{" "}
+            {isOngoing ? "Now" : formatTime(block.endedAt ?? new Date())}
+          </p>
+          {reason && (
+            <div className="flex items-center justify-end gap-1.5">
+              {endReasonLabels[reason as string]}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export function WorkBlocksList() {
@@ -54,65 +119,39 @@ export function WorkBlocksList() {
     })
   );
 
-  if (!attendance || !attendance.checkInTime) {
+  if (!attendance?.checkInTime) {
     return null;
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-semibold text-lg">Work Sessions</CardTitle>
+        <CardTitle>Work Timeline</CardTitle>
         <CardDescription>
-          Your work blocks and breaks for today
+          A timeline of your work sessions and breaks for today.
         </CardDescription>
       </CardHeader>
-
-      <CardContent>
-        <ScrollArea className="h-[300px] pr-4">
+      <CardContent className="pt-2">
+        <ScrollArea className="h-[350px] pr-4">
           {blocks && blocks.length > 0 ? (
-            <div className="space-y-3">
+            <div className="relative">
               {blocks.map((block, index) => (
-                <div
+                <WorkBlockItem
+                  block={block}
+                  isLast={index === blocks.length - 1}
                   key={block.id}
-                  className="flex items-start justify-between rounded-lg border p-3 transition-colors hover:bg-accent"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-full bg-primary/10 p-2">
-                      <Clock className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">
-                        Session #{blocks.length - index}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {formatTime(block.startedAt)}
-                        {block.endedAt && ` - ${formatTime(block.endedAt)}`}
-                        {!block.endedAt && " - Ongoing"}
-                      </p>
-                      {block.endReason && (
-                        <div className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
-                          {endReasonIcons[block.endReason]}
-                          <span>{endReasonLabels[block.endReason]}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-sm">
-                      {formatDuration(block.durationMinutes)}
-                    </p>
-                    {!block.endedAt && (
-                      <p className="text-green-600 text-xs">Active</p>
-                    )}
-                  </div>
-                </div>
+                  sessionNumber={blocks.length - index}
+                />
               ))}
             </div>
           ) : (
-            <div className="flex h-[250px] items-center justify-center text-center">
-              <p className="text-muted-foreground text-sm">
-                No work sessions yet. Start working to track your sessions.
-              </p>
+            <div className="flex h-[300px] items-center justify-center">
+              <div className="flex flex-col items-center gap-3 text-center">
+                <Briefcase className="h-12 w-12 text-muted-foreground/50" />
+                <p className="text-muted-foreground">
+                  Your work sessions will appear here once you start working.
+                </p>
+              </div>
             </div>
           )}
         </ScrollArea>
@@ -125,16 +164,22 @@ export function WorkBlocksListSkeleton() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-semibold text-lg">Work Sessions</CardTitle>
-        <CardDescription>
-          Your work blocks and breaks for today
-        </CardDescription>
+        <Skeleton className="h-6 w-1/3" />
+        <Skeleton className="mt-2 h-4 w-2/3" />
       </CardHeader>
-
       <CardContent>
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full" />
+        <div className="space-y-8 pt-4">
+          {[...new Array(3)].map((_, i) => (
+            <div className="flex items-start" key={i.toString()}>
+              <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+              <div className="ml-4 w-full space-y-2">
+                <div className="flex justify-between">
+                  <Skeleton className="h-5 w-1/2" />
+                  <Skeleton className="h-5 w-1/4" />
+                </div>
+                <Skeleton className="h-4 w-1/3" />
+              </div>
+            </div>
           ))}
         </div>
       </CardContent>

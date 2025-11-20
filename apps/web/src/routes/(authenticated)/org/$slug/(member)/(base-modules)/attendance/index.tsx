@@ -13,7 +13,6 @@ import {
   WorkBlocksList,
   WorkBlocksListSkeleton,
 } from "@/components/member/attendance/work-blocks-list";
-import { WorkSessionTracker } from "@/components/member/attendance/work-session-tracker";
 
 export const Route = createFileRoute(
   "/(authenticated)/org/$slug/(member)/(base-modules)/attendance/"
@@ -25,28 +24,16 @@ function RouteComponent() {
   return (
     <div className="container mx-auto space-y-6 p-6">
       <Greeting />
-
-      <div className="grid gap-6 xl:grid-cols-3">
-        {/* Left Column - Attendance & Work Summary */}
-        <div className="space-y-6 xl:col-span-2">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Suspense fallback={<MarkAttendanceSkeleton />}>
-              <MarkAttendance />
-            </Suspense>
-
-            <Suspense fallback={<MarkAttendanceSkeleton />}>
-              <WorkSessionTracker />
-            </Suspense>
-          </div>
-
-          {/* Work Sessions List */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <Suspense fallback={<MarkAttendanceSkeleton />}>
+            <MarkAttendance />
+          </Suspense>
           <Suspense fallback={<WorkBlocksListSkeleton />}>
             <WorkBlocksList />
           </Suspense>
         </div>
-
-        {/* Right Column - Team Presence */}
-        <div className="xl:col-span-1">
+        <div className="space-y-6 lg:col-span-1">
           <Suspense fallback={<MemberPresenceListSkeleton />}>
             <MemberPresenceList />
           </Suspense>

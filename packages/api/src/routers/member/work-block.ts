@@ -147,7 +147,7 @@ export const workBlockRouter = {
 
       // Calculate duration
       const durationMs = now.getTime() - activeBlock.startedAt.getTime();
-      const durationMinutes = Math.floor(durationMs / 60000);
+      const durationMinutes = Math.floor(durationMs / 60_000);
 
       // Update work block
       const [updatedBlock] = await db
@@ -175,7 +175,6 @@ export const workBlockRouter = {
     .handler(async ({ input, context: { db, session } }) => {
       const user = session.user;
 
-      // Validate attendance exists and belongs to user
       const attendance = await db.query.attendanceTable.findFirst({
         where: and(
           eq(attendanceTable.id, input.attendanceId),
@@ -185,12 +184,9 @@ export const workBlockRouter = {
       });
 
       if (!attendance) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Attendance record not found.",
-        });
+        return [];
       }
 
-      // Get all work blocks for this attendance, ordered by start time
       const blocks = await db.query.workBlockTable.findMany({
         where: eq(workBlockTable.attendanceId, input.attendanceId),
         orderBy: (workBlockTable, { desc }) => [desc(workBlockTable.startedAt)],
