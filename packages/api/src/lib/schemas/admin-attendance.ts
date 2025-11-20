@@ -70,7 +70,7 @@ export type ListAttendanceRecordsOutputType = z.infer<
 
 // Get attendance detail input/output
 export const GetAttendanceDetailInput = z.object({
-  attendanceId: z.string(),
+  attendanceId: z.string().min(1, "Attendance ID is required"),
 });
 
 export const GetAttendanceDetailOutput = AttendanceRecordWithUser.extend({
@@ -85,7 +85,7 @@ export const GetAttendanceDetailOutput = AttendanceRecordWithUser.extend({
         .nullable(),
     })
   ),
-}).optional();
+});
 
 export type GetAttendanceDetailInputType = z.infer<
   typeof GetAttendanceDetailInput

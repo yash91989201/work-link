@@ -10,7 +10,7 @@ import {
   IconSearch,
   IconUsers,
 } from "@tabler/icons-react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { useState } from "react";
@@ -136,7 +136,7 @@ function RouteComponent() {
     })
   );
 
-  const { data: detailData } = useSuspenseQuery(
+  const { data: detailData } = useQuery(
     queryUtils.admin.attendance.getAttendanceDetail.queryOptions({
       input: {
         attendanceId: detailAttendanceId ?? "",

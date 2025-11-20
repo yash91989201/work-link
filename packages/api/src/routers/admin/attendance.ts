@@ -239,7 +239,9 @@ export const adminAttendanceRouter = {
         );
 
       if (!record) {
-        return;
+        throw new ORPCError("NOT_FOUND", {
+          message: "Attendance record not found",
+        });
       }
 
       // Get work blocks for this attendance
