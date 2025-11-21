@@ -117,7 +117,10 @@ function WorkBlockToggle() {
         toast.success("Work session paused");
         // Set status to away when pausing work
         if (attendance?.organizationId) {
-          await setManualStatus({ orgId: attendance.organizationId, status: "away" });
+          await setManualStatus({
+            orgId: attendance.organizationId,
+            status: "away",
+          });
         }
         await Promise.all([refetchAttendance(), refetchBlock()]);
       },
