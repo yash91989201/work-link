@@ -1,6 +1,6 @@
-import { IconCirclePlus } from "@tabler/icons-react";
 import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import {
+  Check,
   Clock,
   Coffee,
   LogOut,
@@ -30,7 +30,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
-import { queryUtils } from "@/utils/orpc";
+import { queryClient, queryUtils } from "@/utils/orpc";
 
 export function NavQuickActions() {
   return (
@@ -281,6 +281,14 @@ function MarkAttendanceButton() {
     queryUtils.member.attendance.punchIn.mutationOptions({
       onSuccess: async () => {
         toast.success("Checked in successfully!");
+
+        queryClient.refetchQueries(
+          queryUtils.member.workBlock.listBlocks.queryOptions({
+            input: {
+              attendanceId: attendance?.id ?? "",
+            },
+          })
+        );
         await refetch();
       },
     })
@@ -351,7 +359,7 @@ function MarkAttendanceButton() {
       disabled
       tooltip="Attendance Complete"
     >
-      <IconCirclePlus />
+      <Check />
       <span>Attendance Complete</span>
     </SidebarMenuButton>
   );

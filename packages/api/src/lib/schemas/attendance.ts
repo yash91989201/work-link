@@ -33,3 +33,69 @@ export const GetTodayInput = z.object({
 });
 
 export const GetTodayOutput = AttendanceSchema.nullable();
+
+export const attendanceStatuses = [
+  "present",
+  "absent",
+  "late",
+  "excused",
+  "partial",
+  "holiday",
+  "sick_leave",
+  "work_from_home",
+] as const;
+
+const AttendanceStatusEnum = z.enum(attendanceStatuses);
+
+export const AttendanceAnalyticsInput = z.object({
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+});
+
+export const AttendanceAnalyticsOutput = z.object({
+  range: z.object({
+    startDate: z.string(),
+    endDate: z.string(),
+  }),
+  summary: z.object({
+    totalDays: z.number(),
+    presentDays: z.number(),
+    absentDays: z.number(),
+    lateDays: z.number(),
+    remoteDays: z.number(),
+    excusedDays: z.number(),
+    attendanceRate: z.number(),
+    averageDailyHours: z.number(),
+    averageBreakMinutes: z.number(),
+    totalHours: z.number(),
+    overtimeHours: z.number(),
+  }),
+  statusBreakdown: z.array(
+    z.object({
+      status: AttendanceStatusEnum,
+      count: z.number(),
+    })
+  ),
+  dailyTrends: z.array(
+    z.object({
+      date: z.string(),
+      status: AttendanceStatusEnum,
+      totalHours: z.number().nullable(),
+      breakMinutes: z.number().nullable(),
+      checkInTime: z.string().nullable(),
+      checkOutTime: z.string().nullable(),
+    })
+  ),
+  punctuality: z.object({
+    averageCheckInTime: z.string().nullable(),
+    averageCheckOutTime: z.string().nullable(),
+    earliestCheckIn: z.string().nullable(),
+    latestCheckOut: z.string().nullable(),
+  }),
+  streaks: z.object({
+    currentStreak: z.number(),
+    longestStreak: z.number(),
+  }),
+});
+
+export type AttendanceStatus = (typeof attendanceStatuses)[number];

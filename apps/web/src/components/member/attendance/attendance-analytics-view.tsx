@@ -1,12 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
 import { format, subDays } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { useMemo, useState } from "react";
-import { AttendanceInsights } from "@/components/member/attendance/analytics-insights";
-import { AttendanceStatusBreakdown } from "@/components/member/attendance/analytics-status-breakdown";
-import { AttendanceAnalyticsSummary } from "@/components/member/attendance/analytics-summary";
-import { AttendanceTrendChart } from "@/components/member/attendance/analytics-trend-chart";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -16,19 +11,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { queryUtils } from "@/utils/orpc";
-
-export const Route = createFileRoute(
-  "/(authenticated)/org/$slug/(member)/(base-modules)/attendance/analytics"
-)({
-  beforeLoad: ({ context: { queryClient, queryUtils } }) => {
-    queryClient.prefetchQuery(
-      queryUtils.member.attendance.getAnalytics.queryOptions({
-        input: rangeToInput(RANGE_OPTIONS[0].value),
-      })
-    );
-  },
-  component: AnalyticsPage,
-});
+import { AttendanceInsights } from "./analytics-insights";
+import { AttendanceStatusBreakdown } from "./analytics-status-breakdown";
+import { AttendanceAnalyticsSummary } from "./analytics-summary";
+import { AttendanceTrendChart } from "./analytics-trend-chart";
 
 export const RANGE_OPTIONS = [
   { value: "30", label: "Last 30 days", days: 30 },
@@ -52,7 +38,7 @@ export function rangeToInput(value: RangeOptionValue) {
   };
 }
 
-function AnalyticsPage() {
+export function AttendanceAnalyticsView() {
   const [range, setRange] = useState<RangeOptionValue>(RANGE_OPTIONS[0].value);
 
   const input = useMemo(() => rangeToInput(range), [range]);
@@ -75,7 +61,9 @@ function AnalyticsPage() {
 
         <div className="flex items-center gap-3">
           <Select
-            onValueChange={(value) => setRange(value as RangeOptionValue)}
+            onValueChange={(value) =>
+              setRange(value as RangeOptionValue)
+            }
             value={range}
           >
             <SelectTrigger className="w-40">

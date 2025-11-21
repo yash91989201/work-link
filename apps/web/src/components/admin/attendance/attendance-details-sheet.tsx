@@ -34,7 +34,7 @@ const getStatusColor = (status: string) => {
     case "absent":
       return "destructive";
     case "late":
-      return "warning";
+      return "destructive";
     case "holiday":
     case "excused":
       return "secondary";
@@ -80,14 +80,14 @@ export function AttendanceDetailsSheet({
   attendanceId,
   onClose,
 }: AttendanceDetailsSheetProps) {
-  const { data: detailData, isLoading } = useQuery({
-    ...queryUtils.admin.attendance.getAttendanceDetail.queryOptions({
+  const { data: detailData, isLoading } = useQuery(
+    queryUtils.admin.attendance.getAttendanceDetail.queryOptions({
       input: {
         attendanceId: attendanceId ?? "",
       },
       enabled: !!attendanceId,
-    }),
-  });
+    })
+  );
 
   return (
     <Sheet onOpenChange={(open) => !open && onClose()} open={!!attendanceId}>
@@ -115,8 +115,8 @@ export function AttendanceDetailsSheet({
                 <p className="text-muted-foreground">{detailData.user.email}</p>
               </div>
               <Badge
-                variant={getStatusColor(detailData.status) as any}
                 className="capitalize"
+                variant={getStatusColor(detailData.status)}
               >
                 {detailData.status.replace("_", " ")}
               </Badge>
@@ -157,7 +157,7 @@ export function AttendanceDetailsSheet({
               <h3 className="font-semibold text-lg">Time Activity</h3>
               <div className="grid grid-cols-2 gap-4">
                 <DetailItem icon={IconClock} label="Check-In">
-                  <span className="font-mono text-lg text-foreground">
+                  <span className="font-mono text-foreground text-lg">
                     {detailData.checkInTime
                       ? new Date(detailData.checkInTime).toLocaleTimeString(
                           [],
@@ -170,7 +170,7 @@ export function AttendanceDetailsSheet({
                   </span>
                 </DetailItem>
                 <DetailItem icon={IconClock} label="Check-Out">
-                  <span className="font-mono text-lg text-foreground">
+                  <span className="font-mono text-foreground text-lg">
                     {detailData.checkOutTime
                       ? new Date(detailData.checkOutTime).toLocaleTimeString(
                           [],
