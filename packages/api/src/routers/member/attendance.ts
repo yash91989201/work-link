@@ -125,7 +125,7 @@ export const memberAttendanceRouter = {
 
       if (activeBlock) {
         const durationMs = now.getTime() - activeBlock.startedAt.getTime();
-        const durationMinutes = Math.floor(durationMs / 60000);
+        const durationMinutes = Math.floor(durationMs / 60_000);
 
         await db
           .update(workBlockTable)
@@ -139,7 +139,7 @@ export const memberAttendanceRouter = {
 
       // Calculate total hours
       const totalMinutes =
-        (now.getTime() - attendance.checkInTime!.getTime()) / 60000 -
+        (now.getTime() - attendance.checkInTime!.getTime()) / 60_000 -
         (attendance.breakDuration ?? 0);
       const totalHours = (totalMinutes / 60).toFixed(2);
 
