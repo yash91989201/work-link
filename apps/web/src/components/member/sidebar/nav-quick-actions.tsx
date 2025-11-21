@@ -178,6 +178,14 @@ function PresenceStatusDropdown() {
     queryUtils.member.attendance.getStatus.queryOptions({})
   );
 
+  const { data: orgPresence } = useQuery(
+    queryUtils.member.presence.getOrgPresence.queryOptions({
+      input: { orgId: attendance?.organizationId ?? "" },
+      enabled: !!attendance?.organizationId,
+      refetchInterval: 5000,
+    })
+  );
+
   const { mutateAsync: setManualStatus, isPending } = useMutation(
     queryUtils.member.presence.setManualStatus.mutationOptions({
       onSuccess: () => {
@@ -201,12 +209,38 @@ function PresenceStatusDropdown() {
     await setManualStatus({ orgId, status });
   };
 
+  const myPresence =
+    attendance?.userId && orgPresence?.presence
+      ? orgPresence.presence[attendance.userId]
+      : null;
+  const currentStatusRaw = myPresence?.manualStatus as
+    | "dnd"
+    | "busy"
+    | "away"
+    | null
+    | undefined;
+
+  const getStatusLabel = (status: string | null | undefined) => {
+    switch (status) {
+      case "dnd":
+        return "Do Not Disturb";
+      case "busy":
+        return "Busy";
+      case "away":
+        return "Away";
+      default:
+        return "Available";
+    }
+  };
+
+  const currentStatusLabel = getStatusLabel(currentStatusRaw);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <SidebarMenuButton disabled={isPending}>
           <Coffee />
-          <span>Update Status</span>
+          <span>{currentStatusLabel}</span>
         </SidebarMenuButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -215,7 +249,7 @@ function PresenceStatusDropdown() {
         side="right"
         sideOffset={12}
       >
-        <DropdownMenuLabel>Set Status</DropdownMenuLabel>
+        <DropdownMenuLabel>Status</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => handleStatusChange(null)}>
           <Clock className="mr-2 h-4 w-4 text-green-600" />
