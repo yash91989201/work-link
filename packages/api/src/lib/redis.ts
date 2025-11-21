@@ -1,17 +1,14 @@
 import { RedisClient } from "bun";
+import { env } from "@/env";
 
-// Create Redis client instance using Bun's built-in Redis client
-// This should be initialized based on environment variables
 export function createRedisClient(): RedisClient {
-  const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
+  const redisUrl = env.REDIS_URL;
 
-  // Bun's native Redis client
   const redis = new RedisClient(redisUrl);
 
   return redis;
 }
 
-// Singleton instance
 let redisClient: RedisClient | null = null;
 
 export function getRedisClient(): RedisClient {
@@ -21,7 +18,6 @@ export function getRedisClient(): RedisClient {
   return redisClient;
 }
 
-// Graceful shutdown
 export function closeRedisClient(): void {
   if (redisClient) {
     redisClient.close();
@@ -29,7 +25,6 @@ export function closeRedisClient(): void {
   }
 }
 
-// Redis key patterns
 export const PRESENCE_KEY_PREFIX = "presence:user:";
 
 export function getPresenceKey(userId: string): string {
