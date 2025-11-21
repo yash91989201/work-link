@@ -14,7 +14,7 @@ export function MentionsSidebar() {
     <div
       className={cn(
         "flex h-full min-w-0 shrink-0 flex-col overflow-hidden border-l bg-background/95 backdrop-blur-sm transition-[width,opacity] duration-300 ease-in-out supports-backdrop-filter:bg-background/60",
-        isOpen ? "w-96 opacity-100 shadow-lg sm:w-[520px]" : "w-0 opacity-0"
+        isOpen ? "w-96 opacity-100 shadow-lg sm:w-[560px]" : "w-0 opacity-0"
       )}
     >
       <div className="shrink-0 border-border border-b bg-muted/30 p-4">

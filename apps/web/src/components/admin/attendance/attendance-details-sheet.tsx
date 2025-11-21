@@ -1,13 +1,16 @@
 import {
+  IconBriefcase,
   IconCalendar,
   IconClock,
-  IconFileText,
+  IconFileDescription,
   IconMapPin,
+  IconNetwork,
+  IconUserCircle,
 } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -17,11 +20,13 @@ import {
 } from "@/components/ui/sheet";
 import { queryUtils } from "@/utils/orpc";
 
+// Props for the main component
 interface AttendanceDetailsSheetProps {
   attendanceId: string | null;
   onClose: () => void;
 }
 
+// Helper to determine badge color based on attendance status
 const getStatusColor = (status: string) => {
   switch (status) {
     case "present":
@@ -38,6 +43,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
+// Helper to get initials from a name string
 const getInitials = (name: string | null) => {
   if (!name) return "U";
   return name
@@ -48,281 +54,218 @@ const getInitials = (name: string | null) => {
     .slice(0, 2);
 };
 
+// Reusable component for displaying a detail item with an icon and label
+function DetailItem({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ElementType;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-4">
+      <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
+      <div className="flex flex-col gap-1">
+        <span className="font-medium text-sm">{label}</span>
+        <div className="text-muted-foreground text-sm">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// The main sheet component
 export function AttendanceDetailsSheet({
   attendanceId,
   onClose,
 }: AttendanceDetailsSheetProps) {
-  const { data: detailData } = useQuery(
-    queryUtils.admin.attendance.getAttendanceDetail.queryOptions({
+  const { data: detailData, isLoading } = useQuery({
+    ...queryUtils.admin.attendance.getAttendanceDetail.queryOptions({
       input: {
         attendanceId: attendanceId ?? "",
       },
       enabled: !!attendanceId,
-    })
-  );
+    }),
+  });
 
   return (
     <Sheet onOpenChange={(open) => !open && onClose()} open={!!attendanceId}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+        <SheetHeader>
+          <SheetTitle>Attendance Details</SheetTitle>
+        </SheetHeader>
+
+        {isLoading && <div className="py-8 text-center">Loading...</div>}
+
         {detailData && (
-          <div className="flex flex-col gap-6">
-            <SheetHeader className="space-y-4">
-              <SheetTitle>Attendance Details</SheetTitle>
+          <div className="space-y-8 p-6">
+            {/* User Profile Section */}
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={detailData.user.image ?? undefined} />
+                <AvatarFallback className="text-xl">
+                  {getInitials(detailData.user.name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-bold text-xl">
+                  {detailData.user.name ?? "Unknown"}
+                </p>
+                <p className="text-muted-foreground">{detailData.user.email}</p>
+              </div>
+              <Badge
+                variant={getStatusColor(detailData.status) as any}
+                className="capitalize"
+              >
+                {detailData.status.replace("_", " ")}
+              </Badge>
+            </div>
 
-              {/* Member Profile Header */}
-              <div className="flex items-center gap-4 rounded-lg border p-4 shadow-sm">
-                <Avatar className="h-14 w-14 border-2 border-background shadow-sm">
-                  <AvatarImage src={detailData.user.image ?? undefined} />
-                  <AvatarFallback className="text-lg">
-                    {getInitials(detailData.user.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-1">
-                  <div className="font-semibold text-lg leading-none">
-                    {detailData.user.name ?? "Unknown"}
-                  </div>
-                  <div className="text-muted-foreground text-sm">
-                    {detailData.user.email}
-                  </div>
-                </div>
-                <Badge
-                  className="capitalize"
-                  variant={getStatusColor(detailData.status) as any}
-                >
-                  {detailData.status.replace("_", " ")}
+            <Separator />
+
+            {/* Core Details Section */}
+            <section className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <DetailItem icon={IconCalendar} label="Date">
+                {new Date(detailData.date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </DetailItem>
+              <DetailItem icon={IconClock} label="Total Hours">
+                <span className="font-semibold text-foreground">
+                  {detailData.totalHours ?? "N/A"} hrs
+                </span>
+              </DetailItem>
+              <DetailItem icon={IconUserCircle} label="Clock-In Method">
+                <Badge variant="outline">
+                  {detailData.clockInMethod ?? "N/A"}
                 </Badge>
-              </div>
-            </SheetHeader>
+              </DetailItem>
+              <DetailItem icon={IconUserCircle} label="Clock-Out Method">
+                <Badge variant="outline">
+                  {detailData.clockOutMethod ?? "N/A"}
+                </Badge>
+              </DetailItem>
+            </section>
 
-            <div className="space-y-6">
-              {/* Date & Summary */}
+            <Separator />
+
+            {/* Time Activity Section */}
+            <section className="space-y-4">
+              <h3 className="font-semibold text-lg">Time Activity</h3>
               <div className="grid grid-cols-2 gap-4">
-                <Card>
-                  <CardContent className="flex flex-col gap-1 p-4">
-                    <span className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
-                      <IconCalendar className="h-3.5 w-3.5" />
-                      Date
-                    </span>
-                    <span className="font-medium text-sm">
-                      {new Date(detailData.date).toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="flex flex-col gap-1 p-4">
-                    <span className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
-                      <IconClock className="h-3.5 w-3.5" />
-                      Total Hours
-                    </span>
-                    <span className="font-medium text-sm">
-                      {detailData.totalHours ?? "-"} hrs
-                    </span>
-                  </CardContent>
-                </Card>
+                <DetailItem icon={IconClock} label="Check-In">
+                  <span className="font-mono text-lg text-foreground">
+                    {detailData.checkInTime
+                      ? new Date(detailData.checkInTime).toLocaleTimeString(
+                          [],
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )
+                      : "N/A"}
+                  </span>
+                </DetailItem>
+                <DetailItem icon={IconClock} label="Check-Out">
+                  <span className="font-mono text-lg text-foreground">
+                    {detailData.checkOutTime
+                      ? new Date(detailData.checkOutTime).toLocaleTimeString(
+                          [],
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )
+                      : "N/A"}
+                  </span>
+                </DetailItem>
               </div>
+              <DetailItem icon={IconClock} label="Break Duration">
+                {detailData.breakDuration ?? 0} minutes
+              </DetailItem>
+            </section>
 
-              {/* Time Timeline */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <IconClock className="h-4 w-4 text-muted-foreground" />
-                    Time Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <span className="text-muted-foreground text-xs">
-                        Check In
-                      </span>
-                      <div className="font-medium text-lg">
-                        {detailData.checkInTime
-                          ? new Date(detailData.checkInTime).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              }
-                            )
-                          : "-"}
-                      </div>
-                      {detailData.clockInMethod && (
-                        <Badge
-                          className="h-5 px-1.5 text-[10px]"
-                          variant="outline"
-                        >
-                          {detailData.clockInMethod}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-muted-foreground text-xs">
-                        Check Out
-                      </span>
-                      <div className="font-medium text-lg">
-                        {detailData.checkOutTime
-                          ? new Date(
-                              detailData.checkOutTime
-                            ).toLocaleTimeString("en-US", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
-                          : "-"}
-                      </div>
-                      {detailData.clockOutMethod && (
-                        <Badge
-                          className="h-5 px-1.5 text-[10px]"
-                          variant="outline"
-                        >
-                          {detailData.clockOutMethod}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      Break Duration
-                    </span>
-                    <span className="font-medium">
-                      {detailData.breakDuration ?? 0} mins
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Work Sessions */}
-              {detailData.workBlocks.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <IconFileText className="h-4 w-4 text-muted-foreground" />
-                      Work Sessions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {detailData.workBlocks.map((block, index) => (
-                      <div
-                        className="relative border-muted border-l-2 pl-4 last:mb-0"
-                        key={block.id}
-                      >
-                        <div className="-left-[5px] absolute top-1 h-2.5 w-2.5 rounded-full bg-primary" />
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center justify-between">
+            {/* Work Sessions Section */}
+            {detailData.workBlocks.length > 0 && (
+              <>
+                <Separator />
+                <section className="space-y-4">
+                  <h3 className="font-semibold text-lg">Work Sessions</h3>
+                  <div className="space-y-4">
+                    {detailData.workBlocks.map((block) => (
+                      <div className="flex items-center gap-4" key={block.id}>
+                        <IconBriefcase className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex-1">
+                          <div className="flex justify-between">
                             <span className="font-medium text-sm">
-                              Session {index + 1}
+                              {new Date(block.startedAt).toLocaleTimeString(
+                                [],
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}{" "}
+                              -{" "}
+                              {block.endedAt
+                                ? new Date(block.endedAt).toLocaleTimeString(
+                                    [],
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )
+                                : "Now"}
                             </span>
-                            <span className="text-muted-foreground text-xs">
+                            <span className="text-muted-foreground text-sm">
                               {block.durationMinutes
-                                ? `${Math.floor(block.durationMinutes / 60)}h ${block.durationMinutes % 60}m`
-                                : "Ongoing"}
+                                ? `${Math.floor(block.durationMinutes / 60)}h ${
+                                    block.durationMinutes % 60
+                                  }m`
+                                : ""}
                             </span>
-                          </div>
-                          <div className="text-muted-foreground text-xs">
-                            {new Date(block.startedAt).toLocaleTimeString(
-                              "en-US",
-                              { hour: "2-digit", minute: "2-digit" }
-                            )}
-                            {" - "}
-                            {block.endedAt
-                              ? new Date(block.endedAt).toLocaleTimeString(
-                                  "en-US",
-                                  { hour: "2-digit", minute: "2-digit" }
-                                )
-                              : "Now"}
                           </div>
                         </div>
                       </div>
                     ))}
-                  </CardContent>
-                </Card>
-              )}
+                  </div>
+                </section>
+              </>
+            )}
 
-              {/* Location & Network */}
-              {(detailData.location || detailData.ipAddress) && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <IconMapPin className="h-4 w-4 text-muted-foreground" />
-                      Location & Network
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {detailData.location && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-muted-foreground text-xs">
-                          Location
-                        </span>
-                        <span className="text-sm">{detailData.location}</span>
-                      </div>
-                    )}
-                    {detailData.location && detailData.ipAddress && (
-                      <Separator />
-                    )}
-                    {detailData.ipAddress && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-muted-foreground text-xs">
-                          IP Address
-                        </span>
-                        <span className="font-mono text-sm">
-                          {detailData.ipAddress}
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Notes */}
-              {(detailData.notes || detailData.adminNotes) && (
-                <div className="grid gap-4">
+            {/* Location & Notes Section */}
+            {(detailData.location ||
+              detailData.ipAddress ||
+              detailData.notes ||
+              detailData.adminNotes) && (
+              <>
+                <Separator />
+                <section className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  {detailData.location && (
+                    <DetailItem icon={IconMapPin} label="Location">
+                      {detailData.location}
+                    </DetailItem>
+                  )}
+                  {detailData.ipAddress && (
+                    <DetailItem icon={IconNetwork} label="IP Address">
+                      <span className="font-mono">{detailData.ipAddress}</span>
+                    </DetailItem>
+                  )}
                   {detailData.notes && (
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base">
-                          Member Notes
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground text-sm">
-                          {detailData.notes}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <DetailItem icon={IconFileDescription} label="Member Notes">
+                      <p className="italic">"{detailData.notes}"</p>
+                    </DetailItem>
                   )}
                   {detailData.adminNotes && (
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Admin Notes</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground text-sm">
-                          {detailData.adminNotes}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <DetailItem icon={IconFileDescription} label="Admin Notes">
+                      <p className="italic">"{detailData.adminNotes}"</p>
+                    </DetailItem>
                   )}
-                </div>
-              )}
-
-              {/* Metadata Footer */}
-              <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3 text-muted-foreground text-xs">
-                <span>
-                  Entry Type:{" "}
-                  {detailData.isManualEntry ? "Manual" : "Automatic"}
-                </span>
-                <span>ID: {detailData.id.slice(-8)}</span>
-              </div>
-            </div>
+                </section>
+              </>
+            )}
           </div>
         )}
       </SheetContent>

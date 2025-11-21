@@ -159,7 +159,7 @@ export function MessageItem({
             size="sm"
             variant="secondary"
           >
-            <MessageSquareReply className="h-3.5 w-3.5" />
+            <MessageSquareReply />
             <span>Reply</span>
           </Button>
         )}

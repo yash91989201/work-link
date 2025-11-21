@@ -96,10 +96,10 @@ export function NavChannels() {
               <HoverCardContent
                 align="start"
                 aria-label="Channels list"
-                className="w-fit min-w-52 p-0"
+                className="w-fit min-w-56 p-0"
                 role="menu"
                 side="right"
-                sideOffset={12}
+                sideOffset={8}
               >
                 <div className="flex flex-col">
                   <div className="flex items-center gap-3 border-b p-3">
