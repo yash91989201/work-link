@@ -1,6 +1,6 @@
 import { IconBroadcast } from "@tabler/icons-react";
 import { Link, useParams } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { Calendar, ChevronRight } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,11 +17,23 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
-export function NavCommunication() {
+export function NavBaseModules() {
   const { slug } = useParams({
     from: "/(authenticated)/org/$slug",
   });
   const items = [
+    {
+      title: "Attendance",
+      icon: Calendar,
+      isActive: false,
+      items: [
+        {
+          title: "Overview",
+          url: "/org/$slug/dashboard/attendance",
+        },
+      ],
+    },
+
     {
       title: "Communication",
       icon: IconBroadcast,
@@ -30,11 +42,11 @@ export function NavCommunication() {
         {
           title: "Channels",
           url: "/org/$slug/dashboard/communication/channels",
-          icon: IconBroadcast,
         },
       ],
     },
   ];
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Base Modules</SidebarGroupLabel>

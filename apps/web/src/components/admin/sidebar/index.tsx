@@ -10,9 +10,9 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
+  SidebarRail,
 } from "@/components/ui/sidebar";
-import { NavAttendance } from "./nav-attendance";
-import { NavCommunication } from "./nav-communication";
+import { NavBaseModules } from "./nav-base-modules";
 import { NavMain } from "./nav-main";
 import { NavManagement } from "./nav-management";
 import { NavUser } from "./nav-user";
@@ -42,12 +42,12 @@ export function AdminSidebar({
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavManagement />
-        <NavAttendance />
-        <NavCommunication />
+        <NavBaseModules />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }
