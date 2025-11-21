@@ -1,8 +1,4 @@
-import {
-  AttendanceInsertSchema,
-  AttendanceSchema,
-  AttendanceUpdateSchema,
-} from "@work-link/db/lib/schemas/db-tables";
+import { AttendanceSchema } from "@work-link/db/lib/schemas/db-tables";
 import { z } from "zod";
 
 // Derive input schemas from database schemas
