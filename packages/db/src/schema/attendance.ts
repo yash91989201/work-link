@@ -3,6 +3,7 @@ import {
   boolean,
   date,
   decimal,
+  integer,
   pgEnum,
   pgTable,
   text,
@@ -55,7 +56,7 @@ export const attendanceTable = pgTable("attendance", {
   checkInTime: timestamp({ withTimezone: true }),
   checkOutTime: timestamp({ withTimezone: true }),
   totalHours: decimal({ precision: 4, scale: 2 }),
-  breakDuration: decimal({ precision: 4, scale: 2 }),
+  breakDuration: integer().default(0), // Total break time in minutes
   location: text(),
   coordinates: text(),
   ipAddress: text(),
@@ -72,6 +73,36 @@ export const attendanceTable = pgTable("attendance", {
   shiftId: text(),
   overtimeHours: decimal({ precision: 4, scale: 2 }),
   isDeleted: boolean().default(false).notNull(),
+  createdAt: timestamp({ withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp({ withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// Define end reason enum for work blocks
+export const endReasonEnum = pgEnum("endReason", [
+  "manual",
+  "break",
+  "punch_out",
+  "idle_timeout",
+]);
+
+// Work block table for tracking continuous working sessions
+export const workBlockTable = pgTable("workBlock", {
+  id: cuid2().defaultRandom().primaryKey(),
+  attendanceId: text()
+    .notNull()
+    .references(() => attendanceTable.id, { onDelete: "cascade" }),
+  userId: text()
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  startedAt: timestamp({ withTimezone: true }).notNull(),
+  endedAt: timestamp({ withTimezone: true }),
+  durationMinutes: integer(),
+  endReason: endReasonEnum(),
   createdAt: timestamp({ withTimezone: true })
     .$defaultFn(() => new Date())
     .notNull(),

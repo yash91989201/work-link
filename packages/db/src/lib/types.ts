@@ -54,6 +54,9 @@ import type { UserUpdateSchema } from "@/lib/schemas/db-tables";
 import type { VerificationInsertSchema } from "@/lib/schemas/db-tables";
 import type { VerificationSchema } from "@/lib/schemas/db-tables";
 import type { VerificationUpdateSchema } from "@/lib/schemas/db-tables";
+import type { WorkBlockInsertSchema } from "@/lib/schemas/db-tables";
+import type { WorkBlockSchema } from "@/lib/schemas/db-tables";
+import type { WorkBlockUpdateSchema } from "@/lib/schemas/db-tables";
 
 export type AccountInsertType = z.infer<typeof AccountInsertSchema>;
 export type AccountType = z.infer<typeof AccountSchema>;
@@ -107,3 +110,6 @@ export type UserUpdateType = z.infer<typeof UserUpdateSchema>;
 export type VerificationInsertType = z.infer<typeof VerificationInsertSchema>;
 export type VerificationType = z.infer<typeof VerificationSchema>;
 export type VerificationUpdateType = z.infer<typeof VerificationUpdateSchema>;
+export type WorkBlockInsertType = z.infer<typeof WorkBlockInsertSchema>;
+export type WorkBlockType = z.infer<typeof WorkBlockSchema>;
+export type WorkBlockUpdateType = z.infer<typeof WorkBlockUpdateSchema>;

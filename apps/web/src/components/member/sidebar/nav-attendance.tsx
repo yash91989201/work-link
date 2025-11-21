@@ -1,5 +1,6 @@
 import { IconCalendarEvent } from "@tabler/icons-react";
 import { Link, useParams } from "@tanstack/react-router";
+import { ChartNoAxesCombined } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,9 +12,14 @@ import {
 
 const navItems = [
   {
-    title: "Attendance",
+    title: "Overview",
     url: "/org/$slug/attendance",
     icon: IconCalendarEvent,
+  },
+  {
+    title: "Analytics",
+    url: "/org/$slug/attendance/analytics",
+    icon: ChartNoAxesCombined,
   },
 ];
 

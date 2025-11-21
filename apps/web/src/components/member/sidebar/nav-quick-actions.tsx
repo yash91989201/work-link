@@ -1,7 +1,25 @@
 import { IconCirclePlus } from "@tabler/icons-react";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { Clock, LogOut } from "lucide-react";
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  Clock,
+  Coffee,
+  LogOut,
+  Moon,
+  Pause,
+  PhoneCall,
+  Play,
+  XCircle,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -9,6 +27,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { queryUtils } from "@/utils/orpc";
@@ -22,9 +41,234 @@ export function NavQuickActions() {
           <SidebarMenuItem>
             <MarkAttendanceButton />
           </SidebarMenuItem>
+          <SidebarMenuItem>
+            <WorkBlockToggle />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <PresenceStatusDropdown />
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
+  );
+}
+
+function WorkBlockToggle() {
+  const { state } = useSidebar();
+  const { data: attendance, refetch: refetchAttendance } = useSuspenseQuery(
+    queryUtils.member.attendance.getStatus.queryOptions({})
+  );
+
+  const { data: activeBlock, refetch: refetchBlock } = useQuery(
+    queryUtils.member.workBlock.getActiveBlock.queryOptions({
+      input: {
+        attendanceId: attendance?.id ?? "",
+      },
+      enabled: !!attendance?.id,
+    })
+  );
+
+  const [elapsed, setElapsed] = useState<string>("00:00:00");
+
+  useEffect(() => {
+    if (!activeBlock?.startedAt) {
+      setElapsed("00:00:00");
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const start = new Date(activeBlock.startedAt).getTime();
+      const now = Date.now();
+      const diff = now - start;
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setElapsed(
+        `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeBlock]);
+
+  const { mutateAsync: startBlock, isPending: isStarting } = useMutation(
+    queryUtils.member.workBlock.startBlock.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Work session started");
+        await Promise.all([refetchAttendance(), refetchBlock()]);
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    })
+  );
+
+  const { mutateAsync: setManualStatus } = useMutation(
+    queryUtils.member.presence.setManualStatus.mutationOptions({})
+  );
+
+  const { mutateAsync: endBlock, isPending: isEnding } = useMutation(
+    queryUtils.member.workBlock.endBlock.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Work session paused");
+        // Set status to away when pausing work
+        if (attendance?.organizationId) {
+          await setManualStatus({
+            orgId: attendance.organizationId,
+            status: "away",
+          });
+        }
+        await Promise.all([refetchAttendance(), refetchBlock()]);
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    })
+  );
+
+  const hasCheckedIn = !!attendance?.checkInTime;
+  const hasCheckedOut = !!attendance?.checkOutTime;
+  const canToggle = hasCheckedIn && !hasCheckedOut;
+  const isPending = isStarting || isEnding;
+  const isWorking = !!activeBlock;
+
+  if (!canToggle) {
+    return null;
+  }
+
+  const handleToggle = async () => {
+    if (!attendance?.id) return;
+
+    if (isWorking) {
+      await endBlock({
+        attendanceId: attendance.id,
+        endReason: "manual",
+      });
+    } else {
+      await startBlock({ attendanceId: attendance.id });
+    }
+  };
+
+  const tooltipContent = isWorking ? `Working (${elapsed})` : "Start Work";
+
+  return (
+    <SidebarMenuButton
+      className={isWorking ? "text-amber-600 hover:text-amber-700" : ""}
+      disabled={isPending}
+      onClick={handleToggle}
+      tooltip={state === "collapsed" ? tooltipContent : undefined}
+    >
+      {isWorking ? <Pause className="animate-pulse" /> : <Play />}
+      <span>{isWorking ? "Pause Work" : "Start Work"}</span>
+      {isWorking && state === "expanded" && (
+        <span className="ml-auto font-mono text-muted-foreground text-xs">
+          {elapsed}
+        </span>
+      )}
+    </SidebarMenuButton>
+  );
+}
+
+function PresenceStatusDropdown() {
+  const { data: attendance } = useSuspenseQuery(
+    queryUtils.member.attendance.getStatus.queryOptions({})
+  );
+
+  const { data: orgPresence } = useQuery(
+    queryUtils.member.presence.getOrgPresence.queryOptions({
+      input: { orgId: attendance?.organizationId ?? "" },
+      enabled: !!attendance?.organizationId,
+      refetchInterval: 5000,
+    })
+  );
+
+  const { mutateAsync: setManualStatus, isPending } = useMutation(
+    queryUtils.member.presence.setManualStatus.mutationOptions({
+      onSuccess: () => {
+        toast.success("Status updated");
+      },
+    })
+  );
+
+  const hasCheckedIn = !!attendance?.checkInTime;
+  const hasCheckedOut = !!attendance?.checkOutTime;
+  const canSetStatus = hasCheckedIn && !hasCheckedOut;
+
+  if (!canSetStatus) {
+    return null;
+  }
+
+  const handleStatusChange = async (status: "dnd" | "busy" | "away" | null) => {
+    const orgId = attendance?.organizationId;
+    if (!orgId) return;
+
+    await setManualStatus({ orgId, status });
+  };
+
+  const myPresence =
+    attendance?.userId && orgPresence?.presence
+      ? orgPresence.presence[attendance.userId]
+      : null;
+  const currentStatusRaw = myPresence?.manualStatus as
+    | "dnd"
+    | "busy"
+    | "away"
+    | null
+    | undefined;
+
+  const getStatusLabel = (status: string | null | undefined) => {
+    switch (status) {
+      case "dnd":
+        return "Do Not Disturb";
+      case "busy":
+        return "Busy";
+      case "away":
+        return "Away";
+      default:
+        return "Available";
+    }
+  };
+
+  const currentStatusLabel = getStatusLabel(currentStatusRaw);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <SidebarMenuButton disabled={isPending}>
+          <Coffee />
+          <span>{currentStatusLabel}</span>
+        </SidebarMenuButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="w-48"
+        side="right"
+        sideOffset={12}
+      >
+        <DropdownMenuLabel>Status</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => handleStatusChange(null)}>
+          <Clock className="mr-2 h-4 w-4 text-green-600" />
+          Available
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleStatusChange("away")}>
+          <Moon className="mr-2 h-4 w-4 text-yellow-600" />
+          Away
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleStatusChange("busy")}>
+          <XCircle className="mr-2 h-4 w-4 text-red-600" />
+          Busy
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleStatusChange("dnd")}>
+          <PhoneCall className="mr-2 h-4 w-4 text-red-700" />
+          Do Not Disturb
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

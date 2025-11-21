@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import type { Invitation } from "better-auth/plugins/organization";
 import {
   AlertCircle,
@@ -41,6 +37,7 @@ import { useAuthedSession } from "@/hooks/use-authed-session";
 import { getAuthQueryKey } from "@/lib/auth/query-keys";
 import { authClient } from "@/lib/auth-client";
 import { getRoleBadgeVariant, getStatusBadgeVariant } from "@/lib/org";
+import { queryClient } from "@/utils/orpc";
 
 // Extended invitation type that includes createdAt
 type ExtendedInvitation = Invitation & {
@@ -50,7 +47,6 @@ type ExtendedInvitation = Invitation & {
 export const InvitationListTable = () => {
   const { session } = useAuthedSession();
   const orgId = session.activeOrganizationId ?? "";
-  const queryClient = useQueryClient();
 
   const { data: invitationList } = useSuspenseQuery({
     queryKey: getAuthQueryKey.organization.invitations(orgId),
