@@ -22,7 +22,7 @@
     "@types/pg": "^8.15.6",
     "drizzle-kit": "^0.31.7",
     "supabase": "^2.58.5",
-    "tsdown": "^0.16.4"
+    "tsdown": "^0.16.6"
   },
   "peerDependencies": {
     "typescript": "^5.9.3"

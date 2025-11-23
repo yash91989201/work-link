@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1.3.2-slim AS base
+FROM oven/bun:1.3.3-slim AS base
 WORKDIR /app
 
 FROM base AS deps
@@ -45,7 +45,7 @@ RUN bun run --cwd packages/db build & \
   wait && \
   bun run --cwd apps/server compile
 
-FROM oven/bun:1.3.2-slim AS runtime
+FROM oven/bun:1.3.3-slim AS runtime
 WORKDIR /app
 
 COPY --from=builder /app/apps/server/server /app/server
