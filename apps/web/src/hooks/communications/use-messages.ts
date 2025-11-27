@@ -14,7 +14,7 @@ import {
   messagesCollection,
   usersCollection,
 } from "@/db/collections";
-import { buildMessageWithAttachments } from "@/lib/communications/message";
+import { buildOrderedMessages } from "@/lib/communications/message";
 
 export function useVirtualMessages() {
   const { id: channelId } = useParams({
@@ -41,6 +41,8 @@ export function useVirtualMessages() {
     prevScrollHeight: number;
     prevScrollTop: number;
   } | null>(null);
+
+  const isAutoScrollingRef = useRef(false);
 
   const virtualizer = useVirtualizer({
     count: messages.length,
@@ -81,22 +83,28 @@ export function useVirtualMessages() {
       return;
     }
 
-    if (lastMessage.id !== lastMessageIdRef.current) {
-      lastMessageIdRef.current = lastMessage.id;
+    if (lastMessage.id === lastMessageIdRef.current) return;
 
-      if (hasDoneInitialScrollRef.current) {
-        const distanceFromBottom =
-          el.scrollHeight - el.scrollTop - el.clientHeight;
+    lastMessageIdRef.current = lastMessage.id;
 
-        if (distanceFromBottom < 500) {
-          requestAnimationFrame(() => {
-            virtualizer.scrollToOffset(el.scrollHeight, {
-              align: "end",
-              behavior: "smooth",
-            });
-          });
-        }
-      }
+    if (!hasDoneInitialScrollRef.current) return;
+
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+    if (distanceFromBottom < 500) {
+      isAutoScrollingRef.current = true;
+      setShowScrollButton(false);
+
+      setTimeout(() => {
+        isAutoScrollingRef.current = false;
+      }, 1000);
+
+      requestAnimationFrame(() => {
+        virtualizer.scrollToOffset(el.scrollHeight, {
+          align: "end",
+          behavior: "smooth",
+        });
+      });
     }
   }, [messages, virtualizer]);
 
@@ -133,11 +141,16 @@ export function useVirtualMessages() {
     const scrollThreshold = el.clientHeight * 0.1;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
 
-    // Show button when not at the bottom (with 100px threshold)
-    setShowScrollButton(distanceFromBottom > 100);
+    if (isAutoScrollingRef.current && distanceFromBottom <= 50) {
+      isAutoScrollingRef.current = false;
+    }
 
-    if (!hasNextPage || isFetchingNextPage) return;
-    if (loadMoreAnchorRef.current) return; // already anchoring
+    // Show button when not at the bottom (with 100px threshold)
+    if (!isAutoScrollingRef.current) {
+      setShowScrollButton(distanceFromBottom > 100);
+    }
+
+    if (!hasNextPage || isFetchingNextPage || loadMoreAnchorRef.current) return;
 
     const firstItem = virtualizer.getVirtualItems()[0];
     if (!firstItem) return;
@@ -237,35 +250,7 @@ export function useMessages({ channelId }: { channelId: string }) {
       [channelId]
     );
 
-  const messages = useMemo(() => {
-    if (!pages || pages.length === 0) {
-      return [];
-    }
-
-    const map = new Map<
-      string,
-      ReturnType<typeof buildMessageWithAttachments>
-    >();
-
-    for (const page of pages) {
-      for (const { message, sender, attachment } of page) {
-        if (!map.has(message.id)) {
-          map.set(message.id, buildMessageWithAttachments(message, sender));
-        }
-
-        if (attachment) {
-          map.get(message.id)?.attachments.push(attachment);
-        }
-      }
-    }
-
-    const orderedMessages = Array.from(map.values()).sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
-
-    return orderedMessages;
-  }, [pages]);
+  const messages = useMemo(() => buildOrderedMessages(pages), [pages]);
 
   return {
     messages,
