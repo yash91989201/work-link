@@ -31,6 +31,8 @@ export function useVirtualMessages() {
     isLoading,
   } = useMessages({ channelId });
 
+  const lastMessageIdRef = useRef<string | null>(null);
+
   // Track if we've done the initial scroll-to-bottom
   const hasDoneInitialScrollRef = useRef(false);
 
@@ -66,6 +68,37 @@ export function useVirtualMessages() {
       virtualizer.scrollToOffset(el.scrollHeight, { align: "end" });
     });
   }, [channelId, isLoading, messages.length, virtualizer]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || messages.length === 0) return;
+
+    const lastMessage = messages.at(-1);
+    if (lastMessage === undefined) return;
+
+    if (lastMessageIdRef.current === null) {
+      lastMessageIdRef.current = lastMessage.id;
+      return;
+    }
+
+    if (lastMessage.id !== lastMessageIdRef.current) {
+      lastMessageIdRef.current = lastMessage.id;
+
+      if (hasDoneInitialScrollRef.current) {
+        const distanceFromBottom =
+          el.scrollHeight - el.scrollTop - el.clientHeight;
+
+        if (distanceFromBottom < 500) {
+          requestAnimationFrame(() => {
+            virtualizer.scrollToOffset(el.scrollHeight, {
+              align: "end",
+              behavior: "smooth",
+            });
+          });
+        }
+      }
+    }
+  }, [messages, virtualizer]);
 
   // After older messages are fetched and rendered, restore scroll position
   // biome-ignore lint/correctness/useExhaustiveDependencies: Need to track message count changes
