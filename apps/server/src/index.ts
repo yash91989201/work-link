@@ -4,8 +4,8 @@ import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
-import { getRedisClient } from "@work-link/api/lib/redis";
 import { createContext } from "@work-link/api/context";
+import { getRedisClient } from "@work-link/api/lib/redis";
 import { electricRouter } from "@work-link/api/routers/electric/index";
 import { appRouter } from "@work-link/api/routers/index";
 import { auth } from "@work-link/auth";
@@ -25,11 +25,17 @@ try {
       console.log("✅ Redis connected successfully");
     })
     .catch((err) => {
-      console.warn("⚠️  Redis connection failed, presence features will be disabled:", err.message);
+      console.warn(
+        "!  Redis connection failed, presence features will be disabled:",
+        err.message
+      );
       redis = undefined;
     });
 } catch (err) {
-  console.warn("⚠️  Redis initialization failed, presence features will be disabled:", err);
+  console.warn(
+    "!  Redis initialization failed, presence features will be disabled:",
+    err
+  );
   redis = undefined;
 }
 

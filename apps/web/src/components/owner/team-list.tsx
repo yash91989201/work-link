@@ -1,12 +1,17 @@
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { Building2, Calendar, MoreHorizontal, Users } from "lucide-react";
 import { CreateTeamForm } from "@/components/admin/team/create-team-form";
+import {
+  AddTeamMemberDialog,
+  RemoveTeamMemberDialog,
+} from "@/components/owner/team-member-dialogs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,6 +73,13 @@ export const TeamList = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <AddTeamMemberDialog teamId={team.id} />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <RemoveTeamMemberDialog teamId={team.id} />
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-destructive"
                     onClick={() => deleteTeam({ teamId: team.id })}
