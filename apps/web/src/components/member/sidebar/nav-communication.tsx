@@ -1,6 +1,6 @@
 import { IconBroadcast } from "@tabler/icons-react";
 import { Link, useParams } from "@tanstack/react-router";
-import { ChevronRight, Hash } from "lucide-react";
+import { ChevronRight, CircleAlert, Hash } from "lucide-react";
 import { useState } from "react";
 import {
   Collapsible,
@@ -61,7 +61,7 @@ export function NavChannels() {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton tooltip="No Channels">
-            No Channels
+            {isPopover? <CircleAlert/> : "No Channels"}
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
